@@ -1,0 +1,25 @@
+﻿# Visual Studio
+.vs/
+**/.vs/
+
+# Compilación
+bin/
+obj/
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Usuario de Visual Studio
+*.user
+*.suo
+
+# Archivos de EF Core locales
+*.db
+*.db-shm
+*.db-wal
