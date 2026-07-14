@@ -1,7 +1,7 @@
-﻿using Itinera.Application.Propuestas.Interfaces;
+using Itinera.Application.Propuestas.Interfaces;
 using Itinera.Domain.Propuestas;
 
-namespace Itinera.Infrastructure.Persistence.Repositories;
+namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
 public class PropuestaRepository(AppDbContext context) : IPropuestaRepository
 {

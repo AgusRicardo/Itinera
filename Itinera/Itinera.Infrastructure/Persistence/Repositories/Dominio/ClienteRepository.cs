@@ -1,7 +1,7 @@
-﻿using Itinera.Application.Clientes.Interfaces;
+using Itinera.Application.Clientes.Interfaces;
 using Itinera.Domain.Usuarios;
 
-namespace Itinera.Infrastructure.Persistence.Repositories;
+namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
 public class ClienteRepository(AppDbContext context) : IClienteRepository
 {

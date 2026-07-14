@@ -1,7 +1,7 @@
-﻿using Itinera.Application.Empleados.Interfaces;
+using Itinera.Application.Empleados.Interfaces;
 using Itinera.Domain.Usuarios;
 
-namespace Itinera.Infrastructure.Persistence.Repositories;
+namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
 public class EmpleadoRepository(AppDbContext context) : IEmpleadoRepository
 {

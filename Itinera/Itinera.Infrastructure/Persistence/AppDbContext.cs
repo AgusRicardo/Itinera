@@ -29,7 +29,8 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly,
+            t => t.Namespace?.Contains("Seguridad") != true);
 
         base.OnModelCreating(modelBuilder);
     }

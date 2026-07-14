@@ -1,8 +1,8 @@
-﻿using Itinera.Domain.Propuestas;
+using Itinera.Domain.Propuestas;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Itinera.Infrastructure.Persistence.Configurations;
+namespace Itinera.Infrastructure.Persistence.Configurations.Dominio;
 
 public class DestinoItinerarioConfiguration : IEntityTypeConfiguration<DestinoItinerario>
 {

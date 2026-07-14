@@ -1,8 +1,8 @@
-﻿using Itinera.Domain.Usuarios;
+using Itinera.Domain.Usuarios;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Itinera.Infrastructure.Persistence.Configurations;
+namespace Itinera.Infrastructure.Persistence.Configurations.Dominio;
 
 public class EmpleadoConfiguration : IEntityTypeConfiguration<Empleado>
 {
