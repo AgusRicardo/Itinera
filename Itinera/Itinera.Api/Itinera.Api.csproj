@@ -20,7 +20,8 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Itinera.Application\Itinera.Application.csproj" />
-	  <ProjectReference Include="..\Itinera.Infrastructure\Itinera.Infrastructure.csproj" />
+      <ProjectReference Include="..\Itinera.Infrastructure\Itinera.Infrastructure.csproj" />
+      <ProjectReference Include="..\Itinera.Security\Itinera.Security.csproj" />
 	</ItemGroup>
 
 </Project>

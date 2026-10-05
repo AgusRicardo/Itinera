@@ -4,6 +4,7 @@ public class Destino
 {
     public int Id { get; private set; }
     public int CiudadId { get; private set; }
+    public bool Activo { get; private set; } = true;
     public Ciudad Ciudad { get; private set; }
     public List<Actividad> Actividades { get; private set; } = new();
 
@@ -17,4 +18,7 @@ public class Destino
     {
         Actividades.Add(actividad);
     }
+
+    public void Desactivar() => Activo = false;
+    public void Activar() => Activo = true;
 }

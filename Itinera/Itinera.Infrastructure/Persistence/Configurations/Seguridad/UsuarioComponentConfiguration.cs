@@ -1,4 +1,4 @@
-using Itinera.Domain.Seguridad;
+using Itinera.Security.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,7 +21,6 @@ public class UsuarioComponentConfiguration : IEntityTypeConfiguration<UsuarioCom
                .HasValue<GrupoUsuarios>("Grupo");
 
         builder.Property<DateTime>("FechaRegistracion")
-               .IsRequired()
-               .HasDefaultValueSql("datetime('now')");
+               .IsRequired();
     }
 }

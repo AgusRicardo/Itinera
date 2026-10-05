@@ -20,5 +20,10 @@ public class DestinoConfiguration : IEntityTypeConfiguration<Destino>
                .WithOne(a => a.Destino)
                .HasForeignKey(a => a.DestinoId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(x => x.Activo)
+               .IsRequired();
+
+        builder.HasQueryFilter(x => x.Activo);
     }
 }

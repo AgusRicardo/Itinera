@@ -8,6 +8,7 @@ public class Actividad
     public decimal CostoBase { get; private set; }
     public int DuracionEstimada { get; private set; }
     public int DestinoId { get; private set; }
+    public bool Activo { get; private set; } = true;
     public Destino Destino { get; private set; }
 
     public Actividad(string nombre, string descripcion, decimal costo, int duracion)
@@ -23,4 +24,7 @@ public class Actividad
         Nombre = nombre;
         Descripcion = descripcion;
     }
+
+    public void Desactivar() => Activo = false;
+    public void Activar() => Activo = true;
 }

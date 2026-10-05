@@ -12,6 +12,7 @@ public class Empresa
     public Guid UsuarioRegistracionId { get; protected set; }
     public DateTime? FechaModificacion { get; protected set; }
     public Guid? UsuarioModificacionId { get; protected set; }
+    public bool Activo { get; private set; } = true;
     public List<Empleado> Empleados { get; private set; } = new();
 
     public Empresa(string razonSocial, string cUIT, string telefono, List<Empleado> empleados)
@@ -23,4 +24,6 @@ public class Empresa
     }
 
     public void CrearEmpleado(Empleado empleado) => Empleados.Add(empleado);
+    public void Desactivar() => Activo = false;
+    public void Activar() => Activo = true;
 }

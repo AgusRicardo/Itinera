@@ -3,4 +3,6 @@
   <Project Path="Itinera.Application/Itinera.Application.csproj" />
   <Project Path="Itinera.Domain/Itinera.Domain.csproj" />
   <Project Path="Itinera.Infrastructure/Itinera.Infrastructure.csproj" />
+  <Project Path="Itinera.Security/Itinera.Security.csproj" />
+  <Project Path="Itinera.UnitTests/Itinera.UnitTests.csproj" />
 </Solution>

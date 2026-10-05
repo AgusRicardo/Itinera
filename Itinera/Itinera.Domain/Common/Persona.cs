@@ -11,6 +11,7 @@ public abstract class Persona
     public Guid UsuarioRegistracionId { get; protected set; }
     public DateTime? FechaModificacion { get; protected set; }
     public Guid? UsuarioModificacionId { get; protected set; }
+    public bool Activo { get; private set; } = true;
 
     protected Persona(string nombre, string apellido, string email, string telefono)
     {
@@ -27,4 +28,7 @@ public abstract class Persona
         Email = email;
         Telefono = telefono;
     }
+
+    public void Desactivar() => Activo = false;
+    public void Activar() => Activo = true;
 }

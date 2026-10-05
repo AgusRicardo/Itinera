@@ -1,12 +1,12 @@
-using Itinera.Application.Seguridad.Interfaces;
-using Itinera.Domain.Seguridad;
+using Itinera.Security.Application.Interfaces;
+using Itinera.Security.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence.Repositories.Seguridad;
 
-public class SecurityRepository(SecurityDbContext context) : ISecurityRepository
+public class SecurityRepository(AppDbContext context) : ISecurityRepository
 {
-    private readonly SecurityDbContext _context = context;
+    private readonly AppDbContext _context = context;
 
     public Task<Usuario?> GetByEmailAsync(string email)
         => _context.Usuarios

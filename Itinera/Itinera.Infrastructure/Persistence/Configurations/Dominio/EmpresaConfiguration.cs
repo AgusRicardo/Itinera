@@ -32,5 +32,10 @@ public class EmpresaConfiguration : IEntityTypeConfiguration<Empresa>
         builder.Property(e => e.FechaModificacion);
 
         builder.Property(e => e.UsuarioModificacionId);
+
+        builder.Property(e => e.Activo)
+               .IsRequired();
+
+        builder.HasQueryFilter(e => e.Activo);
     }
 }

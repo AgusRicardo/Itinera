@@ -10,6 +10,8 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
     {
         builder.ToTable("Clientes");
 
+        builder.HasBaseType<Itinera.Domain.Common.Persona>();
+
         builder.HasMany(x => x.Propuestas)
                .WithOne(x => x.Cliente);
     }
