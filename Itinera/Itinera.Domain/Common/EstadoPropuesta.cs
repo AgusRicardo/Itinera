@@ -2,9 +2,9 @@
 
 public enum EstadoPropuesta
 {
-    Borrador,
-    Presentada,
-    Enviada,
-    Aceptada,
-    Rechazada
+    Borrador = 1,
+    Presentada = 2,
+    Aceptada = 3,
+    Rechazada = 4,
+    Eliminada = 5
 }

@@ -23,5 +23,10 @@ public class ActividadConfiguration : IEntityTypeConfiguration<Actividad>
                .HasPrecision(18, 2);
 
         builder.Property(x => x.DuracionEstimada);
+
+        builder.Property(x => x.Activo)
+               .IsRequired();
+
+        builder.HasQueryFilter(x => x.Activo);
     }
 }

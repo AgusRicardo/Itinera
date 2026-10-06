@@ -15,8 +15,6 @@ public class ActividadDestinoItinerario
 
     public ActividadDestinoItinerario(DateTime fechaHoraInicio, decimal costoFinal, string observaciones, int orden, DestinoItinerario destinoItinerario, Actividad actividad)
     {
-        DestinoItinerarioId = destinoItinerario.Id;
-        ActividadId = actividad.Id;
         FechaHoraInicio = fechaHoraInicio;
         CostoFinal = costoFinal;
         Observaciones = observaciones;

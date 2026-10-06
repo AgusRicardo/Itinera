@@ -17,8 +17,15 @@ public class PropuestaConfiguration : IEntityTypeConfiguration<Propuesta>
         builder.Property(x => x.Presupuesto)
                .HasPrecision(18, 2);
 
-        builder.Property(x => x.Estado)
+        builder.Ignore(x => x.Estado);
+
+        builder.Property(x => x.EstadoPropuestaId)
                .IsRequired();
+
+        builder.HasOne(x => x.EstadoPropuestaCatalogo)
+               .WithMany()
+               .HasForeignKey(x => x.EstadoPropuestaId)
+               .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.Cliente)
                .WithMany(x => x.Propuestas);
@@ -39,5 +46,9 @@ public class PropuestaConfiguration : IEntityTypeConfiguration<Propuesta>
         builder.HasOne(x => x.Itinerario)
                .WithOne(x => x.Propuesta)
                .HasForeignKey<Itinerario>(x => x.PropuestaId);
+
+        builder.HasMany(x => x.Facturas)
+               .WithOne(x => x.Propuesta)
+               .HasForeignKey(x => x.PropuestaId);
     }
 }

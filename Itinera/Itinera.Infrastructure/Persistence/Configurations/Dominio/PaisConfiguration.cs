@@ -15,5 +15,10 @@ public class PaisConfiguration : IEntityTypeConfiguration<Pais>
         builder.Property(x => x.Nombre)
                .IsRequired()
                .HasMaxLength(100);
+
+        builder.Property(x => x.Activo)
+               .IsRequired();
+
+        builder.HasQueryFilter(x => x.Activo);
     }
 }

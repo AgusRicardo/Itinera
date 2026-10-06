@@ -9,6 +9,7 @@ public class EmpleadoConfiguration : IEntityTypeConfiguration<Empleado>
     public void Configure(EntityTypeBuilder<Empleado> builder)
     {
         builder.ToTable("Empleados");
+        builder.HasBaseType<Itinera.Domain.Common.Persona>();
 
         builder.HasOne(x => x.Cargo)
                .WithMany()
