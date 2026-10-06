@@ -1,5 +1,6 @@
 using Itinera.Application.Empleados.Interfaces;
 using Itinera.Domain.Usuarios;
+using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
@@ -9,11 +10,31 @@ public class EmpleadoRepository(AppDbContext context) : IEmpleadoRepository
 
     public Task AddAsync(Empleado empleado)
     {
-        throw new NotImplementedException();
+        _context.Empleados.Add(empleado);
+        return _context.SaveChangesAsync();
     }
 
-    public async Task<Empleado?> GetByIdAsync(int id)
+    public Task<Empleado?> GetByIdAsync(int id)
+        => _context.Empleados
+            .Include(empleado => empleado.Cargo)
+            .Include(empleado => empleado.Empresa)
+            .FirstOrDefaultAsync(empleado => empleado.Id == id);
+
+    public Task<List<Empleado>> GetAllAsync()
+        => _context.Empleados
+            .Include(empleado => empleado.Cargo)
+            .Include(empleado => empleado.Empresa)
+            .ToListAsync();
+
+    public Task UpdateAsync(Empleado empleado)
     {
-        throw new NotImplementedException();
+        _context.Empleados.Update(empleado);
+        return _context.SaveChangesAsync();
+    }
+
+    public Task DeleteAsync(Empleado empleado)
+    {
+        _context.Empleados.Update(empleado);
+        return _context.SaveChangesAsync();
     }
 }

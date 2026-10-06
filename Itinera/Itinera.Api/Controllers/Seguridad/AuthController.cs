@@ -1,5 +1,5 @@
-using Itinera.Application.Seguridad.Dtos;
-using Itinera.Application.Seguridad.Interfaces;
+using Itinera.Security.Aplicacion.Interfaces;
+using Itinera.Security.Application.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

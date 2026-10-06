@@ -1,4 +1,4 @@
-using Itinera.Domain.Seguridad;
+using Itinera.Security.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

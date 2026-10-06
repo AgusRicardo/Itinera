@@ -9,6 +9,7 @@ public class PersonaConfiguration : IEntityTypeConfiguration<Persona>
     public void Configure(EntityTypeBuilder<Persona> builder)
     {
         builder.ToTable("Personas");
+        builder.UseTptMappingStrategy();
 
         builder.HasKey(x => x.Id);
 
@@ -36,5 +37,10 @@ public class PersonaConfiguration : IEntityTypeConfiguration<Persona>
         builder.Property(x => x.FechaModificacion);
 
         builder.Property(x => x.UsuarioModificacionId);
+
+        builder.Property(x => x.Activo)
+               .IsRequired();
+
+        builder.HasQueryFilter(x => x.Activo);
     }
 }

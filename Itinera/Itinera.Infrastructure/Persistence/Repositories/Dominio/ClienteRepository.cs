@@ -1,5 +1,6 @@
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Domain.Usuarios;
+using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
@@ -9,11 +10,25 @@ public class ClienteRepository(AppDbContext context) : IClienteRepository
 
     public Task AddAsync(Cliente cliente)
     {
-        throw new NotImplementedException();
+        _context.Clientes.Add(cliente);
+        return _context.SaveChangesAsync();
     }
 
-    public async Task<Cliente?> GetByIdAsync(int id)
+    public Task<Cliente?> GetByIdAsync(int id)
+        => _context.Clientes.FindAsync(id).AsTask();
+
+    public Task<List<Cliente>> GetAllAsync()
+        => _context.Clientes.ToListAsync();
+
+    public Task UpdateAsync(Cliente cliente)
     {
-        return await _context.Clientes.FindAsync(id);
+        _context.Clientes.Update(cliente);
+        return _context.SaveChangesAsync();
+    }
+
+    public Task DeleteAsync(Cliente cliente)
+    {
+        _context.Clientes.Update(cliente);
+        return _context.SaveChangesAsync();
     }
 }

@@ -19,5 +19,10 @@ public class CiudadConfiguration : IEntityTypeConfiguration<Ciudad>
         builder.HasOne(x => x.Pais)
                .WithMany(x => x.Ciudades)
                .HasForeignKey(x => x.PaisId);
+
+        builder.Property(x => x.Activo)
+               .IsRequired();
+
+        builder.HasQueryFilter(x => x.Activo);
     }
 }

@@ -1,4 +1,5 @@
 using System.Net;
+using Itinera.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Middleware;
@@ -33,6 +34,8 @@ public class GlobalExceptionMiddleware
         {
             UnauthorizedAccessException ex =>
                 (HttpStatusCode.Unauthorized, ex.Message),
+            NotFoundException ex =>
+                (HttpStatusCode.NotFound, ex.Message),
             InvalidOperationException ex =>
                 (HttpStatusCode.Conflict, ex.Message),
             KeyNotFoundException ex =>

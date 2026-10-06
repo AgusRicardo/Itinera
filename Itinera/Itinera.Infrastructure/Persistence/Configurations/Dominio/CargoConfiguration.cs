@@ -15,5 +15,10 @@ public class CargoConfiguration : IEntityTypeConfiguration<Cargo>
         builder.Property(c => c.Descripcion)
                .IsRequired()
                .HasMaxLength(100);
+
+        builder.Property(c => c.Activo)
+               .IsRequired();
+
+        builder.HasQueryFilter(c => c.Activo);
     }
 }
