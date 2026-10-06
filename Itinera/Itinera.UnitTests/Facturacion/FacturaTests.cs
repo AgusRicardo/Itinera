@@ -1,8 +1,10 @@
 using Itinera.Domain.Common;
+using Itinera.Domain.Empresa;
 using Itinera.Domain.Facturacion;
 using Itinera.Domain.Propuestas;
 using Itinera.Domain.Usuarios;
 using Xunit;
+using EmpresaEntidad = Itinera.Domain.Empresa.Empresa;
 
 namespace Itinera.UnitTests.Facturacion;
 
@@ -12,7 +14,13 @@ public class FacturaTests
     public void Registrar_pagos_debe_actualizar_saldo_y_estado()
     {
         var cliente = new Cliente("Ana", "Gomez", "ana@correo.com", "111");
-        var empleado = new Empleado("Juan", "Perez", "juan@correo.com", "222");
+        var empleado = new Empleado(
+            "Juan",
+            "Perez",
+            "juan@correo.com",
+            "222",
+            new Cargo("Agente de viajes"),
+            new EmpresaEntidad("Viajes SA", "30-12345678-9", "1122334455"));
         var propuesta = new Propuesta(cliente, empleado, 1000);
         propuesta.Aceptar();
 

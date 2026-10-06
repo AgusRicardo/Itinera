@@ -15,15 +15,38 @@ public class Empresa
     public bool Activo { get; private set; } = true;
     public List<Empleado> Empleados { get; private set; } = new();
 
-    public Empresa(string razonSocial, string cUIT, string telefono, List<Empleado> empleados)
+    private Empresa()
     {
+    }
+
+    public Empresa(string razonSocial, string cuit, string telefono)
+    {
+        Validar(razonSocial, cuit);
+
         RazonSocial = razonSocial;
-        CUIT = cUIT;
+        CUIT = cuit;
         Telefono = telefono;
-        Empleados = empleados;
+    }
+
+    public void ActualizarDatos(string razonSocial, string cuit, string telefono)
+    {
+        Validar(razonSocial, cuit);
+
+        RazonSocial = razonSocial;
+        CUIT = cuit;
+        Telefono = telefono;
     }
 
     public void CrearEmpleado(Empleado empleado) => Empleados.Add(empleado);
     public void Desactivar() => Activo = false;
     public void Activar() => Activo = true;
+
+    private static void Validar(string razonSocial, string cuit)
+    {
+        if (string.IsNullOrWhiteSpace(razonSocial))
+            throw new ArgumentException("La razón social es obligatoria.", nameof(razonSocial));
+
+        if (string.IsNullOrWhiteSpace(cuit))
+            throw new ArgumentException("El CUIT es obligatorio.", nameof(cuit));
+    }
 }

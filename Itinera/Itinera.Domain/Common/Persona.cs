@@ -15,6 +15,8 @@ public abstract class Persona
 
     protected Persona(string nombre, string apellido, string email, string telefono)
     {
+        Validar(nombre, apellido, email);
+
         Nombre = nombre;
         Apellido = apellido;
         Email = email;
@@ -23,6 +25,8 @@ public abstract class Persona
 
     public void ActualizarDatos(string nombre, string apellido, string email, string telefono)
     {
+        Validar(nombre, apellido, email);
+
         Nombre = nombre;
         Apellido = apellido;
         Email = email;
@@ -31,4 +35,16 @@ public abstract class Persona
 
     public void Desactivar() => Activo = false;
     public void Activar() => Activo = true;
+
+    private static void Validar(string nombre, string apellido, string email)
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+            throw new ArgumentException("El nombre es obligatorio.", nameof(nombre));
+
+        if (string.IsNullOrWhiteSpace(apellido))
+            throw new ArgumentException("El apellido es obligatorio.", nameof(apellido));
+
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("El email es obligatorio.", nameof(email));
+    }
 }

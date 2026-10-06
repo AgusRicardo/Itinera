@@ -16,9 +16,42 @@ public class Empleado : Persona
         string nombre,
         string apellido,
         string email,
-        string telefono
+        string telefono,
+        Cargo cargo,
+        Empresa.Empresa empresa
     ) : base(nombre, apellido, email, telefono)
     {
+        AsignarCargo(cargo);
+        AsignarEmpresa(empresa);
+    }
+
+    public void AsignarCargo(Cargo cargo)
+    {
+        ArgumentNullException.ThrowIfNull(cargo);
+
+        Cargo = cargo;
+        CargoId = cargo.Id;
+    }
+
+    public void AsignarEmpresa(Empresa.Empresa empresa)
+    {
+        ArgumentNullException.ThrowIfNull(empresa);
+
+        Empresa = empresa;
+        EmpresaId = empresa.Id;
+    }
+
+    public void ActualizarDatos(
+        string nombre,
+        string apellido,
+        string email,
+        string telefono,
+        Cargo cargo,
+        Empresa.Empresa empresa)
+    {
+        base.ActualizarDatos(nombre, apellido, email, telefono);
+        AsignarCargo(cargo);
+        AsignarEmpresa(empresa);
     }
 
     public void AsociarPropuesta(Propuesta propuesta)
