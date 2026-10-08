@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Itinera.Security.Aplicacion.Interfaces;
 using Itinera.Security.Application.Common;
 using Itinera.Security.Application.Dtos;
 using Itinera.Security.Application.Interfaces;
