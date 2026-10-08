@@ -490,11 +490,11 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("FechaFin")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("FechaFin")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime>("FechaInicio")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("FechaInicio")
+                        .HasColumnType("date");
 
                     b.Property<DateTime?>("FechaModificacion")
                         .HasColumnType("timestamp with time zone");

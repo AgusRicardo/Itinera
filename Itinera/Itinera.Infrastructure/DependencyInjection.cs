@@ -12,6 +12,7 @@ using Itinera.Application.Propuestas.Interfaces;
 using Itinera.Security.Application.Interfaces;
 using Itinera.Application.Common.Interfaces;
 using Itinera.Infrastructure.Persistence;
+using Itinera.Infrastructure.Persistence.Seed;
 using Microsoft.Extensions.Configuration;
 using Itinera.Infrastructure.Persistence.Repositories.Dominio;
 using Itinera.Infrastructure.Persistence.Repositories.Seguridad;
@@ -39,6 +40,8 @@ public static class DependencyInjection
         services.AddScoped<IEstadoFacturaRepository, EstadoFacturaRepository>();
 
         services.AddScoped<ISecurityRepository, SecurityRepository>();
+
+        services.AddScoped<SecuritySeeder>();
 
         services.AddPersistence(configuration);
 

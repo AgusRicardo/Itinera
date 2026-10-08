@@ -15,16 +15,15 @@ public class DestinoRepository(AppDbContext context) : IDestinoRepository
     }
 
     public Task<Destino?> GetByIdAsync(int id)
-        => _context.Destinos
-            .Include(destino => destino.Ciudad)
-                .ThenInclude(ciudad => ciudad.Pais)
-            .FirstOrDefaultAsync(destino => destino.Id == id);
+        => ConRelaciones().FirstOrDefaultAsync(destino => destino.Id == id);
 
     public Task<List<Destino>> GetAllAsync()
+        => ConRelaciones().ToListAsync();
+
+    private IQueryable<Destino> ConRelaciones()
         => _context.Destinos
             .Include(destino => destino.Ciudad)
-                .ThenInclude(ciudad => ciudad.Pais)
-            .ToListAsync();
+                .ThenInclude(ciudad => ciudad.Pais);
 
     public Task UpdateAsync(Destino destino)
     {

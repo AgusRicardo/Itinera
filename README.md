@@ -82,9 +82,48 @@ Itinera/
 
 ## Pruebas
 
+Todos los tests (unitarios, de arquitectura y de integración):
+
 ```powershell
 dotnet test
 ```
+
+Solo los tests rápidos, sin base de datos:
+
+```powershell
+dotnet test --filter "Category!=Integration"
+```
+
+### Tests de integración
+
+Requieren un PostgreSQL accesible. Por defecto usan
+`Host=localhost;Port=5432;Database=itinera_test;Username=itinera;Password=itinera_dev`,
+que coincide con el servicio de `docker-compose.yml`.
+
+```powershell
+docker compose up -d postgres
+dotnet test --filter "Category=Integration"
+```
+
+Para apuntar a otra base, definir la variable de entorno:
+
+```powershell
+$env:ITINERA_TEST_CONNECTION = "Host=localhost;Port=5432;Database=itinera_test;Username=itinera;Password=itinera_dev"
+```
+
+> La base de tests se recrea en cada corrida (`EnsureDeleted` + `Migrate`).
+
+## Seguridad
+
+- Autenticación por JWT. Los permisos efectivos viajan como claims `permiso`.
+- Roles: `Administrador` (todos los permisos) y `Agente` (operación de clientes,
+  propuestas, itinerarios y facturación).
+- Al iniciar, un seeder idempotente crea los permisos y roles, y un usuario
+  administrador inicial a partir de `Seed:Admin:*` (solo si no hay usuarios).
+- Endpoints de administración protegidos con `seguridad.gestionar`:
+  `/api/usuarios`, `/api/roles`, `/api/grupos`.
+- Los grupos son un **Composite**: pueden contener usuarios y otros grupos, y los
+  roles se heredan de todos los grupos contenedores.
 
 ## Secretos y configuración
 

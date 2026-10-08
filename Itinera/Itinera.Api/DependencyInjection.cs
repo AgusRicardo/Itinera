@@ -4,7 +4,9 @@ using Itinera.Application;
 using Itinera.Application.Common.Interfaces;
 using Itinera.Infrastructure;
 using Itinera.Security;
+using Itinera.Security.Application.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Itinera.Api;
@@ -58,6 +60,17 @@ public static class DependencyInjection
                 };
             });
 
-        servicios.AddAuthorization();
+        servicios.AddSingleton<IAuthorizationHandler, PermisoAuthorizationHandler>();
+
+        servicios.AddAuthorization(opciones =>
+        {
+            foreach (var definicion in Permisos.Catalogo)
+            {
+                opciones.AddPolicy(definicion.Codigo, politica =>
+                    politica
+                        .RequireAuthenticatedUser()
+                        .AddRequirements(new PermisoRequirement(definicion.Codigo)));
+            }
+        });
     }
 }

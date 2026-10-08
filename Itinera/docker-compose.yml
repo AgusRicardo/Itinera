@@ -25,6 +25,9 @@ services:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-itinera};Username=${POSTGRES_USER:-itinera};Password=${POSTGRES_PASSWORD}"
       Database__Provider: PostgreSQL
       Jwt__Key: ${JWT_KEY:?JWT_KEY is required}
+      Seed__Admin__Nombre: ${SEED_ADMIN_NOMBRE:-Administrador}
+      Seed__Admin__Email: ${SEED_ADMIN_EMAIL:-}
+      Seed__Admin__Password: ${SEED_ADMIN_PASSWORD:-}
     ports:
       - "8080:8080"
     depends_on:

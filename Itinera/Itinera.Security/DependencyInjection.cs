@@ -18,6 +18,10 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IAuthorizationService, AuthorizationService>();
 
+        services.AddScoped<IUsuarioAdminService, UsuarioAdminService>();
+        services.AddScoped<IRolAdminService, RolAdminService>();
+        services.AddScoped<IGrupoAdminService, GrupoAdminService>();
+
         return services;
     }
 }

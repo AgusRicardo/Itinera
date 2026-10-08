@@ -34,7 +34,8 @@ public class AuthenticationService : IAuthenticationService
 
         var roles = await _repository.GetRolesDeUsuarioAsync(usuario.Id);
         var rolesNombres = roles.Select(r => r.Nombre).ToList();
-        var token = GenerarToken(usuario, rolesNombres);
+        var permisos = await _repository.GetPermisosDeUsuarioAsync(usuario.Id);
+        var token = GenerarToken(usuario, rolesNombres, permisos.Select(p => p.Codigo).ToList());
 
         return new LoginResponse(
             token,
@@ -56,7 +57,7 @@ public class AuthenticationService : IAuthenticationService
         return await _repository.CreateUsuarioAsync(usuario);
     }
 
-    private string GenerarToken(Usuario usuario, List<string> roles)
+    private string GenerarToken(Usuario usuario, List<string> roles, List<string> permisos)
     {
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_jwtSettings.Key));
@@ -72,6 +73,9 @@ public class AuthenticationService : IAuthenticationService
 
         claims.AddRange(roles.Select(rol =>
             new Claim(ClaimTypes.Role, rol)));
+
+        claims.AddRange(permisos.Select(permiso =>
+            new Claim(Permisos.ClaimType, permiso)));
 
         var token = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,

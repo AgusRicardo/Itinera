@@ -9,8 +9,8 @@ public class Propuesta
     public int Id { get; private set; }
     public DateTime FechaCreacion { get; private set; }
     public decimal Presupuesto { get; private set; }
-    public EstadoPropuesta Estado { get; private set; }
     public int EstadoPropuestaId { get; private set; }
+    public EstadoPropuesta Estado => (EstadoPropuesta)EstadoPropuestaId;
     public int ClienteId { get; private set; }
     public int EmpleadoId { get; private set; }
     public DateTime FechaRegistracion { get; protected set; }
@@ -31,7 +31,6 @@ public class Propuesta
     public Propuesta(Cliente cliente, Empleado empleado, decimal presupuesto)
     {
         FechaCreacion = DateTime.UtcNow;
-        Estado = EstadoPropuesta.Borrador;
         EstadoPropuestaId = (int)EstadoPropuesta.Borrador;
 
         Cliente = cliente;
@@ -58,7 +57,6 @@ public class Propuesta
 
     private void CambiarEstado(EstadoPropuesta estado)
     {
-        Estado = estado;
         EstadoPropuestaId = (int)estado;
     }
 }

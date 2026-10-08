@@ -11,19 +11,41 @@ public class GrupoUsuarios : UsuarioComponent
 
     private GrupoUsuarios() { }
 
-    public void Agregar(Usuario usuario)
+    public override void Agregar(UsuarioComponent componente)
     {
-        if (!_grupoMiembros.Any(gm => gm.MiembroId == usuario.Id))
-            _grupoMiembros.Add(new GrupoMiembro(this, usuario));
+        ArgumentNullException.ThrowIfNull(componente);
+
+        if (componente.Id == Id)
+            throw new InvalidOperationException("Un grupo no puede contenerse a sí mismo.");
+
+        if (Alcanza(componente, Id))
+            throw new InvalidOperationException(
+                "No se puede agregar un componente que ya contiene a este grupo: se produciría un ciclo.");
+
+        if (!_grupoMiembros.Any(gm => gm.MiembroId == componente.Id))
+            _grupoMiembros.Add(new GrupoMiembro(this, componente));
     }
 
-    public void Quitar(Usuario usuario)
+    public override void Quitar(UsuarioComponent componente)
     {
-        var miembro = _grupoMiembros.FirstOrDefault(gm => gm.MiembroId == usuario.Id);
+        ArgumentNullException.ThrowIfNull(componente);
+
+        var miembro = _grupoMiembros.FirstOrDefault(gm => gm.MiembroId == componente.Id);
         if (miembro is not null)
             _grupoMiembros.Remove(miembro);
     }
 
-    public new IReadOnlyList<Usuario> ObtenerMiembros()
+    public override IReadOnlyList<UsuarioComponent> ObtenerMiembros()
         => _grupoMiembros.Select(gm => gm.Miembro).ToList().AsReadOnly();
+
+    private static bool Alcanza(UsuarioComponent origen, Guid buscado)
+    {
+        if (origen.Id == buscado)
+            return true;
+
+        if (origen is not GrupoUsuarios grupo)
+            return false;
+
+        return grupo.ObtenerMiembros().Any(miembro => Alcanza(miembro, buscado));
+    }
 }

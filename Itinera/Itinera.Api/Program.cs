@@ -1,6 +1,7 @@
 using Itinera.Api;
 using Itinera.Api.Middleware;
 using Itinera.Infrastructure.Persistence;
+using Itinera.Infrastructure.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,9 @@ using (var scope = app.Services.CreateScope())
 {
     var contexto = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     contexto.Database.Migrate();
+
+    var seeder = scope.ServiceProvider.GetRequiredService<SecuritySeeder>();
+    await seeder.SembrarAsync();
 }
 
 // Configure the HTTP request pipeline.

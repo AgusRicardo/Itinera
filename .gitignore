@@ -32,3 +32,6 @@ docker-compose.override.yml
 appsettings.Local.json
 appsettings.*.local.json
 appsettings.Production.json
+
+# Convenciones locales para agentes/IA
+AGENTS.md

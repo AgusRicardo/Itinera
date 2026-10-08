@@ -1,9 +1,12 @@
 using Itinera.Application.EstadosFacturas.Dtos;
 using Itinera.Application.EstadosFacturas.Interfaces;
+using Itinera.Security.Application.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.EstadosFacturas;
 
+[Authorize(Policy = Permisos.CatalogosVer)]
 public class EstadosFacturasController(IEstadoFacturaService estadoFacturaService) : ApiController
 {
     private readonly IEstadoFacturaService _estadoFacturaService = estadoFacturaService;
