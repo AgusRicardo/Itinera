@@ -13,6 +13,10 @@ public class ActividadDestinoItinerario
     public DestinoItinerario DestinoItinerario { get; private set; }
     public Actividad Actividad { get; private set; }
 
+    private ActividadDestinoItinerario()
+    {
+    }
+
     public ActividadDestinoItinerario(DateTime fechaHoraInicio, decimal costoFinal, string observaciones, int orden, DestinoItinerario destinoItinerario, Actividad actividad)
     {
         FechaHoraInicio = fechaHoraInicio;

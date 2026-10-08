@@ -36,6 +36,8 @@ public class PropuestaService : IPropuestaService
         cliente.AsociarPropuesta(propuesta);
         empleado.AsociarPropuesta(propuesta);
 
+        await _propuestaRepository.AddAsync(propuesta);
+
         return new CrearPropuestaResponse
         {
             Id = propuesta.Id

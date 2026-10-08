@@ -24,6 +24,10 @@ public class Propuesta
     public EstadoPropuestaCatalogo EstadoPropuestaCatalogo { get; private set; }
     public List<Factura> Facturas { get; private set; } = new();
 
+    private Propuesta()
+    {
+    }
+
     public Propuesta(Cliente cliente, Empleado empleado, decimal presupuesto)
     {
         FechaCreacion = DateTime.UtcNow;

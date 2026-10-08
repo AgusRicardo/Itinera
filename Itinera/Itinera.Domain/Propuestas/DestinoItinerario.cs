@@ -9,6 +9,10 @@ public class DestinoItinerario
     public Destino Destino { get; private set; }
     public List<ActividadDestinoItinerario> ActividadDestinoItinerarios { get; private set; } = new();
 
+    private DestinoItinerario()
+    {
+    }
+
     public DestinoItinerario(int orden, DateTime fechaLlegada, DateTime fechaPartida, Destino destino, List<ActividadDestinoItinerario> actividadDestinoItinerarios)
     {
         Orden = orden;

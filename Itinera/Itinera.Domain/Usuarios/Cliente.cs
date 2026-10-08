@@ -7,6 +7,10 @@ public class Cliente : Persona
 {
     public List<Propuesta> Propuestas { get; private set; } = new();
 
+    private Cliente()
+    {
+    }
+
     public Cliente(
         string nombre,
         string apellido,

@@ -34,8 +34,13 @@ public static class DependencyInjection
         IServiceCollection servicios,
         IConfiguration configuracion)
     {
-        var jwtKey = configuracion["Jwt:Key"]
-            ?? throw new InvalidOperationException("JWT Key is not configured.");
+        var jwtKey = configuracion["Jwt:Key"];
+
+        if (string.IsNullOrWhiteSpace(jwtKey))
+        {
+            throw new InvalidOperationException(
+                "JWT Key is not configured. Configure 'Jwt:Key' via user-secrets or environment variables.");
+        }
 
         servicios.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opciones =>

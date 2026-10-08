@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Itinera.Infrastructure.Persistence.Repositories.Dominio;
 using Itinera.Infrastructure.Persistence.Repositories.Seguridad;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure;
 
@@ -51,6 +52,14 @@ public static class DependencyInjection
         services.AddScoped<AuditInterceptor>();
         services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
+            var proveedor = configuration["Database:Provider"] ?? "PostgreSQL";
+
+            if (!string.Equals(proveedor, "PostgreSQL", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Proveedor de base de datos no soportado: {proveedor}.");
+            }
+
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
             options.AddInterceptors(serviceProvider.GetRequiredService<AuditInterceptor>());
         });
         return services;
