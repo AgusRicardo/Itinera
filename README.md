@@ -53,6 +53,26 @@ Itinera/
 
 ## Puesta en marcha (desarrollo)
 
+### Día a día (lo más común)
+
+1. Levantar la base de datos (una vez por sesión):
+
+   ```powershell
+   docker compose up -d postgres
+   ```
+
+2. En Visual Studio, elegir el perfil **`https`** en el desplegable de Run y **F5**.
+   - Corre la API en tu PC (`https://localhost:7164`) con tus user-secrets y Swagger.
+   - Alternativa por consola: `dotnet run --project Itinera.Api`.
+
+3. Al terminar: `docker compose stop postgres`.
+
+> No uses el perfil "Container (Dockerfile)": dentro del contenedor la API no alcanza
+> la base por `localhost`. Para levantar todo dockerizado, ver
+> "Alternativa: todo con Docker Compose".
+
+### Configuración inicial (una sola vez)
+
 1. Configurar los secretos locales con user-secrets:
 
    ```powershell
@@ -79,6 +99,28 @@ Itinera/
    ```powershell
    dotnet run --project Itinera.Api
    ```
+
+### Alternativa: todo con Docker Compose
+
+Para levantar **PostgreSQL + API** juntos en contenedores:
+
+```powershell
+docker compose up -d --build
+```
+
+- La API queda en `http://localhost:8080`.
+- `docker compose up -d postgres` levanta solo la base (para correr la API con
+  `dotnet run` en tu máquina).
+- `docker compose down` detiene y elimina los contenedores (conserva los datos).
+- `docker compose down -v` elimina también el volumen (borra los datos).
+
+En Compose la API corre con `ASPNETCORE_ENVIRONMENT=Production`, así que Swagger no
+está disponible. El connection string, `Jwt:Key` y el admin inicial se toman de `.env`
+(por eso la API del contenedor se conecta a `Host=postgres`).
+
+> Nota: el perfil "Container (Dockerfile)" de Visual Studio crea un contenedor aparte
+> que usa `localhost` como host de la base y no puede conectarse. Para Docker, usá
+> Compose.
 
 ## Pruebas
 

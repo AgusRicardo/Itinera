@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Itinera.Api.Security;
 using Itinera.Application;
 using Itinera.Application.Common.Interfaces;
@@ -17,7 +18,9 @@ public static class DependencyInjection
         this IServiceCollection servicios,
         IConfiguration configuracion)
     {
-        servicios.AddControllers();
+        servicios.AddControllers()
+            .AddJsonOptions(opciones =>
+                opciones.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         servicios.AddEndpointsApiExplorer();
         servicios.AddSwaggerGen();
         servicios.AddHttpContextAccessor();

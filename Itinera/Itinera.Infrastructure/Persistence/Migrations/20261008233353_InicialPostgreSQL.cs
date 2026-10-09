@@ -487,10 +487,10 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Orden = table.Column<int>(type: "integer", nullable: false),
-                    FechaLlegada = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    FechaPartida = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DestinoId = table.Column<int>(type: "integer", nullable: true),
-                    ItinerarioId = table.Column<int>(type: "integer", nullable: true)
+                    FechaLlegada = table.Column<DateOnly>(type: "date", nullable: false),
+                    FechaPartida = table.Column<DateOnly>(type: "date", nullable: false),
+                    DestinoId = table.Column<int>(type: "integer", nullable: false),
+                    ItinerarioId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -499,7 +499,8 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                         name: "FK_DestinosItinerario_Destinos_DestinoId",
                         column: x => x.DestinoId,
                         principalTable: "Destinos",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_DestinosItinerario_Itinerarios_ItinerarioId",
                         column: x => x.ItinerarioId,

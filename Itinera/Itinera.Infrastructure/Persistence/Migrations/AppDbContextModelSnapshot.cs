@@ -458,16 +458,16 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("DestinoId")
+                    b.Property<int>("DestinoId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("FechaLlegada")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("FechaLlegada")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime>("FechaPartida")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly>("FechaPartida")
+                        .HasColumnType("date");
 
-                    b.Property<int?>("ItinerarioId")
+                    b.Property<int>("ItinerarioId")
                         .HasColumnType("integer");
 
                     b.Property<int>("Orden")
@@ -867,12 +867,15 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("Itinera.Domain.Propuestas.Destino", "Destino")
                         .WithMany()
-                        .HasForeignKey("DestinoId");
+                        .HasForeignKey("DestinoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Itinera.Domain.Propuestas.Itinerario", null)
                         .WithMany("Destinos")
                         .HasForeignKey("ItinerarioId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Destino");
                 });
@@ -923,7 +926,7 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Itinera.Security.Domain.Usuario", "Miembro")
+                    b.HasOne("Itinera.Security.Domain.UsuarioComponent", "Miembro")
                         .WithMany()
                         .HasForeignKey("MiembroId")
                         .OnDelete(DeleteBehavior.Cascade)

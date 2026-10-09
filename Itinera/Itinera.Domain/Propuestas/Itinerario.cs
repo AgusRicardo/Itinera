@@ -23,13 +23,29 @@ public class Itinerario
         FechaFin = hoy;
     }
 
+    public void DefinirNombre(string nombre)
+    {
+        Nombre = nombre;
+    }
+
+    public void DefinirFechas(DateOnly fechaInicio, DateOnly fechaFin)
+    {
+        if (fechaFin < fechaInicio)
+            throw new ArgumentException(
+                "La fecha de fin no puede ser anterior a la fecha de inicio.", nameof(fechaFin));
+
+        FechaInicio = fechaInicio;
+        FechaFin = fechaFin;
+    }
+
     public void AgregarDestino(DestinoItinerario destino)
     {
         Destinos.Add(destino);
     }
 
-    public void Modificar()
+    public void ReemplazarDestinos(IEnumerable<DestinoItinerario> destinos)
     {
-        // reglas del dominio
+        Destinos.Clear();
+        Destinos.AddRange(destinos);
     }
 }

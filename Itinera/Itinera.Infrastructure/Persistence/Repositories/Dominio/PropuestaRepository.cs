@@ -15,9 +15,31 @@ public class PropuestaRepository(AppDbContext context) : IPropuestaRepository
     }
 
     public Task<Propuesta?> GetByIdAsync(int id)
+        => ConRelaciones().FirstOrDefaultAsync(propuesta => propuesta.Id == id);
+
+    public Task<List<Propuesta>> GetByClienteAsync(int clienteId)
+        => ConRelaciones()
+            .Where(propuesta => propuesta.ClienteId == clienteId)
+            .OrderByDescending(propuesta => propuesta.FechaCreacion)
+            .ToListAsync();
+
+    public Task UpdateAsync(Propuesta propuesta)
+    {
+        _context.Entry(propuesta).State = EntityState.Modified;
+        return _context.SaveChangesAsync();
+    }
+
+    private IQueryable<Propuesta> ConRelaciones()
         => _context.Propuestas
             .Include(propuesta => propuesta.Cliente)
             .Include(propuesta => propuesta.Empleado)
             .Include(propuesta => propuesta.Itinerario)
-            .FirstOrDefaultAsync(propuesta => propuesta.Id == id);
+                .ThenInclude(itinerario => itinerario.Destinos)
+                    .ThenInclude(destinoItinerario => destinoItinerario.Destino)
+                        .ThenInclude(destino => destino.Ciudad)
+                            .ThenInclude(ciudad => ciudad.Pais)
+            .Include(propuesta => propuesta.Itinerario)
+                .ThenInclude(itinerario => itinerario.Destinos)
+                    .ThenInclude(destinoItinerario => destinoItinerario.ActividadDestinoItinerarios)
+                        .ThenInclude(actividad => actividad.Actividad);
 }

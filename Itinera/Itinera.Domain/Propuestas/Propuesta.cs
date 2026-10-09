@@ -50,10 +50,38 @@ public class Propuesta
         Itinerario.AgregarDestino(destinoItinerario);
     }
 
-    public void Presentar() => CambiarEstado(EstadoPropuesta.Presentada);
-    public void Aceptar() => CambiarEstado(EstadoPropuesta.Aceptada);
-    public void Rechazar() => CambiarEstado(EstadoPropuesta.Rechazada);
+    public void Presentar()
+    {
+        AsegurarEstado(EstadoPropuesta.Borrador);
+        CambiarEstado(EstadoPropuesta.Presentada);
+    }
+
+    public void Aceptar()
+    {
+        AsegurarEstado(EstadoPropuesta.Presentada);
+        CambiarEstado(EstadoPropuesta.Aceptada);
+    }
+
+    public void Rechazar()
+    {
+        AsegurarEstado(EstadoPropuesta.Presentada);
+        CambiarEstado(EstadoPropuesta.Rechazada);
+    }
+
+    public void SolicitarModificaciones()
+    {
+        AsegurarEstado(EstadoPropuesta.Presentada);
+        CambiarEstado(EstadoPropuesta.Borrador);
+    }
+
     public void Eliminar() => CambiarEstado(EstadoPropuesta.Eliminada);
+
+    private void AsegurarEstado(EstadoPropuesta esperado)
+    {
+        if (Estado != esperado)
+            throw new InvalidOperationException(
+                $"La propuesta debe estar en estado '{esperado}' (estado actual: '{Estado}').");
+    }
 
     private void CambiarEstado(EstadoPropuesta estado)
     {
