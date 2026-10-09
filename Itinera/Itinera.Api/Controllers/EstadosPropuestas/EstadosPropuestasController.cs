@@ -1,9 +1,12 @@
 using Itinera.Application.EstadosPropuestas.Dtos;
 using Itinera.Application.EstadosPropuestas.Interfaces;
+using Itinera.Security.Application.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.EstadosPropuestas;
 
+[Authorize(Policy = Permisos.CatalogosVer)]
 public class EstadosPropuestasController(IEstadoPropuestaService estadoPropuestaService) : ApiController
 {
     private readonly IEstadoPropuestaService _estadoPropuestaService = estadoPropuestaService;

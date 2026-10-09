@@ -15,16 +15,15 @@ public class EmpleadoRepository(AppDbContext context) : IEmpleadoRepository
     }
 
     public Task<Empleado?> GetByIdAsync(int id)
-        => _context.Empleados
-            .Include(empleado => empleado.Cargo)
-            .Include(empleado => empleado.Empresa)
-            .FirstOrDefaultAsync(empleado => empleado.Id == id);
+        => ConRelaciones().FirstOrDefaultAsync(empleado => empleado.Id == id);
 
     public Task<List<Empleado>> GetAllAsync()
+        => ConRelaciones().ToListAsync();
+
+    private IQueryable<Empleado> ConRelaciones()
         => _context.Empleados
             .Include(empleado => empleado.Cargo)
-            .Include(empleado => empleado.Empresa)
-            .ToListAsync();
+            .Include(empleado => empleado.Empresa);
 
     public Task UpdateAsync(Empleado empleado)
     {

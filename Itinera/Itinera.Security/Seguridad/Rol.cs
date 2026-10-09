@@ -14,4 +14,21 @@ public class Rol
     }
 
     private Rol() { }
+
+    public void AgregarPermiso(Permiso permiso)
+    {
+        ArgumentNullException.ThrowIfNull(permiso);
+
+        if (!Permisos.Any(p => p.Codigo == permiso.Codigo))
+            Permisos.Add(permiso);
+    }
+
+    public void QuitarPermiso(Permiso permiso)
+    {
+        ArgumentNullException.ThrowIfNull(permiso);
+
+        var existente = Permisos.FirstOrDefault(p => p.Codigo == permiso.Codigo);
+        if (existente is not null)
+            Permisos.Remove(existente);
+    }
 }

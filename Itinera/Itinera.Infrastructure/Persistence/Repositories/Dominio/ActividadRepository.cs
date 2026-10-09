@@ -15,18 +15,16 @@ public class ActividadRepository(AppDbContext context) : IActividadRepository
     }
 
     public Task<Actividad?> GetByIdAsync(int id)
-        => _context.Actividades
-            .Include(actividad => actividad.Destino)
-                .ThenInclude(destino => destino.Ciudad)
-                    .ThenInclude(ciudad => ciudad.Pais)
-            .FirstOrDefaultAsync(actividad => actividad.Id == id);
+        => ConRelaciones().FirstOrDefaultAsync(actividad => actividad.Id == id);
 
     public Task<List<Actividad>> GetAllAsync()
+        => ConRelaciones().ToListAsync();
+
+    private IQueryable<Actividad> ConRelaciones()
         => _context.Actividades
             .Include(actividad => actividad.Destino)
                 .ThenInclude(destino => destino.Ciudad)
-                    .ThenInclude(ciudad => ciudad.Pais)
-            .ToListAsync();
+                    .ThenInclude(ciudad => ciudad.Pais);
 
     public Task UpdateAsync(Actividad actividad)
     {

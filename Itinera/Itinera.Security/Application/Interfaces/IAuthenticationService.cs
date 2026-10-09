@@ -1,7 +1,7 @@
 using Itinera.Security.Application.Dtos;
 using System.Security.Claims;
 
-namespace Itinera.Security.Aplicacion.Interfaces;
+namespace Itinera.Security.Application.Interfaces;
 
 public interface IAuthenticationService
 {

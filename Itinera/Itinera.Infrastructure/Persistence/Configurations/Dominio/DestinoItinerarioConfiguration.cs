@@ -20,7 +20,8 @@ public class DestinoItinerarioConfiguration : IEntityTypeConfiguration<DestinoIt
 
         builder.HasOne(x => x.Destino)
                .WithMany()
-               .HasForeignKey("DestinoId");
+               .HasForeignKey("DestinoId")
+               .IsRequired();
 
         builder.HasMany(x => x.ActividadDestinoItinerarios)
                .WithOne(x => x.DestinoItinerario)

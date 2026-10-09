@@ -12,6 +12,10 @@ public class Empleado : Persona
     public List<Propuesta> Propuestas { get; private set; } = new();
     public Empresa.Empresa Empresa { get; private set; }
 
+    private Empleado()
+    {
+    }
+
     public Empleado(
         string nombre,
         string apellido,

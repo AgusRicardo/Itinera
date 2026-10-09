@@ -1,9 +1,12 @@
 using Itinera.Application.Empresas.Dtos;
 using Itinera.Application.Empresas.Interfaces;
+using Itinera.Security.Application.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Empresas;
 
+[Authorize(Policy = Permisos.EmpresasGestionar)]
 public class EmpresasController(IEmpresaService empresaService) : ApiController
 {
     private readonly IEmpresaService _empresaService = empresaService;

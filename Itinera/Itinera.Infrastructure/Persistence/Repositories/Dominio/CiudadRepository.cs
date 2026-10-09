@@ -15,14 +15,14 @@ public class CiudadRepository(AppDbContext context) : ICiudadRepository
     }
 
     public Task<Ciudad?> GetByIdAsync(int id)
-        => _context.Ciudades
-            .Include(ciudad => ciudad.Pais)
-            .FirstOrDefaultAsync(ciudad => ciudad.Id == id);
+        => ConRelaciones().FirstOrDefaultAsync(ciudad => ciudad.Id == id);
 
     public Task<List<Ciudad>> GetAllAsync()
+        => ConRelaciones().ToListAsync();
+
+    private IQueryable<Ciudad> ConRelaciones()
         => _context.Ciudades
-            .Include(ciudad => ciudad.Pais)
-            .ToListAsync();
+            .Include(ciudad => ciudad.Pais);
 
     public Task UpdateAsync(Ciudad ciudad)
     {

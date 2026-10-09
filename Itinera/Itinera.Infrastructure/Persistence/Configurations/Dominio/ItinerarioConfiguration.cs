@@ -32,6 +32,7 @@ public class ItinerarioConfiguration : IEntityTypeConfiguration<Itinerario>
         builder.HasMany(x => x.Destinos)
                .WithOne()
                .HasForeignKey("ItinerarioId")
+               .IsRequired()
                .OnDelete(DeleteBehavior.Cascade);
     }
 }

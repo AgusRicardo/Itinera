@@ -23,3 +23,15 @@ obj/
 *.db
 *.db-shm
 *.db-wal
+
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+docker-compose.override.yml
+appsettings.Local.json
+appsettings.*.local.json
+appsettings.Production.json
+
+# Convenciones locales para agentes/IA
+AGENTS.md
