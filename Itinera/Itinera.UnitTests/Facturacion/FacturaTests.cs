@@ -22,6 +22,7 @@ public class FacturaTests
             new Cargo("Agente de viajes"),
             new EmpresaEntidad("Viajes SA", "30-12345678-9", "1122334455"));
         var propuesta = new Propuesta(cliente, empleado, 1000);
+        propuesta.Presentar();
         propuesta.Aceptar();
 
         var factura = new Factura("F-0001", DateTime.UtcNow.AddDays(30), propuesta);

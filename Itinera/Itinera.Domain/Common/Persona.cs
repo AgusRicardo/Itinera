@@ -13,6 +13,10 @@ public abstract class Persona
     public Guid? UsuarioModificacionId { get; protected set; }
     public bool Activo { get; private set; } = true;
 
+    protected Persona()
+    {
+    }
+
     protected Persona(string nombre, string apellido, string email, string telefono)
     {
         Validar(nombre, apellido, email);

@@ -1,14 +1,18 @@
 using Itinera.Application.Actividades.Dtos;
 using Itinera.Application.Actividades.Interfaces;
+using Itinera.Security.Application.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Actividades;
 
+[Authorize]
 public class ActividadesController(IActividadService actividadService) : ApiController
 {
     private readonly IActividadService _actividadService = actividadService;
 
     [HttpPost]
+    [Authorize(Policy = Permisos.CatalogosGestionar)]
     [ProducesResponseType(typeof(ActividadResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -23,6 +27,7 @@ public class ActividadesController(IActividadService actividadService) : ApiCont
     }
 
     [HttpGet]
+    [Authorize(Policy = Permisos.CatalogosVer)]
     [ProducesResponseType(typeof(List<ActividadResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ActividadResponse>>> ObtenerTodos()
     {
@@ -32,6 +37,7 @@ public class ActividadesController(IActividadService actividadService) : ApiCont
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Policy = Permisos.CatalogosVer)]
     [ProducesResponseType(typeof(ActividadResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ActividadResponse>> ObtenerPorId(int id)
@@ -42,6 +48,7 @@ public class ActividadesController(IActividadService actividadService) : ApiCont
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = Permisos.CatalogosGestionar)]
     [ProducesResponseType(typeof(ActividadResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -53,6 +60,7 @@ public class ActividadesController(IActividadService actividadService) : ApiCont
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = Permisos.CatalogosGestionar)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Eliminar(int id)

@@ -150,6 +150,12 @@ public class ActividadServiceTests
         public Task<List<Destino>> GetAllAsync()
             => Task.FromResult(Destinos.ToList());
 
+        public Task<List<Destino>> ObtenerPorIdsConActividadesAsync(IEnumerable<int> ids)
+        {
+            var listaIds = ids.ToList();
+            return Task.FromResult(Destinos.Where(destino => listaIds.Contains(destino.Id)).ToList());
+        }
+
         public Task UpdateAsync(Destino destino) => Task.CompletedTask;
 
         public Task DeleteAsync(Destino destino) => Task.CompletedTask;

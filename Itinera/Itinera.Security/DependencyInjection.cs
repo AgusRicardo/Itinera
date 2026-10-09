@@ -1,4 +1,3 @@
-using Itinera.Security.Aplicacion.Interfaces;
 using Itinera.Security.Application.Common;
 using Itinera.Security.Application.Interfaces;
 using Itinera.Security.Application.Services;
@@ -18,6 +17,10 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IAuthorizationService, AuthorizationService>();
+
+        services.AddScoped<IUsuarioAdminService, UsuarioAdminService>();
+        services.AddScoped<IRolAdminService, RolAdminService>();
+        services.AddScoped<IGrupoAdminService, GrupoAdminService>();
 
         return services;
     }

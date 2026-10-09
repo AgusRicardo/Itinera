@@ -1,10 +1,13 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Itinera.Api.Security;
 using Itinera.Application;
 using Itinera.Application.Common.Interfaces;
 using Itinera.Infrastructure;
 using Itinera.Security;
+using Itinera.Security.Application.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Itinera.Api;
@@ -15,7 +18,9 @@ public static class DependencyInjection
         this IServiceCollection servicios,
         IConfiguration configuracion)
     {
-        servicios.AddControllers();
+        servicios.AddControllers()
+            .AddJsonOptions(opciones =>
+                opciones.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         servicios.AddEndpointsApiExplorer();
         servicios.AddSwaggerGen();
         servicios.AddHttpContextAccessor();
@@ -34,8 +39,13 @@ public static class DependencyInjection
         IServiceCollection servicios,
         IConfiguration configuracion)
     {
-        var jwtKey = configuracion["Jwt:Key"]
-            ?? throw new InvalidOperationException("JWT Key is not configured.");
+        var jwtKey = configuracion["Jwt:Key"];
+
+        if (string.IsNullOrWhiteSpace(jwtKey))
+        {
+            throw new InvalidOperationException(
+                "JWT Key is not configured. Configure 'Jwt:Key' via user-secrets or environment variables.");
+        }
 
         servicios.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opciones =>
@@ -53,6 +63,17 @@ public static class DependencyInjection
                 };
             });
 
-        servicios.AddAuthorization();
+        servicios.AddSingleton<IAuthorizationHandler, PermisoAuthorizationHandler>();
+
+        servicios.AddAuthorization(opciones =>
+        {
+            foreach (var definicion in Permisos.Catalogo)
+            {
+                opciones.AddPolicy(definicion.Codigo, politica =>
+                    politica
+                        .RequireAuthenticatedUser()
+                        .AddRequirements(new PermisoRequirement(definicion.Codigo)));
+            }
+        });
     }
 }
