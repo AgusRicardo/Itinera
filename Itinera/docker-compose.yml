@@ -6,7 +6,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-itinera}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     ports:
-      - "5432:5432"
+      # Solo loopback para desarrollo local; no se expone al público del droplet.
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -24,6 +25,7 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-itinera};Username=${POSTGRES_USER:-itinera};Password=${POSTGRES_PASSWORD}"
       Database__Provider: PostgreSQL
+      Swagger__Enabled: ${SWAGGER_ENABLED:-false}
       Jwt__Key: ${JWT_KEY:?JWT_KEY is required}
       Seed__Admin__Nombre: ${SEED_ADMIN_NOMBRE:-Administrador}
       Seed__Admin__Email: ${SEED_ADMIN_EMAIL:-}
