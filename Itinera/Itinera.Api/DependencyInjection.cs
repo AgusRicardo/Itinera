@@ -9,6 +9,7 @@ using Itinera.Security.Application.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 namespace Itinera.Api;
 
@@ -22,7 +23,7 @@ public static class DependencyInjection
             .AddJsonOptions(opciones =>
                 opciones.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         servicios.AddEndpointsApiExplorer();
-        servicios.AddSwaggerGen();
+        AgregarSwagger(servicios);
         servicios.AddHttpContextAccessor();
         servicios.AddScoped<ICurrentUserService, CurrentUserService>();
 
@@ -33,6 +34,30 @@ public static class DependencyInjection
         servicios.AddSecurity(configuracion);
 
         return servicios;
+    }
+
+    private static void AgregarSwagger(IServiceCollection servicios)
+    {
+        servicios.AddSwaggerGen(opciones =>
+        {
+            opciones.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Ingresá el token JWT (sin el prefijo 'Bearer ')."
+            });
+
+            opciones.AddSecurityRequirement(documento => new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecuritySchemeReference("Bearer", documento, null),
+                    new List<string>()
+                }
+            });
+        });
     }
 
     private static void AgregarAutenticacion(
