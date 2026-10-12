@@ -114,9 +114,11 @@ docker compose up -d --build
 - `docker compose down` detiene y elimina los contenedores (conserva los datos).
 - `docker compose down -v` elimina también el volumen (borra los datos).
 
-En Compose la API corre con `ASPNETCORE_ENVIRONMENT=Production`, así que Swagger no
-está disponible. El connection string, `Jwt:Key` y el admin inicial se toman de `.env`
-(por eso la API del contenedor se conecta a `Host=postgres`).
+En Compose la API corre con `ASPNETCORE_ENVIRONMENT=Production`, así que Swagger
+queda deshabilitado salvo que se active el flag `SWAGGER_ENABLED=true` en `.env`
+(útil para demos; apagarlo al terminar). El connection string, `Jwt:Key`, el flag de
+Swagger y el admin inicial se toman de `.env` (por eso la API del contenedor se
+conecta a `Host=postgres`).
 
 > Nota: el perfil "Container (Dockerfile)" de Visual Studio crea un contenedor aparte
 > que usa `localhost` como host de la base y no puede conectarse. Para Docker, usá
