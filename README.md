@@ -1,5 +1,8 @@
 # Itinera
 
+[![Tests (dev)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml)
+[![Tests (main)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml)
+
 Plataforma de gestión de viajes para agencias de turismo. Permite administrar
 clientes, propuestas de viaje e itinerarios personalizados desde un único sistema.
 
