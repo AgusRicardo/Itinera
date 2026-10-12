@@ -114,13 +114,60 @@ docker compose up -d --build
 - `docker compose down` detiene y elimina los contenedores (conserva los datos).
 - `docker compose down -v` elimina también el volumen (borra los datos).
 
-En Compose la API corre con `ASPNETCORE_ENVIRONMENT=Production`, así que Swagger no
-está disponible. El connection string, `Jwt:Key` y el admin inicial se toman de `.env`
-(por eso la API del contenedor se conecta a `Host=postgres`).
+En Compose la API corre con `ASPNETCORE_ENVIRONMENT=Production`, así que Swagger
+queda deshabilitado salvo que se active el flag `SWAGGER_ENABLED=true` en `.env`
+(útil para demos; apagarlo al terminar). El connection string, `Jwt:Key`, el flag de
+Swagger y el admin inicial se toman de `.env` (por eso la API del contenedor se
+conecta a `Host=postgres`).
 
 > Nota: el perfil "Container (Dockerfile)" de Visual Studio crea un contenedor aparte
 > que usa `localhost` como host de la base y no puede conectarse. Para Docker, usá
 > Compose.
+
+## Despliegue en Render
+
+En producción se usa **Render** (PaaS): un **Web Service** para la API y una
+**PostgreSQL administrada**. No se usa `docker-compose.yml` (eso es solo para
+desarrollo local) ni el archivo `.env`: las variables se configuran en el dashboard
+de Render.
+
+### 1. Base de datos
+
+Crear una **PostgreSQL** en Render y conservar los datos de conexión internos
+(host, puerto, usuario, contraseña y base) para usarlos en el paso siguiente.
+
+### 2. Web Service
+
+Crear un **Web Service** que apunte al repositorio y use el `Dockerfile` de
+`Itinera.Api/`. La API aplica las migraciones y corre el seeder automáticamente al
+arrancar, así que no hay pasos manuales de migración.
+
+Variables de entorno a configurar en el dashboard:
+
+| Variable | Valor |
+| --- | --- |
+| `ASPNETCORE_ENVIRONMENT` | `Production` |
+| `ConnectionStrings__DefaultConnection` | URL interna de la PostgreSQL de Render |
+| `Database__Provider` | `PostgreSQL` |
+| `Jwt__Key` | clave de al menos 32 caracteres |
+| `Seed__Admin__Nombre` | `Administrador` |
+| `Seed__Admin__Email` | correo del administrador inicial |
+| `Seed__Admin__Password` | contraseña del administrador inicial |
+| `Swagger__Enabled` | `false` (o `true` solo para demos) |
+
+> `Seed__Admin__*` solo importan en el **primer** despliegue (cuando todavía no hay
+> usuarios). Si quedan vacíos, el seeder no crea el administrador y no se puede
+> ingresar al sistema.
+
+> El puerto no se configura a mano: la API lo detecta leyendo la variable `PORT`
+> que inyecta Render. Render termina el TLS en su borde y reenvía las cabeceras;
+> la API ya está configurada (`ForwardedHeaders`) para redirigir a HTTPS sin loops.
+
+### Dominio y HTTPS
+
+Render provee una URL `*.onrender.com` con HTTPS automático. Para usar un dominio
+propio, agregarlo en *Settings → Custom Domains* y apuntar el registro DNS según
+indique Render.
 
 ## Pruebas
 
@@ -173,6 +220,6 @@ Los secretos no se versionan. Según el entorno se resuelven así:
 
 - **Local (`dotnet run`)**: user-secrets.
 - **Local (Docker Compose)**: archivo `.env` (ignorado por Git).
-- **Producción**: variables de entorno o `.env` en el servidor.
+- **Producción (Render)**: variables de entorno en el dashboard de Render.
 
 El archivo `.env.example` documenta las claves necesarias y sí se versiona.
