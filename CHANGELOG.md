@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/AgusRicardo/Itinera/compare/v1.0.1...v1.0.2) (2026-10-12)
+
+
+### Bug Fixes
+
+* readme ([769063f](https://github.com/AgusRicardo/Itinera/commit/769063f738f819ca72d4829d56b0f048af701b2d))
+* readme ([4601ae8](https://github.com/AgusRicardo/Itinera/commit/4601ae876771c404fb9c54d8260e242cf7bb7679))
+
 ## [1.0.1](https://github.com/AgusRicardo/Itinera/compare/v1.0.0...v1.0.1) (2026-10-12)
 
 
