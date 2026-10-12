@@ -1,7 +1,7 @@
 # Itinera
 
-[![Tests (dev)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml)
-[![Tests (main)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml)
+[![Tests - DEV (dev)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml)
+[![Tests - MAIN (main)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/AgusRicardo/Itinera/actions/workflows/test.yml)
 
 Plataforma de gestión de viajes para agencias de turismo. Permite administrar
 clientes, propuestas de viaje e itinerarios personalizados desde un único sistema.
@@ -165,6 +165,30 @@ $env:ITINERA_TEST_CONNECTION = "Host=localhost;Port=5432;Database=itinera_test;U
 ```
 
 > La base de tests se recrea en cada corrida (`EnsureDeleted` + `Migrate`).
+
+## Convención de commits y releases
+
+Los releases se generan solos con
+[release-please](https://github.com/googleapis/release-please), que calcula la
+versión a partir de los títulos de commit siguiendo
+[Conventional Commits](https://www.conventionalcommits.org/).
+
+### Títulos de commit y PR
+
+Usá **Squash merge** para que el título del PR sea el mensaje que se analiza.
+
+| Tipo | Ejemplo | Efecto en la versión |
+| --- | --- | --- |
+| `feat:` | `feat: add billing endpoint` | minor (`0.1.0` → `0.2.0`) |
+| `fix:` | `fix: correct date validation` | patch (`0.1.0` → `0.1.1`) |
+| `feat!:` o `BREAKING CHANGE:` | `feat!: change login contract` | major (`0.1.0` → `1.0.0`) |
+| `chore:`, `docs:`, `test:`, `refactor:`, `ci:` | `chore: update dependencies` | no genera release |
+
+### Flujo de release
+
+1. Mergeás el trabajo a `dev` y luego `dev` → `main`.
+2. release-please abre un PR de release (`chore: release vX.Y.Z`) con el `CHANGELOG.md`.
+3. Al mergear ese PR se crea el tag `vX.Y.Z` y el release en GitHub.
 
 ## Seguridad
 
