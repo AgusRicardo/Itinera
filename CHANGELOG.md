@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/AgusRicardo/Itinera/compare/v1.0.0...v1.0.1) (2026-10-12)
+
+
+### Bug Fixes
+
+* duplicidad commit en el release y warnings ([c0a5594](https://github.com/AgusRicardo/Itinera/commit/c0a55945594f2ab5a5c911e74e4e3107f1e5b1c2))
+* duplicidad commit en el release y warnings =&gt; DEV ([ace0b10](https://github.com/AgusRicardo/Itinera/commit/ace0b10578c7d7a3783e93e47a8a93fe20231ab8))
+
 ## 1.0.0 (2026-10-12)
 
 
