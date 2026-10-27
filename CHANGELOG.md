@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/AgusRicardo/Itinera/compare/v1.1.0...v1.1.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* authorization ([d7dcd70](https://github.com/AgusRicardo/Itinera/commit/d7dcd70960fed8d903cc3c6c8a8003af66c39d26))
+* authorization =&gt; dev ([68fa711](https://github.com/AgusRicardo/Itinera/commit/68fa7113d8c34d6ef9deee67624f6b1e0b229168))
+
 ## [1.1.0](https://github.com/AgusRicardo/Itinera/compare/v1.0.2...v1.1.0) (2026-10-27)
 
 
