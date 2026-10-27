@@ -6,6 +6,7 @@ namespace Itinera.Domain.Usuarios;
 public class Cliente : Persona
 {
     public List<Propuesta> Propuestas { get; private set; } = new();
+    public List<EmpresaCliente> Empresas { get; private set; } = new();
 
     private Cliente()
     {
@@ -18,8 +19,8 @@ public class Cliente : Persona
         string telefono
     ) : base(nombre, apellido, email, telefono)
     {
-
     }
+
     public void AsociarPropuesta(Propuesta propuesta)
     {
         Propuestas.Add(propuesta);

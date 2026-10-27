@@ -16,13 +16,6 @@ public class AuthController(IAuthenticationService authenticationService) : ApiC
         return Ok(response);
     }
 
-    [HttpPost("registro")]
-    public async Task<IActionResult> Registro([FromBody] RegistroRequest request)
-    {
-        var usuarioId = await _authenticationService.RegistrarAsync(request);
-        return Ok(new { usuarioId });
-    }
-
     [Authorize]
     [HttpGet("me")]
     public ActionResult<UsuarioInfoResponse> Me()

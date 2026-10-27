@@ -27,9 +27,9 @@ services:
       Database__Provider: PostgreSQL
       Swagger__Enabled: ${SWAGGER_ENABLED:-false}
       Jwt__Key: ${JWT_KEY:?JWT_KEY is required}
-      Seed__Admin__Nombre: ${SEED_ADMIN_NOMBRE:-Administrador}
-      Seed__Admin__Email: ${SEED_ADMIN_EMAIL:-}
-      Seed__Admin__Password: ${SEED_ADMIN_PASSWORD:-}
+      PlatformAdmin__Nombre: ${PLATFORM_ADMIN_NOMBRE:-}
+      PlatformAdmin__Email: ${PLATFORM_ADMIN_EMAIL:-}
+      PlatformAdmin__Password: ${PLATFORM_ADMIN_PASSWORD:-}
     ports:
       - "8080:8080"
     depends_on:

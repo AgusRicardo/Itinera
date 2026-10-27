@@ -15,7 +15,7 @@ public sealed class SecuritySeeder(
     {
         var permisos = await SembrarPermisosAsync(cancellationToken);
         var roles = await SembrarRolesAsync(permisos, cancellationToken);
-        await SembrarAdministradorAsync(roles, cancellationToken);
+        await SembrarAdministradorPlataformaAsync(roles, cancellationToken);
     }
 
     private async Task<Dictionary<string, Permiso>> SembrarPermisosAsync(CancellationToken cancellationToken)
@@ -48,19 +48,72 @@ public sealed class SecuritySeeder(
         var porNombre = roles.ToDictionary(rol => rol.Nombre);
 
         var administrador = ObtenerOCrearRol(
-            porNombre, Roles.Administrador, "Acceso total al sistema");
+            porNombre, Roles.Administrador, "Acceso total a la empresa");
+
+        var administradorItinera = ObtenerOCrearRol(
+            porNombre, Roles.AdministradorItinera, "Acceso total a la plataforma");
 
         var agente = ObtenerOCrearRol(
             porNombre, Roles.Agente, "Gestión operativa de clientes, propuestas y facturación");
 
         foreach (var permiso in permisos.Values)
-            administrador.AgregarPermiso(permiso);
+        {
+            administradorItinera.AgregarPermiso(permiso);
+
+            if (!Roles.EsDePlataforma(permiso.Codigo))
+                administrador.AgregarPermiso(permiso);
+        }
 
         foreach (var codigo in Roles.PermisosDelAgente)
             agente.AgregarPermiso(permisos[codigo]);
 
         await context.SaveChangesAsync(cancellationToken);
         return porNombre;
+    }
+
+    private async Task SembrarAdministradorPlataformaAsync(
+        Dictionary<string, Rol> roles,
+        CancellationToken cancellationToken)
+    {
+        var nombre = configuration["PlatformAdmin:Nombre"];
+        var email = configuration["PlatformAdmin:Email"];
+        var password = configuration["PlatformAdmin:Password"];
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            logger.LogWarning(
+                "No se configuró 'PlatformAdmin:*'; no se crea el administrador de plataforma.");
+            return;
+        }
+
+        var usuario = await context.Usuarios
+            .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+
+        if (usuario is null)
+        {
+            usuario = new Usuario(
+                string.IsNullOrWhiteSpace(nombre) ? "Administrador de Itinera" : nombre,
+                email,
+                PasswordHasher.Hash(password));
+
+            context.Usuarios.Add(usuario);
+            await context.SaveChangesAsync(cancellationToken);
+        }
+
+        var rolAdministradorItinera = roles[Roles.AdministradorItinera];
+
+        var yaTieneRol = await context.UsuarioComponentRoles
+            .AnyAsync(ucr => ucr.UsuarioComponentId == usuario.Id
+                && ucr.RolId == rolAdministradorItinera.Id, cancellationToken);
+
+        if (yaTieneRol)
+            return;
+
+        context.UsuarioComponentRoles.Add(
+            new UsuarioComponentRol(usuario, rolAdministradorItinera));
+
+        await context.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Administrador de plataforma configurado: {Email}", email);
     }
 
     private Rol ObtenerOCrearRol(Dictionary<string, Rol> roles, string nombre, string descripcion)
@@ -72,36 +125,5 @@ public sealed class SecuritySeeder(
         context.Roles.Add(rol);
         roles[nombre] = rol;
         return rol;
-    }
-
-    private async Task SembrarAdministradorAsync(
-        Dictionary<string, Rol> roles,
-        CancellationToken cancellationToken)
-    {
-        if (await context.Usuarios.AnyAsync(cancellationToken))
-            return;
-
-        var nombre = configuration["Seed:Admin:Nombre"];
-        var email = configuration["Seed:Admin:Email"];
-        var password = configuration["Seed:Admin:Password"];
-
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
-        {
-            logger.LogWarning(
-                "No se configuró 'Seed:Admin:*'; no se crea el usuario administrador inicial.");
-            return;
-        }
-
-        var usuario = new Usuario(
-            string.IsNullOrWhiteSpace(nombre) ? "Administrador" : nombre,
-            email,
-            PasswordHasher.Hash(password));
-
-        context.Usuarios.Add(usuario);
-        context.UsuarioComponentRoles.Add(
-            new UsuarioComponentRol(usuario, roles[Roles.Administrador]));
-
-        await context.SaveChangesAsync(cancellationToken);
-        logger.LogInformation("Usuario administrador inicial creado: {Email}", email);
     }
 }

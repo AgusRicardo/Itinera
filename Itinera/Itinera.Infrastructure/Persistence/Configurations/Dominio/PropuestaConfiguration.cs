@@ -17,6 +17,11 @@ public class PropuestaConfiguration : IEntityTypeConfiguration<Propuesta>
         builder.Property(x => x.Presupuesto)
                .HasPrecision(18, 2);
 
+        builder.Property(x => x.EmpresaId)
+               .IsRequired();
+
+        builder.HasIndex(x => x.EmpresaId);
+
         builder.Ignore(x => x.Estado);
 
         builder.Property(x => x.EstadoPropuestaId)

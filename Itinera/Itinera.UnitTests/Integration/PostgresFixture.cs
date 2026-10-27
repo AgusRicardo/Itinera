@@ -1,5 +1,6 @@
 using Itinera.Application.Common.Interfaces;
 using Itinera.Infrastructure.Persistence;
+using Itinera.UnitTests.Common;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -21,18 +22,23 @@ public sealed class PostgresFixture : IAsyncLifetime
     public Task DisposeAsync() => Task.CompletedTask;
 
     public AppDbContext CrearContexto()
+        => CrearContextoConEmpresa(null);
+
+    public AppDbContext CrearContextoConEmpresa(int? empresaId)
     {
         var opciones = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(CadenaConexion)
             .AddInterceptors(new AuditInterceptor(new UsuarioDePrueba()))
             .Options;
 
-        return new AppDbContext(opciones);
+        return new AppDbContext(opciones, new TenantContextFake { EmpresaId = empresaId });
     }
 
     private sealed class UsuarioDePrueba : ICurrentUserService
     {
         public Guid? UsuarioId { get; } = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+        public bool TienePermiso(string codigoPermiso) => true;
     }
 }
 
