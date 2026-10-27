@@ -56,16 +56,13 @@ public sealed class SecuritySeeder(
         var agente = ObtenerOCrearRol(
             porNombre, Roles.Agente, "Gestión operativa de clientes, propuestas y facturación");
 
-        foreach (var permiso in permisos.Values)
-        {
-            administradorItinera.AgregarPermiso(permiso);
+        var todos = permisos.Values.ToList();
+        var noPlataforma = todos.Where(p => !Roles.EsDePlataforma(p.Codigo)).ToList();
+        var delAgente = Roles.PermisosDelAgente.Select(codigo => permisos[codigo]).ToList();
 
-            if (!Roles.EsDePlataforma(permiso.Codigo))
-                administrador.AgregarPermiso(permiso);
-        }
-
-        foreach (var codigo in Roles.PermisosDelAgente)
-            agente.AgregarPermiso(permisos[codigo]);
+        SincronizarPermisos(administradorItinera, todos);
+        SincronizarPermisos(administrador, noPlataforma);
+        SincronizarPermisos(agente, delAgente);
 
         await context.SaveChangesAsync(cancellationToken);
         return porNombre;
@@ -125,5 +122,16 @@ public sealed class SecuritySeeder(
         context.Roles.Add(rol);
         roles[nombre] = rol;
         return rol;
+    }
+
+    private static void SincronizarPermisos(Rol rol, IEnumerable<Permiso> deseados)
+    {
+        var codigosDeseados = deseados.Select(p => p.Codigo).ToHashSet();
+
+        foreach (var permiso in rol.Permisos.Where(p => !codigosDeseados.Contains(p.Codigo)).ToList())
+            rol.QuitarPermiso(permiso);
+
+        foreach (var permiso in deseados)
+            rol.AgregarPermiso(permiso);
     }
 }

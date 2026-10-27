@@ -24,7 +24,7 @@ public class RolesController(IRolAdminService rolAdminService) : ApiController
     [ProducesResponseType(typeof(List<PermisoAdminResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<PermisoAdminResponse>>> ListarPermisos()
     {
-        var response = await _rolAdminService.ListarPermisosAsync();
+        var response = await _rolAdminService.ListarPermisosAsync(User);
 
         return Ok(response);
     }
@@ -34,7 +34,7 @@ public class RolesController(IRolAdminService rolAdminService) : ApiController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<RolAdminResponse>> Crear(CrearRolRequest request)
     {
-        var response = await _rolAdminService.CrearAsync(request);
+        var response = await _rolAdminService.CrearAsync(request, User);
 
         return CreatedAtAction(nameof(Listar), response);
     }
@@ -44,7 +44,7 @@ public class RolesController(IRolAdminService rolAdminService) : ApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AsignarPermiso(int id, AsignarPermisoRequest request)
     {
-        await _rolAdminService.AsignarPermisoAsync(id, request.PermisoId);
+        await _rolAdminService.AsignarPermisoAsync(id, request.PermisoId, User);
 
         return NoContent();
     }
@@ -53,7 +53,7 @@ public class RolesController(IRolAdminService rolAdminService) : ApiController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> QuitarPermiso(int id, int permisoId)
     {
-        await _rolAdminService.QuitarPermisoAsync(id, permisoId);
+        await _rolAdminService.QuitarPermisoAsync(id, permisoId, User);
 
         return NoContent();
     }
