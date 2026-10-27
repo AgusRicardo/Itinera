@@ -89,9 +89,19 @@ public class AuthenticationService : IAuthenticationService
 
     public UsuarioInfoResponse ObtenerInfoUsuario(ClaimsPrincipal user)
     {
-        var usuarioId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        var email = user.FindFirst(ClaimTypes.Email)!.Value;
-        var nombre = user.FindFirst(ClaimTypes.Name)!.Value;
+        var usuarioId = Guid.Parse(
+            user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? user.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+            ?? throw new UnauthorizedAccessException("Token sin identificador de usuario."));
+
+        var email = user.FindFirst(ClaimTypes.Email)?.Value
+            ?? user.FindFirst(JwtRegisteredClaimNames.Email)?.Value
+            ?? string.Empty;
+
+        var nombre = user.FindFirst(ClaimTypes.Name)?.Value
+            ?? user.FindFirst(JwtRegisteredClaimNames.Name)?.Value
+            ?? string.Empty;
+
         var roles = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
 
         return new UsuarioInfoResponse(usuarioId, email, nombre, roles);
