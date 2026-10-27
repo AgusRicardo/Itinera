@@ -7,6 +7,7 @@ using Itinera.Application.Empleados.Interfaces;
 using Itinera.Application.Empresas.Interfaces;
 using Itinera.Application.EstadosFacturas.Interfaces;
 using Itinera.Application.EstadosPropuestas.Interfaces;
+using Itinera.Application.Onboarding.Interfaces;
 using Itinera.Application.Paises.Interfaces;
 using Itinera.Application.Propuestas.Interfaces;
 using Itinera.Security.Application.Interfaces;
@@ -30,6 +31,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IPropuestaRepository, PropuestaRepository>();
         services.AddScoped<IClienteRepository, ClienteRepository>();
+        services.AddScoped<IEmpresaClienteRepository, EmpresaClienteRepository>();
         services.AddScoped<IEmpleadoRepository, EmpleadoRepository>();
         services.AddScoped<IPaisRepository, PaisRepository>();
         services.AddScoped<ICiudadRepository, CiudadRepository>();
@@ -42,7 +44,12 @@ public static class DependencyInjection
 
         services.AddScoped<ISecurityRepository, SecurityRepository>();
 
+        services.AddScoped<ITenantContext, TenantContext>();
+        services.AddScoped<TenantResolver>();
+
         services.AddScoped<IGeneradorItinerarioIA, MockGeneradorItinerarioIA>();
+
+        services.AddScoped<IOnboardingService, OnboardingService>();
 
         services.AddScoped<SecuritySeeder>();
 

@@ -2,7 +2,9 @@ using Itinera.Application.Clientes.Dtos;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Clientes.Services;
 using Itinera.Application.Common.Exceptions;
+using Itinera.Domain.Common;
 using Itinera.Domain.Usuarios;
+using Itinera.UnitTests.Common;
 using Xunit;
 
 namespace Itinera.UnitTests.Clientes;
@@ -13,7 +15,7 @@ public class ClienteServiceTests
     public async Task CrearAsync_persiste_y_devuelve_el_cliente()
     {
         var repositorio = new ClienteRepositoryFake();
-        var servicio = new ClienteService(repositorio);
+        var servicio = new ClienteService(repositorio, new TenantContextFake { EmpresaId = 1 }, new EmpresaClienteRepositoryFake());
 
         var response = await servicio.CrearAsync(new CrearClienteRequest
         {
@@ -33,7 +35,7 @@ public class ClienteServiceTests
     [Fact]
     public async Task ObtenerPorIdAsync_de_un_cliente_inexistente_lanza_excepcion()
     {
-        var servicio = new ClienteService(new ClienteRepositoryFake());
+        var servicio = new ClienteService(new ClienteRepositoryFake(), new TenantContextFake { EmpresaId = 1 }, new EmpresaClienteRepositoryFake());
 
         await Assert.ThrowsAsync<ClienteNoEncontradoException>(
             () => servicio.ObtenerPorIdAsync(99));
@@ -43,7 +45,7 @@ public class ClienteServiceTests
     public async Task ActualizarAsync_cambia_los_datos()
     {
         var repositorio = new ClienteRepositoryFake();
-        var servicio = new ClienteService(repositorio);
+        var servicio = new ClienteService(repositorio, new TenantContextFake { EmpresaId = 1 }, new EmpresaClienteRepositoryFake());
         var creado = await servicio.CrearAsync(new CrearClienteRequest
         {
             Nombre = "Ana",
@@ -68,7 +70,7 @@ public class ClienteServiceTests
     public async Task EliminarAsync_desactiva_el_cliente()
     {
         var repositorio = new ClienteRepositoryFake();
-        var servicio = new ClienteService(repositorio);
+        var servicio = new ClienteService(repositorio, new TenantContextFake { EmpresaId = 1 }, new EmpresaClienteRepositoryFake());
         var creado = await servicio.CrearAsync(new CrearClienteRequest
         {
             Nombre = "Ana",
@@ -85,13 +87,24 @@ public class ClienteServiceTests
     [Fact]
     public async Task ObtenerTodosAsync_devuelve_los_clientes_creados()
     {
-        var servicio = new ClienteService(new ClienteRepositoryFake());
+        var servicio = new ClienteService(new ClienteRepositoryFake(), new TenantContextFake { EmpresaId = 1 }, new EmpresaClienteRepositoryFake());
         await servicio.CrearAsync(new CrearClienteRequest { Nombre = "Ana", Apellido = "Gomez", Email = "ana@correo.com" });
         await servicio.CrearAsync(new CrearClienteRequest { Nombre = "Luis", Apellido = "Diaz", Email = "luis@correo.com" });
 
         var response = await servicio.ObtenerTodosAsync();
 
         Assert.Equal(2, response.Count);
+    }
+
+    private sealed class EmpresaClienteRepositoryFake : IEmpresaClienteRepository
+    {
+        public List<EmpresaCliente> EmpresaClientes { get; } = new();
+
+        public Task AddAsync(EmpresaCliente empresaCliente)
+        {
+            EmpresaClientes.Add(empresaCliente);
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class ClienteRepositoryFake : IClienteRepository

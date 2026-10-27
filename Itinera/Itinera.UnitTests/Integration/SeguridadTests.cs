@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Itinera.UnitTests.Common;
 using Xunit;
 
 namespace Itinera.UnitTests.Integration;
@@ -46,7 +47,7 @@ public class SeguridadTests
     public async Task ResolverPermisos_HeredaDeGruposAnidados()
     {
         await using var contexto = _fixture.CrearContexto();
-        var repositorio = new SecurityRepository(contexto);
+        var repositorio = new SecurityRepository(contexto, new TenantContextFake());
         var sufijo = Guid.NewGuid().ToString("N");
 
         var permiso = new Permiso($"test.recursivo.{sufijo}", "Prueba de recursión");
@@ -78,7 +79,7 @@ public class SeguridadTests
     public async Task AgregarMiembro_RechazaCiclos()
     {
         await using var contexto = _fixture.CrearContexto();
-        var repositorio = new SecurityRepository(contexto);
+        var repositorio = new SecurityRepository(contexto, new TenantContextFake());
         var sufijo = Guid.NewGuid().ToString("N");
 
         var grupoA = new GrupoUsuarios($"A{sufijo}");
@@ -99,7 +100,7 @@ public class SeguridadTests
         var seeder = CrearSeeder(contexto);
         await seeder.SembrarAsync();
 
-        var repositorio = new SecurityRepository(contexto);
+        var repositorio = new SecurityRepository(contexto, new TenantContextFake());
         var email = $"login-{Guid.NewGuid():N}@test.com";
         var usuario = new Usuario("Tester", email, PasswordHasher.Hash("Clave123!"));
         contexto.Usuarios.Add(usuario);
@@ -131,20 +132,9 @@ public class SeguridadTests
     }
 
     private static SecuritySeeder CrearSeeder(
-        Itinera.Infrastructure.Persistence.AppDbContext contexto,
-        string? adminEmail = null,
-        string? adminPassword = null)
+        Itinera.Infrastructure.Persistence.AppDbContext contexto)
     {
-        var valores = new Dictionary<string, string?>();
-        if (adminEmail is not null)
-            valores["Seed:Admin:Email"] = adminEmail;
-        if (adminPassword is not null)
-            valores["Seed:Admin:Password"] = adminPassword;
-
-        var configuracion = new ConfigurationBuilder()
-            .AddInMemoryCollection(valores)
-            .Build();
-
+        var configuracion = new ConfigurationBuilder().Build();
         return new SecuritySeeder(contexto, configuracion, NullLogger<SecuritySeeder>.Instance);
     }
 }

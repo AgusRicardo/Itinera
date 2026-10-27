@@ -1,5 +1,6 @@
 using Itinera.Application.Cargos.Interfaces;
 using Itinera.Application.Common.Exceptions;
+using Itinera.Application.Common.Interfaces;
 using Itinera.Application.Empleados.Dtos;
 using Itinera.Application.Empleados.Interfaces;
 using Itinera.Application.Empleados.Mappers;
@@ -12,16 +13,18 @@ namespace Itinera.Application.Empleados.Services;
 public class EmpleadoService(
     IEmpleadoRepository empleadoRepository,
     ICargoRepository cargoRepository,
-    IEmpresaRepository empresaRepository) : IEmpleadoService
+    IEmpresaRepository empresaRepository,
+    ITenantContext tenantContext) : IEmpleadoService
 {
     private readonly IEmpleadoRepository _empleadoRepository = empleadoRepository;
     private readonly ICargoRepository _cargoRepository = cargoRepository;
     private readonly IEmpresaRepository _empresaRepository = empresaRepository;
+    private readonly ITenantContext _tenantContext = tenantContext;
 
     public async Task<EmpleadoResponse> CrearAsync(CrearEmpleadoRequest request)
     {
         Cargo cargo = await ObtenerCargoById(request.CargoId);
-        Empresa empresa = await ObtenerEmpresaById(request.EmpresaId);
+        Empresa empresa = await ObtenerEmpresaActual();
 
         var empleado = new Empleado(
             request.Nombre,
@@ -54,7 +57,7 @@ public class EmpleadoService(
     {
         var empleado = await ObtenerEmpleadoById(id);
         Cargo cargo = await ObtenerCargoById(request.CargoId);
-        Empresa empresa = await ObtenerEmpresaById(request.EmpresaId);
+        Empresa empresa = await ObtenerEmpresaActual();
 
         empleado.ActualizarDatos(
             request.Nombre,
@@ -92,8 +95,11 @@ public class EmpleadoService(
         return cargo ?? throw new CargoNoEncontradoException(cargoId);
     }
 
-    private async Task<Empresa> ObtenerEmpresaById(int empresaId)
+    private async Task<Empresa> ObtenerEmpresaActual()
     {
+        var empresaId = _tenantContext.EmpresaId
+            ?? throw new InvalidOperationException("No se pudo determinar la empresa del usuario.");
+
         Empresa? empresa = await _empresaRepository.GetByIdAsync(empresaId);
 
         return empresa ?? throw new EmpresaNoEncontradaException(empresaId);

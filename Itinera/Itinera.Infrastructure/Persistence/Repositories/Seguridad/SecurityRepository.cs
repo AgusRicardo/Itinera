@@ -1,12 +1,15 @@
+using Itinera.Application.Common.Interfaces;
 using Itinera.Security.Application.Interfaces;
 using Itinera.Security.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence.Repositories.Seguridad;
 
-public class SecurityRepository(AppDbContext context) : ISecurityRepository
+public class SecurityRepository(AppDbContext context, ITenantContext tenantContext) : ISecurityRepository
 {
     private readonly AppDbContext _context = context;
+    private int? EmpresaId => tenantContext.EmpresaId;
+    private bool EsAdministradorPlataforma => tenantContext.EsAdministradorPlataforma;
 
     public Task<Usuario?> GetByEmailAsync(string email)
         => _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
@@ -49,7 +52,19 @@ public class SecurityRepository(AppDbContext context) : ISecurityRepository
     }
 
     public Task<List<Usuario>> ListarUsuariosAsync()
-        => _context.Usuarios.OrderBy(u => u.Nombre).ToListAsync();
+    {
+        if (EsAdministradorPlataforma)
+            return _context.Usuarios.OrderBy(u => u.Nombre).ToListAsync();
+
+        if (EmpresaId is null)
+            return Task.FromResult(new List<Usuario>());
+
+        return _context.Usuarios
+            .Where(u => _context.UsuariosEmpleados.Any(ue =>
+                ue.UsuarioId == u.Id && ue.Activo && ue.Empleado.EmpresaId == EmpresaId))
+            .OrderBy(u => u.Nombre)
+            .ToListAsync();
+    }
 
     public Task<List<Rol>> ListarRolesAsync()
         => RolesConPermisos().OrderBy(r => r.Nombre).ToListAsync();

@@ -9,6 +9,7 @@ public class Propuesta
     public int Id { get; private set; }
     public DateTime FechaCreacion { get; private set; }
     public decimal Presupuesto { get; private set; }
+    public int EmpresaId { get; private set; }
     public int EstadoPropuestaId { get; private set; }
     public EstadoPropuesta Estado => (EstadoPropuesta)EstadoPropuestaId;
     public int ClienteId { get; private set; }
@@ -36,6 +37,7 @@ public class Propuesta
         Cliente = cliente;
         Empleado = empleado;
         Presupuesto = presupuesto;
+        EmpresaId = empleado.EmpresaId;
 
         Itinerario = new Itinerario();
     }
