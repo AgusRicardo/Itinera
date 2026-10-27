@@ -1,4 +1,5 @@
-﻿using Itinera.Domain.Usuarios;
+﻿using Itinera.Domain.Common;
+using Itinera.Domain.Usuarios;
 
 namespace Itinera.Domain.Empresa;
 
@@ -14,6 +15,7 @@ public class Empresa
     public Guid? UsuarioModificacionId { get; protected set; }
     public bool Activo { get; private set; } = true;
     public List<Empleado> Empleados { get; private set; } = new();
+    public List<EmpresaCliente> Clientes { get; private set; } = new();
 
     private Empresa()
     {

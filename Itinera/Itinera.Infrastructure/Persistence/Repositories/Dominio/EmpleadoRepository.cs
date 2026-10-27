@@ -1,12 +1,15 @@
+using Itinera.Application.Common.Interfaces;
 using Itinera.Application.Empleados.Interfaces;
 using Itinera.Domain.Usuarios;
 using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
-public class EmpleadoRepository(AppDbContext context) : IEmpleadoRepository
+public class EmpleadoRepository(AppDbContext context, ITenantContext tenantContext) : IEmpleadoRepository
 {
     private readonly AppDbContext _context = context;
+    private int? EmpresaId => tenantContext.EmpresaId;
+    private bool EsAdministradorPlataforma => tenantContext.EsAdministradorPlataforma;
 
     public Task AddAsync(Empleado empleado)
     {
@@ -15,10 +18,13 @@ public class EmpleadoRepository(AppDbContext context) : IEmpleadoRepository
     }
 
     public Task<Empleado?> GetByIdAsync(int id)
-        => ConRelaciones().FirstOrDefaultAsync(empleado => empleado.Id == id);
+        => ConRelaciones().FirstOrDefaultAsync(empleado =>
+            empleado.Id == id
+            && (EsAdministradorPlataforma || (EmpresaId != null && empleado.EmpresaId == EmpresaId)));
 
     public Task<List<Empleado>> GetAllAsync()
-        => ConRelaciones().ToListAsync();
+        => ConRelaciones().Where(empleado =>
+            EsAdministradorPlataforma || (EmpresaId != null && empleado.EmpresaId == EmpresaId)).ToListAsync();
 
     private IQueryable<Empleado> ConRelaciones()
         => _context.Empleados

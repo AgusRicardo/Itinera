@@ -1,4 +1,5 @@
-﻿using Itinera.Domain.Common;
+﻿using Itinera.Application.Common.Interfaces;
+using Itinera.Domain.Common;
 using Itinera.Domain.Empresa;
 using Itinera.Domain.Facturacion;
 using Itinera.Domain.Propuestas;
@@ -10,9 +11,12 @@ namespace Itinera.Infrastructure.Persistence;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
+    private readonly ITenantContext _tenantContext;
+
+    public AppDbContext(DbContextOptions<AppDbContext> options, ITenantContext tenantContext)
         : base(options)
     {
+        _tenantContext = tenantContext;
     }
 
     public DbSet<Persona> Personas => Set<Persona>();
@@ -33,6 +37,7 @@ public class AppDbContext : DbContext
     public DbSet<Factura> Facturas => Set<Factura>();
     public DbSet<DetalleFactura> DetallesFactura => Set<DetalleFactura>();
     public DbSet<Pago> Pagos => Set<Pago>();
+    public DbSet<EmpresaCliente> EmpresaClientes => Set<EmpresaCliente>();
     public DbSet<UsuarioComponent> UsuariosSeguridad => Set<UsuarioComponent>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<GrupoUsuarios> GruposUsuarios => Set<GrupoUsuarios>();
@@ -40,11 +45,23 @@ public class AppDbContext : DbContext
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<Permiso> Permisos => Set<Permiso>();
     public DbSet<UsuarioComponentRol> UsuarioComponentRoles => Set<UsuarioComponentRol>();
+    public DbSet<UsuarioEmpleado> UsuariosEmpleados => Set<UsuarioEmpleado>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+        AplicarFiltrosDeTenant(modelBuilder);
+
         base.OnModelCreating(modelBuilder);
+    }
+
+    private void AplicarFiltrosDeTenant(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Propuesta>()
+            .HasQueryFilter(p => _tenantContext.EsAdministradorPlataforma || p.EmpresaId == _tenantContext.EmpresaId);
+
+        modelBuilder.Entity<EmpresaCliente>()
+            .HasQueryFilter(ec => _tenantContext.EsAdministradorPlataforma || ec.EmpresaId == _tenantContext.EmpresaId);
     }
 }

@@ -6,6 +6,7 @@ using Itinera.Domain.Propuestas;
 using Itinera.Domain.Usuarios;
 using Itinera.Infrastructure.Persistence.Repositories.Dominio;
 using Itinera.Infrastructure.Servicios;
+using Itinera.UnitTests.Common;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using EmpresaEntidad = Itinera.Domain.Empresa.Empresa;
@@ -163,8 +164,8 @@ public class PropuestaPersistenciaTests
     private static PropuestaService CrearServicio(Itinera.Infrastructure.Persistence.AppDbContext contexto)
         => new(
             new PropuestaRepository(contexto),
-            new ClienteRepository(contexto),
-            new EmpleadoRepository(contexto),
+            new ClienteRepository(contexto, new TenantContextFake()),
+            new EmpleadoRepository(contexto, new TenantContextFake()),
             new DestinoRepository(contexto),
             new ActividadRepository(contexto),
             new MockGeneradorItinerarioIA());

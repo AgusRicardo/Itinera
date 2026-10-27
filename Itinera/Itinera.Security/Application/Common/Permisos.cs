@@ -30,6 +30,8 @@ public static class Permisos
 
     public const string SeguridadGestionar = "seguridad.gestionar";
 
+    public const string PlataformaGestionarEmpresas = "plataforma.empresas.gestionar";
+
     public const string ClaimType = "permiso";
 
     public static readonly IReadOnlyList<PermisoDefinicion> Catalogo = new List<PermisoDefinicion>
@@ -51,6 +53,7 @@ public static class Permisos
         new(FacturacionCrear, "Generar facturas"),
         new(FacturacionRegistrarPago, "Registrar pagos"),
         new(FacturacionAnular, "Anular facturas"),
-        new(SeguridadGestionar, "Gestionar seguridad (usuarios, roles y grupos)")
+        new(SeguridadGestionar, "Gestionar seguridad (usuarios, roles y grupos)"),
+        new(PlataformaGestionarEmpresas, "Gestionar empresas de la plataforma (alta de tenants)")
     };
 }

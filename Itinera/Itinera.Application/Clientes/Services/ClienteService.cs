@@ -2,16 +2,26 @@ using Itinera.Application.Clientes.Dtos;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Clientes.Mappers;
 using Itinera.Application.Common.Exceptions;
+using Itinera.Application.Common.Interfaces;
+using Itinera.Domain.Common;
 using Itinera.Domain.Usuarios;
 
 namespace Itinera.Application.Clientes.Services;
 
-public class ClienteService(IClienteRepository clienteRepository) : IClienteService
+public class ClienteService(
+    IClienteRepository clienteRepository,
+    ITenantContext tenantContext,
+    IEmpresaClienteRepository empresaClienteRepository) : IClienteService
 {
     private readonly IClienteRepository _clienteRepository = clienteRepository;
+    private readonly ITenantContext _tenantContext = tenantContext;
+    private readonly IEmpresaClienteRepository _empresaClienteRepository = empresaClienteRepository;
 
     public async Task<ClienteResponse> CrearAsync(CrearClienteRequest request)
     {
+        var empresaId = _tenantContext.EmpresaId
+            ?? throw new InvalidOperationException("No se pudo determinar la empresa del usuario.");
+
         var cliente = new Cliente(
             request.Nombre,
             request.Apellido,
@@ -19,6 +29,7 @@ public class ClienteService(IClienteRepository clienteRepository) : IClienteServ
             request.Telefono);
 
         await _clienteRepository.AddAsync(cliente);
+        await _empresaClienteRepository.AddAsync(new EmpresaCliente(empresaId, cliente.Id));
 
         return ClienteMapper.ToResponse(cliente);
     }

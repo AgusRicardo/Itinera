@@ -22,6 +22,27 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Itinera.Domain.Common.EmpresaCliente", b =>
+                {
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("FechaRelacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("EmpresaId", "ClienteId");
+
+                    b.HasIndex("ClienteId");
+
+                    b.ToTable("EmpresaClientes", (string)null);
+                });
+
             modelBuilder.Entity("Itinera.Domain.Common.EstadoFacturaCatalogo", b =>
                 {
                     b.Property<int>("Id")
@@ -558,6 +579,9 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Property<int>("EmpleadoId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("EstadoPropuestaId")
                         .HasColumnType("integer");
 
@@ -586,9 +610,30 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("EmpleadoId");
 
+                    b.HasIndex("EmpresaId");
+
                     b.HasIndex("EstadoPropuestaId");
 
                     b.ToTable("Propuestas", (string)null);
+                });
+
+            modelBuilder.Entity("Itinera.Infrastructure.Persistence.UsuarioEmpleado", b =>
+                {
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("EmpleadoId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UsuarioId");
+
+                    b.HasIndex("EmpleadoId")
+                        .IsUnique();
+
+                    b.ToTable("UsuariosEmpleados", (string)null);
                 });
 
             modelBuilder.Entity("Itinera.Security.Domain.GrupoMiembro", b =>
@@ -770,6 +815,25 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.HasDiscriminator().HasValue("Usuario");
                 });
 
+            modelBuilder.Entity("Itinera.Domain.Common.EmpresaCliente", b =>
+                {
+                    b.HasOne("Itinera.Domain.Usuarios.Cliente", "Cliente")
+                        .WithMany("Empresas")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Itinera.Domain.Empresa.Empresa", "Empresa")
+                        .WithMany("Clientes")
+                        .HasForeignKey("EmpresaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Empresa");
+                });
+
             modelBuilder.Entity("Itinera.Domain.Facturacion.DetalleFactura", b =>
                 {
                     b.HasOne("Itinera.Domain.Facturacion.Factura", "Factura")
@@ -918,6 +982,25 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Navigation("EstadoPropuestaCatalogo");
                 });
 
+            modelBuilder.Entity("Itinera.Infrastructure.Persistence.UsuarioEmpleado", b =>
+                {
+                    b.HasOne("Itinera.Domain.Usuarios.Empleado", "Empleado")
+                        .WithMany()
+                        .HasForeignKey("EmpleadoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Itinera.Security.Domain.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Empleado");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("Itinera.Security.Domain.GrupoMiembro", b =>
                 {
                     b.HasOne("Itinera.Security.Domain.GrupoUsuarios", "Grupo")
@@ -1007,6 +1090,8 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Itinera.Domain.Empresa.Empresa", b =>
                 {
+                    b.Navigation("Clientes");
+
                     b.Navigation("Empleados");
                 });
 
@@ -1051,6 +1136,8 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Itinera.Domain.Usuarios.Cliente", b =>
                 {
+                    b.Navigation("Empresas");
+
                     b.Navigation("Propuestas");
                 });
 

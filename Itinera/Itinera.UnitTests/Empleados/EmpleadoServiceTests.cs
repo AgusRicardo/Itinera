@@ -6,6 +6,7 @@ using Itinera.Application.Empleados.Services;
 using Itinera.Application.Empresas.Interfaces;
 using Itinera.Domain.Empresa;
 using Itinera.Domain.Usuarios;
+using Itinera.UnitTests.Common;
 using Xunit;
 using EmpresaEntidad = Itinera.Domain.Empresa.Empresa;
 
@@ -21,7 +22,7 @@ public class EmpleadoServiceTests
         var cargo = await CrearCargo(cargoRepositorio);
         var empresa = await CrearEmpresa(empresaRepositorio);
         var repositorio = new EmpleadoRepositoryFake();
-        var servicio = new EmpleadoService(repositorio, cargoRepositorio, empresaRepositorio);
+        var servicio = new EmpleadoService(repositorio, cargoRepositorio, empresaRepositorio, new TenantContextFake { EmpresaId = 1 });
 
         var response = await servicio.CrearAsync(new CrearEmpleadoRequest
         {
@@ -29,8 +30,7 @@ public class EmpleadoServiceTests
             Apellido = "Perez",
             Email = "juan@correo.com",
             Telefono = "1122334455",
-            CargoId = cargo.Id,
-            EmpresaId = empresa.Id
+            CargoId = cargo.Id
         });
 
         Assert.True(response.Id > 0);
@@ -48,7 +48,8 @@ public class EmpleadoServiceTests
         var servicio = new EmpleadoService(
             new EmpleadoRepositoryFake(),
             new CargoRepositoryFake(),
-            new EmpresaRepositoryFake());
+            new EmpresaRepositoryFake(),
+            new TenantContextFake { EmpresaId = 1 });
 
         await Assert.ThrowsAsync<CargoNoEncontradoException>(
             () => servicio.CrearAsync(new CrearEmpleadoRequest
@@ -56,8 +57,7 @@ public class EmpleadoServiceTests
                 Nombre = "Juan",
                 Apellido = "Perez",
                 Email = "juan@correo.com",
-                CargoId = 99,
-                EmpresaId = 1
+                CargoId = 99
             }));
     }
 
@@ -67,7 +67,8 @@ public class EmpleadoServiceTests
         var servicio = new EmpleadoService(
             new EmpleadoRepositoryFake(),
             new CargoRepositoryFake(),
-            new EmpresaRepositoryFake());
+            new EmpresaRepositoryFake(),
+            new TenantContextFake { EmpresaId = 1 });
 
         await Assert.ThrowsAsync<EmpleadoNoEncontradoException>(
             () => servicio.ObtenerPorIdAsync(99));
@@ -80,15 +81,14 @@ public class EmpleadoServiceTests
         var empresaRepositorio = new EmpresaRepositoryFake();
         var cargo = await CrearCargo(cargoRepositorio);
         var empresa = await CrearEmpresa(empresaRepositorio);
-        var servicio = new EmpleadoService(new EmpleadoRepositoryFake(), cargoRepositorio, empresaRepositorio);
+        var servicio = new EmpleadoService(new EmpleadoRepositoryFake(), cargoRepositorio, empresaRepositorio, new TenantContextFake { EmpresaId = 1 });
         var creado = await servicio.CrearAsync(new CrearEmpleadoRequest
         {
             Nombre = "Juan",
             Apellido = "Perez",
             Email = "juan@correo.com",
             Telefono = "1122334455",
-            CargoId = cargo.Id,
-            EmpresaId = empresa.Id
+            CargoId = cargo.Id
         });
 
         var response = await servicio.ActualizarAsync(creado.Id, new ActualizarEmpleadoRequest
@@ -97,8 +97,7 @@ public class EmpleadoServiceTests
             Apellido = "Lopez",
             Email = "juan.lopez@correo.com",
             Telefono = "1199887766",
-            CargoId = cargo.Id,
-            EmpresaId = empresa.Id
+            CargoId = cargo.Id
         });
 
         Assert.Equal("Lopez", response.Apellido);
@@ -113,15 +112,14 @@ public class EmpleadoServiceTests
         var cargo = await CrearCargo(cargoRepositorio);
         var empresa = await CrearEmpresa(empresaRepositorio);
         var repositorio = new EmpleadoRepositoryFake();
-        var servicio = new EmpleadoService(repositorio, cargoRepositorio, empresaRepositorio);
+        var servicio = new EmpleadoService(repositorio, cargoRepositorio, empresaRepositorio, new TenantContextFake { EmpresaId = 1 });
         var creado = await servicio.CrearAsync(new CrearEmpleadoRequest
         {
             Nombre = "Juan",
             Apellido = "Perez",
             Email = "juan@correo.com",
             Telefono = "1122334455",
-            CargoId = cargo.Id,
-            EmpresaId = empresa.Id
+            CargoId = cargo.Id
         });
 
         await servicio.EliminarAsync(creado.Id);
@@ -136,10 +134,10 @@ public class EmpleadoServiceTests
         var empresaRepositorio = new EmpresaRepositoryFake();
         var cargo = await CrearCargo(cargoRepositorio);
         var empresa = await CrearEmpresa(empresaRepositorio);
-        var servicio = new EmpleadoService(new EmpleadoRepositoryFake(), cargoRepositorio, empresaRepositorio);
+        var servicio = new EmpleadoService(new EmpleadoRepositoryFake(), cargoRepositorio, empresaRepositorio, new TenantContextFake { EmpresaId = 1 });
 
-        await servicio.CrearAsync(new CrearEmpleadoRequest { Nombre = "Juan", Apellido = "Perez", Email = "juan@correo.com", CargoId = cargo.Id, EmpresaId = empresa.Id });
-        await servicio.CrearAsync(new CrearEmpleadoRequest { Nombre = "Maria", Apellido = "Diaz", Email = "maria@correo.com", CargoId = cargo.Id, EmpresaId = empresa.Id });
+        await servicio.CrearAsync(new CrearEmpleadoRequest { Nombre = "Juan", Apellido = "Perez", Email = "juan@correo.com", CargoId = cargo.Id });
+        await servicio.CrearAsync(new CrearEmpleadoRequest { Nombre = "Maria", Apellido = "Diaz", Email = "maria@correo.com", CargoId = cargo.Id });
 
         var response = await servicio.ObtenerTodosAsync();
 
