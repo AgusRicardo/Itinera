@@ -6,6 +6,7 @@ public interface IPropuestaRepository
 {
     Task AddAsync(Propuesta propuesta);
     Task<Propuesta?> GetByIdAsync(int id);
+    Task<List<Propuesta>> GetAllAsync();
     Task<List<Propuesta>> GetByClienteAsync(int clienteId);
     Task UpdateAsync(Propuesta propuesta);
 }

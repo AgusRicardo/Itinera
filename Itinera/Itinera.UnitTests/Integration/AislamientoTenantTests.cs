@@ -86,4 +86,34 @@ public class AislamientoTenantTests
         Assert.Equal(propuestaA.Id, visibles.Single().Id);
         Assert.Null(noEncontrado);
     }
+
+    [Fact]
+    public async Task Propuesta_eliminada_no_es_visible_para_su_empresa()
+    {
+        await using var contexto = _fixture.CrearContexto();
+
+        var empresa = new EmpresaEntidad("Agencia", "30-33333333-3", "555-0003");
+        var cargo = new Cargo("Agente");
+        contexto.Empresas.Add(empresa);
+        contexto.Cargos.Add(cargo);
+        await contexto.SaveChangesAsync();
+
+        var empleado = new Empleado("Juan", "Alonso", "juan@eliminada.com", "111", cargo, empresa);
+        var cliente = new Cliente("Ana", "Alonso", "ana@eliminada.com", "111");
+        contexto.Empleados.Add(empleado);
+        contexto.Clientes.Add(cliente);
+        await contexto.SaveChangesAsync();
+
+        var propuesta = new Propuesta(cliente, empleado, 1000);
+        contexto.Propuestas.Add(propuesta);
+        await contexto.SaveChangesAsync();
+
+        propuesta.Eliminar();
+        await contexto.SaveChangesAsync();
+
+        await using var contextoEmpresa = _fixture.CrearContextoConEmpresa(empresa.Id);
+        var visible = await contextoEmpresa.Propuestas.ToListAsync();
+
+        Assert.Empty(visible);
+    }
 }

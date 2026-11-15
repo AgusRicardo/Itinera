@@ -1,0 +1,21 @@
+<nav
+  class="ml-2 flex items-center gap-1 rounded-lg bg-itinera-secondary/70 p-1 sm:ml-5"
+  aria-label="Navegación principal"
+>
+  <a
+    routerLink="/propuestas"
+    routerLinkActive="bg-itinera-card text-itinera-foreground shadow-sm"
+    [routerLinkActiveOptions]="{ exact: false }"
+    class="rounded-md px-2 py-1.5 text-xs text-itinera-muted transition-colors hover:text-itinera-foreground sm:px-3"
+  >
+    Propuestas
+  </a>
+  <a
+    routerLink="/clientes"
+    routerLinkActive="bg-itinera-card text-itinera-foreground shadow-sm"
+    [routerLinkActiveOptions]="{ exact: false }"
+    class="rounded-md px-2 py-1.5 text-xs text-itinera-muted transition-colors hover:text-itinera-foreground sm:px-3"
+  >
+    Clientes
+  </a>
+</nav>

@@ -1,0 +1,147 @@
+<main class="min-h-screen bg-itinera-background">
+  <header class="flex h-14 items-center border-b bg-itinera-card px-6">
+    <a routerLink="/propuestas" class="text-sm text-itinera-muted hover:text-itinera-foreground">
+      ← Propuestas
+    </a>
+    <span class="mx-3 text-itinera-border">|</span>
+    <span class="text-sm font-medium">Nueva propuesta</span>
+  </header>
+
+  <section class="mx-auto w-full max-w-2xl p-6">
+    <header class="mb-5">
+      <h1 class="text-xl font-semibold">Nueva propuesta</h1>
+      <p class="mt-1 text-sm text-itinera-muted">
+        Completá los datos para generar un itinerario personalizado.
+      </p>
+    </header>
+
+    <form
+      class="space-y-5 rounded-2xl border bg-itinera-card p-6 shadow-sm"
+      [formGroup]="formulario"
+      (ngSubmit)="crear()"
+    >
+      <div class="relative">
+        <label class="mb-1.5 block text-sm font-medium" for="cliente">Cliente</label>
+        <input
+          id="cliente"
+          type="search"
+          autocomplete="off"
+          placeholder="Buscar por nombre y apellido..."
+          [value]="busquedaCliente()"
+          class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+          (input)="buscarCliente($any($event.target).value)"
+          (focus)="abrirClientes()"
+          (blur)="cerrarClientes()"
+        />
+
+        @if (clientesAbiertos()) {
+          <div class="absolute left-0 right-0 top-full z-10 mt-1 max-h-56 overflow-y-auto rounded-xl border bg-itinera-card p-1.5 shadow-lg">
+            @if (clientesFiltrados().length) {
+              @for (cliente of clientesFiltrados(); track cliente.id) {
+                <button
+                  type="button"
+                  class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-itinera-secondary"
+                  (click)="seleccionarCliente(cliente)"
+                  (mousedown)="seleccionarCliente(cliente)"
+                >
+                  {{ cliente.nombre }}
+                </button>
+              }
+            } @else {
+              <p class="px-3 py-2 text-sm text-itinera-muted">
+                No se encontraron clientes.
+              </p>
+            }
+          </div>
+        }
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium" for="empleado">Empleado responsable</label>
+        <select
+          id="empleado"
+          formControlName="empleadoId"
+          class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+        >
+          @for (empleado of empleados(); track empleado.id) {
+            <option [ngValue]="empleado.id">{{ empleado.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium" for="presupuesto">
+          Presupuesto máximo (USD)
+        </label>
+        <input
+          id="presupuesto"
+          type="number"
+          formControlName="presupuesto"
+          class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+        />
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium" for="fechaInicio">Fecha inicio</label>
+          <input
+            id="fechaInicio"
+            type="date"
+            formControlName="fechaInicio"
+            class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+          />
+        </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium" for="fechaFin">Fecha fin</label>
+          <input
+            id="fechaFin"
+            type="date"
+            formControlName="fechaFin"
+            class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+          />
+        </div>
+      </div>
+
+      <fieldset>
+        <legend class="mb-3 text-sm font-medium">Destinos</legend>
+        <div class="flex flex-wrap gap-2">
+          @for (destino of destinos(); track destino.id) {
+            <button
+              type="button"
+              class="rounded-full border px-3.5 py-1.5 text-sm transition-colors"
+              [class]="estaSeleccionado(destino.id)
+                ? 'border-itinera-accent bg-itinera-accent text-itinera-foreground'
+                : 'bg-itinera-secondary hover:border-itinera-accent'"
+              (click)="alternarDestino(destino.id)"
+            >
+              {{ destino.nombre }}
+            </button>
+          }
+        </div>
+      </fieldset>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium" for="preferencias">Preferencias</label>
+        <textarea
+          id="preferencias"
+          rows="4"
+          formControlName="preferencias"
+          placeholder="Playa, gastronomía, cultura..."
+          class="w-full resize-none rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+        ></textarea>
+      </div>
+
+      @if (error()) {
+        <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error() }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="cargando()"
+        class="w-full rounded-xl bg-itinera-accent py-3.5 text-sm font-semibold text-itinera-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {{ cargando() ? 'Generando itinerario…' : 'Generar itinerario' }}
+      </button>
+    </form>
+  </section>
+</main>

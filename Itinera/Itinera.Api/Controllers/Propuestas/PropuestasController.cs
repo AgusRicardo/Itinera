@@ -40,9 +40,12 @@ public class PropuestasController(IPropuestaService propuestaService) : ApiContr
     [HttpGet]
     [Authorize(Policy = Permisos.PropuestasVer)]
     [ProducesResponseType(typeof(List<PropuestaResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<PropuestaResponse>>> ObtenerPorCliente([FromQuery] int clienteId)
+    public async Task<ActionResult<List<PropuestaResponse>>> ObtenerPorCliente(
+        [FromQuery] int? clienteId)
     {
-        var response = await _propuestaService.ObtenerPorClienteAsync(clienteId);
+        var response = clienteId.HasValue
+            ? await _propuestaService.ObtenerPorClienteAsync(clienteId.Value)
+            : await _propuestaService.ObtenerTodasAsync();
 
         return Ok(response);
     }
@@ -96,5 +99,17 @@ public class PropuestasController(IPropuestaService propuestaService) : ApiContr
         var response = await _propuestaService.ModificarItinerarioAsync(id, request);
 
         return Ok(response);
+    }
+
+    [HttpDelete("{id:int}")]
+    [Authorize(Policy = Permisos.PropuestasEliminar)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Eliminar(int id)
+    {
+        await _propuestaService.EliminarAsync(id);
+
+        return NoContent();
     }
 }

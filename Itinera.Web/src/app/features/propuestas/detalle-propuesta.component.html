@@ -1,0 +1,155 @@
+<main class="min-h-screen bg-itinera-background">
+  <header class="flex h-14 items-center justify-between border-b bg-itinera-card px-6">
+    <div class="flex items-center gap-3">
+      <a routerLink="/propuestas" class="text-sm text-itinera-muted hover:text-itinera-foreground">
+        ← Propuestas
+      </a>
+      <span class="text-itinera-border">|</span>
+      <span class="text-sm font-medium">Detalle de propuesta</span>
+    </div>
+  </header>
+
+  <section class="mx-auto w-full max-w-3xl space-y-5 p-6">
+    @if (cargando()) {
+      <div class="rounded-2xl border bg-itinera-card p-10 text-center">
+        <p class="text-sm text-itinera-muted">Cargando propuesta…</p>
+      </div>
+    } @else if (error()) {
+      <div class="rounded-2xl border border-red-200 bg-red-50 p-10 text-center">
+        <p class="text-sm text-red-700">{{ error() }}</p>
+      </div>
+    } @else if (propuesta(); as propuestaActual) {
+      <article class="rounded-2xl border bg-itinera-card p-6 shadow-sm">
+        <div class="mb-5 flex items-start justify-between">
+          <div>
+            <p class="font-mono text-xs text-itinera-muted">Propuesta #{{ propuestaActual.id }}</p>
+            <h1 class="mt-1 text-xl font-semibold">{{ propuestaActual.clienteNombre }}</h1>
+          </div>
+
+          <span
+            class="rounded-full px-3 py-1 text-xs font-semibold"
+            [class]="{
+              'bg-stone-100 text-stone-600': propuestaActual.estado === 'Borrador',
+              'bg-blue-50 text-blue-700': propuestaActual.estado === 'Presentada',
+              'bg-emerald-50 text-emerald-700': propuestaActual.estado === 'Aceptada',
+              'bg-red-50 text-red-700': propuestaActual.estado === 'Rechazada'
+            }"
+          >
+            {{ propuestaActual.estado }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 border-t pt-5">
+          <div>
+            <p class="text-xs text-itinera-muted">Presupuesto</p>
+            <p class="mt-1 text-sm font-semibold">
+              {{ propuestaActual.presupuesto | currency:'USD':'symbol':'1.0-0' }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-itinera-muted">Empleado responsable</p>
+            <p class="mt-1 text-sm font-semibold">{{ propuestaActual.empleadoNombre }}</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="rounded-2xl border bg-itinera-card p-6 shadow-sm">
+        <h2 class="mb-5 text-sm font-semibold">Resumen del itinerario</h2>
+
+        @if (propuestaActual.itinerario; as itinerario) {
+          <div class="mb-5 grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-itinera-muted">Inicio</p>
+              <p class="mt-1 text-sm font-medium">{{ itinerario.fechaInicio }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-itinera-muted">Fin</p>
+              <p class="mt-1 text-sm font-medium">{{ itinerario.fechaFin }}</p>
+            </div>
+          </div>
+
+          <ol class="space-y-4">
+            @for (destino of itinerario.destinos; track $index) {
+              <li class="flex items-center gap-3">
+                <span class="h-2.5 w-2.5 rounded-full bg-itinera-accent"></span>
+                <span class="text-sm font-medium">
+                  {{ destino.destinoDescripcion || destino.destinoNombre }}
+                </span>
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="text-sm text-itinera-muted">No hay un itinerario asociado.</p>
+        }
+      </article>
+
+      @if (propuestaActual.estado === 'Presentada') {
+        <article class="rounded-2xl border bg-itinera-card p-6 shadow-sm">
+          <h2 class="mb-4 text-sm font-semibold">Respuesta del cliente</h2>
+
+          <div class="mb-5 flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="rounded-full border px-3.5 py-1.5 text-sm"
+              [class]="respuesta() === 'Aceptada'
+                ? 'border-itinera-accent bg-itinera-accent'
+                : 'bg-itinera-secondary'"
+              (click)="respuesta.set('Aceptada')"
+            >
+              Aceptada
+            </button>
+            <button
+              type="button"
+              class="rounded-full border px-3.5 py-1.5 text-sm"
+              [class]="respuesta() === 'SolicitaModificaciones'
+                ? 'border-itinera-accent bg-itinera-accent'
+                : 'bg-itinera-secondary'"
+              (click)="respuesta.set('SolicitaModificaciones')"
+            >
+              Solicita modificaciones
+            </button>
+            <button
+              type="button"
+              class="rounded-full border px-3.5 py-1.5 text-sm"
+              [class]="respuesta() === 'Rechazada'
+                ? 'border-itinera-accent bg-itinera-accent'
+                : 'bg-itinera-secondary'"
+              (click)="respuesta.set('Rechazada')"
+            >
+              Rechazada
+            </button>
+          </div>
+
+          <button
+            type="button"
+            [disabled]="procesando()"
+            class="rounded-lg bg-itinera-foreground px-5 py-2.5 text-sm font-medium text-itinera-background disabled:opacity-60"
+            (click)="registrarRespuesta()"
+          >
+            {{ procesando() ? 'Guardando…' : 'Registrar respuesta' }}
+          </button>
+        </article>
+      }
+
+      <div class="flex gap-3">
+        <button
+          type="button"
+          [routerLink]="['/propuestas', propuestaActual.id, 'editar']"
+          class="rounded-lg bg-itinera-secondary px-5 py-2.5 text-sm font-medium hover:bg-itinera-secondary/70"
+        >
+          Editar itinerario
+        </button>
+        @if (propuestaActual.estado === 'Borrador') {
+          <button
+            type="button"
+            [disabled]="procesando()"
+            class="rounded-lg bg-itinera-foreground px-5 py-2.5 text-sm font-medium text-itinera-background hover:opacity-90"
+            (click)="presentar()"
+          >
+            {{ procesando() ? 'Presentando…' : 'Presentar propuesta' }}
+          </button>
+        }
+      </div>
+    }
+  </section>
+</main>

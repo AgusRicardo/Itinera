@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<TenantResolver>();
 
         services.AddScoped<IGeneradorItinerarioIA, MockGeneradorItinerarioIA>();
+        services.AddScoped<IAuditoriaService, AuditoriaService>();
 
         services.AddScoped<IOnboardingService, OnboardingService>();
 
