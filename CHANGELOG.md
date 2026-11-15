@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/AgusRicardo/Itinera/compare/v1.1.1...v1.2.0) (2026-11-15)
+
+
+### Features
+
+* creacion del frontend ([b75ae20](https://github.com/AgusRicardo/Itinera/commit/b75ae20bd3e8eb90e966f0853f30506514a38d75))
+* creacion del frontend ([d1816d9](https://github.com/AgusRicardo/Itinera/commit/d1816d919f336482dae0a87e2e81c2d4492ebbac))
+
 ## [1.1.1](https://github.com/AgusRicardo/Itinera/compare/v1.1.0...v1.1.1) (2026-10-27)
 
 
