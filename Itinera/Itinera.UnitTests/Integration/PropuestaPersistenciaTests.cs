@@ -1,5 +1,6 @@
 using Itinera.Application.Propuestas.Dtos;
 using Itinera.Application.Propuestas.Services;
+using Itinera.Application.Common.Interfaces;
 using Itinera.Domain.Common;
 using Itinera.Domain.Empresa;
 using Itinera.Domain.Propuestas;
@@ -85,6 +86,14 @@ public class PropuestaPersistenciaTests
         Assert.Equal(fechaFin, propuesta.Itinerario.FechaFin);
         Assert.NotEmpty(propuesta.Itinerario.Destinos);
         Assert.NotEqual(Guid.Empty, propuesta.UsuarioRegistracionId);
+
+        var auditoria = await contexto.RegistrosAuditoria
+            .SingleAsync(registro =>
+                registro.Entidad == nameof(Propuesta)
+                && registro.EntidadId == respuesta.Id
+                && registro.Accion == nameof(AccionAuditoria.CrearPropuesta));
+
+        Assert.Equal(respuesta.Id, auditoria.EntidadId);
     }
 
     [Fact]
@@ -168,7 +177,19 @@ public class PropuestaPersistenciaTests
             new EmpleadoRepository(contexto, new TenantContextFake()),
             new DestinoRepository(contexto),
             new ActividadRepository(contexto),
-            new MockGeneradorItinerarioIA());
+            new MockGeneradorItinerarioIA(),
+            new AuditoriaService(
+                contexto,
+                new UsuarioDePrueba(),
+                new TenantContextFake()));
+
+    private sealed class UsuarioDePrueba : ICurrentUserService
+    {
+        public Guid? UsuarioId { get; } =
+            Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+        public bool TienePermiso(string codigoPermiso) => true;
+    }
 
     private static async Task<Escenario> CrearEscenarioAsync(
         Itinera.Infrastructure.Persistence.AppDbContext contexto)

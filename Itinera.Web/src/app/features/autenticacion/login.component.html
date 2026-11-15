@@ -1,0 +1,59 @@
+<main class="flex min-h-screen items-center justify-center bg-itinera-background px-4 py-8">
+  <section class="w-full max-w-sm">
+    <header class="mb-8 text-center">
+      <h1 class="font-itinera-display text-5xl tracking-[0.18em] text-itinera-foreground">
+        ITINERA
+      </h1>
+      <p class="mt-2 text-xs uppercase tracking-[0.2em] text-itinera-muted">
+        Gestión de Turismo
+      </p>
+    </header>
+
+    <form
+      class="space-y-5 rounded-2xl border bg-itinera-card p-8 shadow-sm"
+      [formGroup]="formulario"
+      (ngSubmit)="iniciarSesion()"
+    >
+      <div>
+        <label class="mb-1.5 block text-sm font-medium" for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="correo@empresa.com"
+          class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none transition focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+        />
+        @if (formulario.controls.email.touched && formulario.controls.email.invalid) {
+          <p class="mt-1 text-xs text-red-700">Ingresá un email válido.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium" for="password">Contraseña</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none transition focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+        />
+      </div>
+
+      @if (error()) {
+        <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error() }}</p>
+      }
+
+      <button
+        type="submit"
+        [disabled]="cargando()"
+        class="w-full rounded-lg bg-itinera-foreground py-2.5 text-sm font-semibold text-itinera-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {{ cargando() ? 'Ingresando…' : 'Iniciar Sesión' }}
+      </button>
+    </form>
+
+    <p class="mt-5 text-center text-xs text-itinera-muted">
+      ¿Problemas para ingresar? Contactá a tu administrador.
+    </p>
+  </section>
+</main>

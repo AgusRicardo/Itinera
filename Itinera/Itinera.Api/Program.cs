@@ -37,6 +37,7 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseForwardedHeaders(CrearOpcionesForwardedHeaders());
 app.UseHttpsRedirection();
 
+app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseMiddleware<TenantMiddleware>();
 app.UseAuthorization();
