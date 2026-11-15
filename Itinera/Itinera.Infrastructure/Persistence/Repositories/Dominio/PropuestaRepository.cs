@@ -17,6 +17,11 @@ public class PropuestaRepository(AppDbContext context) : IPropuestaRepository
     public Task<Propuesta?> GetByIdAsync(int id)
         => ConRelaciones().FirstOrDefaultAsync(propuesta => propuesta.Id == id);
 
+    public Task<List<Propuesta>> GetAllAsync()
+        => ConRelaciones()
+            .OrderByDescending(propuesta => propuesta.FechaCreacion)
+            .ToListAsync();
+
     public Task<List<Propuesta>> GetByClienteAsync(int clienteId)
         => ConRelaciones()
             .Where(propuesta => propuesta.ClienteId == clienteId)

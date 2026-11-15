@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-itinera-background: #f7f5f0;
+  --color-itinera-foreground: #1a1714;
+  --color-itinera-card: #ffffff;
+  --color-itinera-secondary: #edeae3;
+  --color-itinera-muted: #7a756c;
+  --color-itinera-accent: #c8a96e;
+  --color-itinera-border: rgba(26, 23, 20, 0.12);
+  --font-itinera-sans: 'Inter', sans-serif;
+  --font-itinera-display: 'Playfair Display', serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-itinera-border);
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-itinera-background);
+    color: var(--color-itinera-foreground);
+    font-family: var(--font-itinera-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a,
+  button:not(:disabled),
+  select,
+  summary,
+  [role='button'] {
+    cursor: pointer;
+  }
+}

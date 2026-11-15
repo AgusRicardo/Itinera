@@ -1,0 +1,38 @@
+<div class="relative inline-block">
+  <button
+    type="button"
+    aria-label="Abrir acciones"
+    class="rounded-md p-2 text-itinera-muted transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+    (click)="alternar($event)"
+  >
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="5" cy="12" r="1.5" />
+      <circle cx="12" cy="12" r="1.5" />
+      <circle cx="19" cy="12" r="1.5" />
+    </svg>
+  </button>
+
+  @if (abierto()) {
+    <div
+      class="absolute right-0 top-10 z-20 w-36 rounded-xl border bg-itinera-card p-1.5 text-left shadow-lg"
+      (click)="$event.stopPropagation()"
+    >
+      <a
+        [routerLink]="rutaVer"
+        class="block rounded-lg px-3 py-2 text-sm hover:bg-itinera-secondary"
+        (click)="abierto.set(false)"
+      >
+        Ver
+      </a>
+      @if (puedeEliminar) {
+        <button
+          type="button"
+          class="w-full rounded-lg px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50"
+          (click)="ejecutarEliminacion()"
+        >
+          Eliminar
+        </button>
+      }
+    </div>
+  }
+</div>

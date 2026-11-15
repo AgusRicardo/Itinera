@@ -24,6 +24,7 @@ public static class DependencyInjection
                 opciones.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         servicios.AddEndpointsApiExplorer();
         AgregarSwagger(servicios);
+        AgregarCORS(servicios, configuracion);
         servicios.AddHttpContextAccessor();
         servicios.AddScoped<ICurrentUserService, CurrentUserService>();
 
@@ -34,6 +35,22 @@ public static class DependencyInjection
         servicios.AddSecurity(configuracion);
 
         return servicios;
+    }
+
+    private static void AgregarCORS(
+        IServiceCollection servicios,
+        IConfiguration configuracion)
+    {
+        var origenes = configuracion
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>() ?? Array.Empty<string>();
+
+        servicios.AddCors(opciones =>
+            opciones.AddPolicy("Frontend", politica =>
+                politica
+                    .WithOrigins(origenes)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()));
     }
 
     private static void AgregarSwagger(IServiceCollection servicios)

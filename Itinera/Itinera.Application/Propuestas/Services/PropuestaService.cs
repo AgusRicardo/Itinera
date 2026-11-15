@@ -1,6 +1,7 @@
 ﻿using Itinera.Application.Actividades.Interfaces;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Common.Exceptions;
+using Itinera.Application.Common.Interfaces;
 using Itinera.Application.Destinos.Interfaces;
 using Itinera.Application.Empleados.Interfaces;
 using Itinera.Application.Propuestas.Dtos;
@@ -19,7 +20,8 @@ public class PropuestaService(
     IEmpleadoRepository empleadoRepository,
     IDestinoRepository destinoRepository,
     IActividadRepository actividadRepository,
-    IGeneradorItinerarioIA generadorItinerario) : IPropuestaService
+    IGeneradorItinerarioIA generadorItinerario,
+    IAuditoriaService auditoriaService) : IPropuestaService
 {
     private readonly IPropuestaRepository _propuestaRepository = propuestaRepository;
     private readonly IClienteRepository _clienteRepository = clienteRepository;
@@ -27,6 +29,7 @@ public class PropuestaService(
     private readonly IDestinoRepository _destinoRepository = destinoRepository;
     private readonly IActividadRepository _actividadRepository = actividadRepository;
     private readonly IGeneradorItinerarioIA _generadorItinerario = generadorItinerario;
+    private readonly IAuditoriaService _auditoriaService = auditoriaService;
 
     public async Task<PropuestaResponse> CrearAsync(CrearPropuestaRequest request)
     {
@@ -48,6 +51,10 @@ public class PropuestaService(
         AplicarItinerario(propuesta.Itinerario, generado, request.FechaInicio, request.FechaFin);
 
         await _propuestaRepository.AddAsync(propuesta);
+        await _auditoriaService.RegistrarAsync(
+            AccionAuditoria.CrearPropuesta,
+            nameof(Propuesta),
+            propuesta.Id);
 
         return PropuestaMapper.ToResponse(propuesta);
     }
@@ -66,6 +73,13 @@ public class PropuestaService(
         return PropuestaMapper.ToResponse(propuestas);
     }
 
+    public async Task<List<PropuestaResponse>> ObtenerTodasAsync()
+    {
+        var propuestas = await _propuestaRepository.GetAllAsync();
+
+        return PropuestaMapper.ToResponse(propuestas);
+    }
+
     public async Task<ItinerarioResponse> ObtenerItinerarioAsync(int propuestaId)
     {
         var propuesta = await ObtenerPropuestaById(propuestaId);
@@ -80,6 +94,10 @@ public class PropuestaService(
         propuesta.Presentar();
 
         await _propuestaRepository.UpdateAsync(propuesta);
+        await _auditoriaService.RegistrarAsync(
+            AccionAuditoria.PresentarPropuesta,
+            nameof(Propuesta),
+            propuesta.Id);
 
         return PropuestaMapper.ToResponse(propuesta);
     }
@@ -104,6 +122,11 @@ public class PropuestaService(
         }
 
         await _propuestaRepository.UpdateAsync(propuesta);
+        await _auditoriaService.RegistrarAsync(
+            AccionAuditoria.RegistrarRespuestaPropuesta,
+            nameof(Propuesta),
+            propuesta.Id,
+            request.Respuesta.ToString());
 
         return PropuestaMapper.ToResponse(propuesta);
     }
@@ -122,8 +145,25 @@ public class PropuestaService(
         propuesta.Itinerario.ReemplazarDestinos(destinos);
 
         await _propuestaRepository.UpdateAsync(propuesta);
+        await _auditoriaService.RegistrarAsync(
+            AccionAuditoria.ModificarItinerario,
+            nameof(Propuesta),
+            propuesta.Id);
 
         return PropuestaMapper.ToResponse(propuesta);
+    }
+
+    public async Task EliminarAsync(int id)
+    {
+        var propuesta = await ObtenerPropuestaById(id);
+
+        propuesta.Eliminar();
+
+        await _propuestaRepository.UpdateAsync(propuesta);
+        await _auditoriaService.RegistrarAsync(
+            AccionAuditoria.EliminarPropuesta,
+            nameof(Propuesta),
+            propuesta.Id);
     }
 
     private static void AplicarItinerario(
@@ -216,8 +256,8 @@ public class PropuestaService(
         return empleado ?? throw new EmpleadoNoEncontradoException(empleadoId);
     }
 
-    private async Task<List<Destino>> ObtenerDestinosByIds(IEnumerable<int> destinoIds)
-        => await _destinoRepository.ObtenerPorIdsConActividadesAsync(destinoIds);
+    private Task<List<Destino>> ObtenerDestinosByIds(IEnumerable<int> destinoIds)
+        => _destinoRepository.ObtenerPorIdsConActividadesAsync(destinoIds);
 
     private async Task<Destino> ObtenerDestinoById(int destinoId)
     {

@@ -1,0 +1,243 @@
+<main class="min-h-screen bg-itinera-background">
+  <header class="flex h-14 items-center justify-between border-b bg-itinera-card px-6">
+    <div class="flex items-center gap-3">
+      <a routerLink="/propuestas" class="font-itinera-display text-xl tracking-wide">ITINERA</a>
+      <span class="text-itinera-border">|</span>
+      <span class="text-sm font-medium">Clientes</span>
+      <app-navegacion-secciones />
+    </div>
+    <div class="flex items-center gap-4">
+      <app-menu-usuario />
+    </div>
+  </header>
+
+  <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
+    <div class="mb-8 grid items-end gap-5 lg:grid-cols-[1fr_auto]">
+      <div>
+        <div class="mb-2 flex items-center gap-2">
+          <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">
+            Directorio comercial
+          </span>
+          <span class="h-px w-10 bg-itinera-accent/50"></span>
+        </div>
+        <h1 class="font-itinera-display text-3xl tracking-tight sm:text-4xl">Clientes</h1>
+        <p class="mt-1.5 max-w-xl text-sm text-itinera-muted">
+          La historia de cada viajero, organizada para tu equipo.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="flex items-center justify-center gap-2 rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background shadow-sm transition-opacity hover:opacity-90"
+        (click)="abrirNuevo()"
+      >
+        <span class="text-lg leading-none">+</span>
+        Nuevo cliente
+      </button>
+    </div>
+
+    <section class="mb-7 grid grid-cols-2 border-y bg-itinera-card/40 lg:grid-cols-4">
+      <div class="px-4 py-4 sm:px-6">
+        <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Total clientes</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight">{{ clientes().length }}</p>
+      </div>
+      <div class="border-l px-4 py-4 sm:px-6">
+        <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Activos</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight">{{ cantidadActivos() }}</p>
+      </div>
+      <div class="border-t px-4 py-4 sm:border-l sm:px-6 lg:border-t-0">
+        <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Con propuestas</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight">{{ cantidadConPropuestas() }}</p>
+      </div>
+      <div class="border-l border-t px-4 py-4 sm:px-6 lg:border-t-0">
+        <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Nuevos este mes</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight text-itinera-accent">+12%</p>
+      </div>
+    </section>
+
+    <div class="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
+      <div class="flex flex-col gap-2.5 sm:flex-row">
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-itinera-muted">⌕</span>
+          <input
+            type="search"
+            placeholder="Buscar por nombre, email o ciudad"
+            [value]="busqueda()"
+            class="w-full rounded-lg border bg-itinera-card py-2.5 pl-9 pr-3 text-sm placeholder:text-itinera-muted focus:border-itinera-accent focus:outline-none focus:ring-2 focus:ring-itinera-accent/30 sm:w-80"
+            (input)="busqueda.set($any($event.target).value)"
+          />
+        </div>
+        <select
+          [value]="estado()"
+          class="cursor-pointer rounded-lg border bg-itinera-card px-3 py-2.5 text-sm focus:border-itinera-accent focus:outline-none focus:ring-2 focus:ring-itinera-accent/30"
+          (change)="estado.set($any($event.target).value)"
+        >
+          <option value="">Todos los estados</option>
+          <option value="Activo">Activos</option>
+          <option value="Inactivo">Inactivos</option>
+        </select>
+      </div>
+      <p class="text-xs text-itinera-muted">
+        Mostrando <span class="font-semibold text-itinera-foreground">{{ clientesFiltrados().length }}</span>
+        de {{ clientes().length }}
+      </p>
+    </div>
+
+    @if (cargando()) {
+      <div class="rounded-xl border bg-itinera-card p-12 text-center">
+        <p class="text-sm text-itinera-muted">Cargando clientes…</p>
+      </div>
+    } @else if (error()) {
+      <div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center">
+        <p class="text-sm text-red-700">{{ error() }}</p>
+      </div>
+    } @else {
+      <div class="overflow-x-auto rounded-xl border bg-itinera-card shadow-[0_12px_40px_rgba(45,37,27,0.04)]">
+        <table class="w-full min-w-[850px]">
+          <thead class="border-b bg-itinera-secondary/35">
+            <tr>
+              @for (encabezado of ['Cliente', 'Contacto', 'Ubicación', 'Propuestas', 'Última gestión', 'Estado']; track encabezado) {
+                <th class="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-itinera-muted">
+                  {{ encabezado }}
+                </th>
+              }
+              <th class="px-5 py-3.5 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-itinera-muted">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            @for (cliente of clientesFiltrados(); track cliente.id) {
+              <tr class="group transition-colors hover:bg-itinera-secondary/25">
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-itinera-foreground text-xs font-semibold text-itinera-background">
+                      {{ iniciales(cliente.nombre) }}
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold">{{ cliente.nombre }}</p>
+                      <p class="font-mono text-[11px] text-itinera-muted">CL-{{ cliente.id }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-4">
+                  <a [href]="'mailto:' + cliente.email" class="block text-xs hover:text-itinera-accent">
+                    {{ cliente.email }}
+                  </a>
+                  <p class="mt-1 text-[11px] text-itinera-muted">{{ cliente.telefono }}</p>
+                </td>
+                <td class="px-5 py-4 text-xs">{{ cliente.ciudad }}</td>
+                <td class="px-5 py-4 text-xs font-semibold">{{ cliente.propuestas }}</td>
+                <td class="px-5 py-4 text-xs text-itinera-muted">{{ cliente.ultimaGestion }}</td>
+                <td class="px-5 py-4">
+                  <span class="inline-flex items-center gap-1.5 text-xs" [class]="cliente.estado === 'Activo' ? 'text-emerald-700' : 'text-stone-500'">
+                    <span class="h-1.5 w-1.5 rounded-full" [class]="cliente.estado === 'Activo' ? 'bg-emerald-500' : 'bg-stone-400'"></span>
+                    {{ cliente.estado }}
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-right">
+                  <div class="flex justify-end gap-1">
+                    <button
+                      type="button"
+                      class="rounded-md p-2 text-itinera-muted hover:bg-itinera-secondary hover:text-itinera-foreground"
+                      title="Editar cliente"
+                      (click)="abrirEdicion(cliente)"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-md p-2 text-itinera-muted hover:bg-red-50 hover:text-red-700"
+                      title="Eliminar cliente"
+                      (click)="confirmarEliminacion(cliente)"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (!clientesFiltrados().length) {
+          <div class="py-14 text-center">
+            <p class="text-sm font-medium">No encontramos clientes</p>
+            <p class="mt-1 text-xs text-itinera-muted">Probá ajustando la búsqueda o los filtros.</p>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  @if (aviso()) {
+    <div class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm text-itinera-background shadow-xl">
+      {{ aviso() }}
+    </div>
+  }
+
+  @if (editor()) {
+    <div class="fixed inset-0 z-40 flex justify-end">
+      <button class="absolute inset-0 bg-itinera-foreground/25 backdrop-blur-[2px]" aria-label="Cerrar panel" (click)="cerrarEditor()"></button>
+      <aside class="relative flex h-full w-full max-w-md flex-col border-l bg-itinera-card shadow-2xl">
+        <div class="flex items-start justify-between border-b px-6 py-5">
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">
+              {{ editor() === 'nuevo' ? 'Alta de cliente' : 'Editar registro' }}
+            </p>
+            <h2 class="mt-1 font-itinera-display text-xl">
+              {{ editor() === 'nuevo' ? 'Nuevo cliente' : formulario.controls.nombre.value }}
+            </h2>
+          </div>
+          <button type="button" class="text-itinera-muted" (click)="cerrarEditor()">✕</button>
+        </div>
+        <form class="flex-1 space-y-5 overflow-y-auto p-6" [formGroup]="formulario" (ngSubmit)="guardar()">
+          @for (campo of [
+            { id: 'nombre', label: 'Nombre completo', type: 'text' },
+            { id: 'email', label: 'Correo electrónico', type: 'email' },
+            { id: 'telefono', label: 'Teléfono', type: 'tel' },
+            { id: 'ciudad', label: 'Ciudad', type: 'text' }
+          ]; track campo.id) {
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold" [for]="campo.id">{{ campo.label }}</label>
+              <input [id]="campo.id" [type]="campo.type" [formControlName]="campo.id" class="w-full rounded-lg border bg-itinera-secondary/55 px-3 py-2.5 text-sm focus:border-itinera-accent focus:outline-none focus:ring-2 focus:ring-itinera-accent/30" />
+            </div>
+          }
+          <div>
+            <p class="mb-1.5 text-xs font-semibold">Estado</p>
+            <div class="grid grid-cols-2 gap-2">
+              @for (opcion of ['Activo', 'Inactivo']; track opcion) {
+                <button
+                  type="button"
+                  class="rounded-lg border px-3 py-2.5 text-xs"
+                  [class]="formulario.controls.estado.value === opcion ? 'border-itinera-foreground bg-itinera-foreground text-itinera-background' : 'border-itinera-border hover:bg-itinera-secondary'"
+                  (click)="formulario.controls.estado.setValue($any(opcion))"
+                >
+                  {{ opcion }}
+                </button>
+              }
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 border-t pt-5">
+            <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrarEditor()">Cancelar</button>
+            <button type="submit" [disabled]="guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">
+              {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </form>
+      </aside>
+    </div>
+  }
+
+  @if (clienteAEliminar(); as cliente) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button class="absolute inset-0 bg-itinera-foreground/30 backdrop-blur-[2px]" aria-label="Cancelar eliminación" (click)="cancelarEliminacion()"></button>
+      <div class="relative w-full max-w-sm rounded-xl border bg-itinera-card p-6 shadow-2xl">
+        <h3 class="font-semibold">¿Eliminar a {{ cliente.nombre }}?</h3>
+        <p class="mt-2 text-sm text-itinera-muted">El cliente dejará de aparecer en el directorio.</p>
+        <div class="mt-6 flex justify-end gap-2">
+          <button type="button" class="rounded-lg border px-4 py-2 text-sm" (click)="cancelarEliminacion()">Cancelar</button>
+          <button type="button" class="rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white" (click)="eliminar()">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  }
+</main>
