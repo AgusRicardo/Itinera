@@ -1,0 +1,30 @@
+<div class="relative">
+  <input
+    type="search"
+    autocomplete="off"
+    [placeholder]="placeholder"
+    [value]="texto()"
+    class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm focus:border-itinera-accent focus:outline-none focus:ring-2 focus:ring-itinera-accent/30"
+    (input)="buscar($any($event.target).value)"
+    (focus)="buscar(texto())"
+    (blur)="cerrar()"
+  />
+
+  @if (abierto()) {
+    <div class="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-xl border bg-itinera-card p-1.5 shadow-lg">
+      @if (resultados().length) {
+        @for (opcion of resultados(); track opcion.id) {
+          <button
+            type="button"
+            class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-itinera-secondary"
+            (mousedown)="seleccionar(opcion)"
+          >
+            {{ opcion.nombre }}
+          </button>
+        }
+      } @else {
+        <p class="px-3 py-2 text-sm text-itinera-muted">No se encontraron resultados.</p>
+      }
+    </div>
+  }
+</div>

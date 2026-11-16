@@ -10,6 +10,7 @@ public interface ISecurityRepository
     Task<List<Permiso>> GetPermisosDeUsuarioAsync(Guid usuarioId);
     Task<Guid> CreateUsuarioAsync(Usuario usuario);
     Task<bool> UsuarioTienePermisoAsync(Guid usuarioId, string codigoPermiso);
+    Task<(int? EmpresaId, string EmpresaRazonSocial)> ObtenerEmpresaUsuarioAsync(Guid usuarioId);
 
     Task<List<Usuario>> ListarUsuariosAsync();
     Task<List<Rol>> ListarRolesAsync();

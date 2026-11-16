@@ -13,6 +13,7 @@ export class MenuUsuarioComponent {
   private readonly router = inject(Router);
 
   protected readonly abierto = signal(false);
+  protected readonly usuario = this.autenticacion.obtenerUsuario();
 
   protected alternar(event: MouseEvent): void {
     event.stopPropagation();

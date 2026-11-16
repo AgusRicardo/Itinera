@@ -1,6 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, EventEmitter, computed, inject, signal, Output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { OpcionPropuesta } from '../../core/models/opciones-propuesta';
@@ -11,10 +11,11 @@ import { PropuestasService } from '../../core/services/propuestas.service';
 
 @Component({
   selector: 'app-crear-propuesta',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './crear-propuesta.component.html'
 })
 export class CrearPropuestaComponent {
+  @Output() protected readonly cerrar = new EventEmitter<void>();
   private readonly constructorFormulario = inject(FormBuilder);
   private readonly propuestasService = inject(PropuestasService);
   private readonly clientesService = inject(ClientesService);
@@ -151,5 +152,14 @@ export class CrearPropuestaComponent {
         this.error.set('No se pudo crear la propuesta.');
       }
     });
+  }
+
+  protected salir(): void {
+    if (this.cerrar.observed) {
+      this.cerrar.emit();
+      return;
+    }
+
+    void this.router.navigateByUrl('/propuestas');
   }
 }

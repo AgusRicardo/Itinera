@@ -35,14 +35,16 @@ public class AuthenticationService : IAuthenticationService
         var roles = await _repository.GetRolesDeUsuarioAsync(usuario.Id);
         var rolesNombres = roles.Select(r => r.Nombre).ToList();
         var permisos = await _repository.GetPermisosDeUsuarioAsync(usuario.Id);
-        var token = GenerarToken(usuario, rolesNombres, permisos.Select(p => p.Codigo).ToList());
+        var permisosCodigos = permisos.Select(p => p.Codigo).ToList();
+        var token = GenerarToken(usuario, rolesNombres, permisosCodigos);
 
         return new LoginResponse(
             token,
             usuario.Id,
             usuario.Nombre,
             usuario.Email,
-            rolesNombres);
+            rolesNombres,
+            permisosCodigos);
     }
 
     public async Task<Guid> RegistrarAsync(RegistroRequest request)
@@ -103,7 +105,8 @@ public class AuthenticationService : IAuthenticationService
             ?? string.Empty;
 
         var roles = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+        var permisos = user.FindAll(Permisos.ClaimType).Select(c => c.Value).ToList();
 
-        return new UsuarioInfoResponse(usuarioId, email, nombre, roles);
+        return new UsuarioInfoResponse(usuarioId, email, nombre, roles, permisos);
     }
 }

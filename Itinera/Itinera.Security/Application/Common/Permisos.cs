@@ -31,6 +31,9 @@ public static class Permisos
     public const string SeguridadGestionar = "seguridad.gestionar";
 
     public const string PlataformaGestionarEmpresas = "plataforma.empresas.gestionar";
+    public const string PlataformaGestionarUsuarios = "plataforma.usuarios.gestionar";
+    public const string PlataformaGestionarRoles = "plataforma.roles.gestionar";
+    public const string PlataformaGestionarGrupos = "plataforma.grupos.gestionar";
 
     public const string ClaimType = "permiso";
 
@@ -54,6 +57,9 @@ public static class Permisos
         new(FacturacionRegistrarPago, "Registrar pagos"),
         new(FacturacionAnular, "Anular facturas"),
         new(SeguridadGestionar, "Gestionar seguridad (usuarios, roles y grupos)"),
-        new(PlataformaGestionarEmpresas, "Gestionar empresas de la plataforma (alta de tenants)")
+        new(PlataformaGestionarEmpresas, "Gestionar empresas de la plataforma (alta de tenants)"),
+        new(PlataformaGestionarUsuarios, "Gestionar usuarios de la plataforma"),
+        new(PlataformaGestionarRoles, "Gestionar roles de la plataforma"),
+        new(PlataformaGestionarGrupos, "Gestionar grupos de la plataforma")
     };
 }

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { guardAutenticacion } from './core/guards/guard-autenticacion';
+import { guardPermiso } from './core/guards/guard-permiso';
 
 export const routes: Routes = [
   {
@@ -11,7 +12,8 @@ export const routes: Routes = [
   },
   {
     path: 'propuestas',
-    canActivate: [guardAutenticacion],
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['propuestas.ver'] },
     loadComponent: () =>
       import('./features/propuestas/propuestas.component').then(
         componente => componente.PropuestasComponent
@@ -19,7 +21,8 @@ export const routes: Routes = [
   },
   {
     path: 'propuestas/nueva',
-    canActivate: [guardAutenticacion],
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['propuestas.crear'] },
     loadComponent: () =>
       import('./features/propuestas/crear-propuesta.component').then(
         componente => componente.CrearPropuestaComponent
@@ -27,7 +30,8 @@ export const routes: Routes = [
   },
   {
     path: 'propuestas/:id/editar',
-    canActivate: [guardAutenticacion],
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['itinerarios.editar'] },
     loadComponent: () =>
       import('./features/propuestas/editar-itinerario.component').then(
         componente => componente.EditarItinerarioComponent
@@ -35,7 +39,8 @@ export const routes: Routes = [
   },
   {
     path: 'clientes',
-    canActivate: [guardAutenticacion],
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['clientes.ver'] },
     loadComponent: () =>
       import('./features/clientes/clientes.component').then(
         componente => componente.ClientesComponent
@@ -43,7 +48,8 @@ export const routes: Routes = [
   },
   {
     path: 'clientes/nuevo',
-    canActivate: [guardAutenticacion],
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['clientes.gestionar'] },
     loadComponent: () =>
       import('./features/clientes/formulario-cliente.component').then(
         componente => componente.FormularioClienteComponent
@@ -51,18 +57,64 @@ export const routes: Routes = [
   },
   {
     path: 'clientes/:id/editar',
-    canActivate: [guardAutenticacion],
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['clientes.gestionar'] },
     loadComponent: () =>
       import('./features/clientes/formulario-cliente.component').then(
         componente => componente.FormularioClienteComponent
       )
   },
   {
+    path: 'administracion/empresas',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['plataforma.empresas.gestionar'] },
+    loadComponent: () =>
+      import('./features/administracion/empresas.component').then(
+        componente => componente.EmpresasComponent
+      )
+  },
+  {
+    path: 'administracion/usuarios',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['plataforma.usuarios.gestionar'] },
+    loadComponent: () =>
+      import('./features/administracion/usuarios.component').then(
+        componente => componente.UsuariosComponent
+      )
+  },
+  {
+    path: 'administracion/roles',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['plataforma.roles.gestionar'] },
+    loadComponent: () =>
+      import('./features/administracion/roles.component').then(
+        componente => componente.RolesComponent
+      )
+  },
+  {
+    path: 'administracion/grupos',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['plataforma.grupos.gestionar'] },
+    loadComponent: () =>
+      import('./features/administracion/grupos.component').then(
+        componente => componente.GruposComponent
+      )
+  },
+  {
     path: 'propuestas/:id',
-    canActivate: [guardAutenticacion],
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['propuestas.ver'] },
     loadComponent: () =>
       import('./features/propuestas/detalle-propuesta.component').then(
         componente => componente.DetallePropuestaComponent
+      )
+  },
+  {
+    path: 'acceso-denegado',
+    canActivate: [guardAutenticacion],
+    loadComponent: () =>
+      import('./features/acceso-denegado/acceso-denegado.component').then(
+        componente => componente.AccesoDenegadoComponent
       )
   },
   {

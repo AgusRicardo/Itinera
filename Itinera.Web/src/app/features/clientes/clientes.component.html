@@ -1,16 +1,6 @@
-<main class="min-h-screen bg-itinera-background">
-  <header class="flex h-14 items-center justify-between border-b bg-itinera-card px-6">
-    <div class="flex items-center gap-3">
-      <a routerLink="/propuestas" class="font-itinera-display text-xl tracking-wide">ITINERA</a>
-      <span class="text-itinera-border">|</span>
-      <span class="text-sm font-medium">Clientes</span>
-      <app-navegacion-secciones />
-    </div>
-    <div class="flex items-center gap-4">
-      <app-menu-usuario />
-    </div>
-  </header>
+<app-menu-principal />
 
+<main class="min-h-screen bg-itinera-background lg:pl-64">
   <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
     <div class="mb-8 grid items-end gap-5 lg:grid-cols-[1fr_auto]">
       <div>
@@ -46,11 +36,11 @@
       </div>
       <div class="border-t px-4 py-4 sm:border-l sm:px-6 lg:border-t-0">
         <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Con propuestas</p>
-        <p class="mt-1 text-2xl font-semibold tracking-tight">{{ cantidadConPropuestas() }}</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight">—</p>
       </div>
       <div class="border-l border-t px-4 py-4 sm:px-6 lg:border-t-0">
         <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Nuevos este mes</p>
-        <p class="mt-1 text-2xl font-semibold tracking-tight text-itinera-accent">+12%</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight text-itinera-muted">—</p>
       </div>
     </section>
 
@@ -76,10 +66,6 @@
           <option value="Inactivo">Inactivos</option>
         </select>
       </div>
-      <p class="text-xs text-itinera-muted">
-        Mostrando <span class="font-semibold text-itinera-foreground">{{ clientesFiltrados().length }}</span>
-        de {{ clientes().length }}
-      </p>
     </div>
 
     @if (cargando()) {
@@ -126,8 +112,8 @@
                   <p class="mt-1 text-[11px] text-itinera-muted">{{ cliente.telefono }}</p>
                 </td>
                 <td class="px-5 py-4 text-xs">{{ cliente.ciudad }}</td>
-                <td class="px-5 py-4 text-xs font-semibold">{{ cliente.propuestas }}</td>
-                <td class="px-5 py-4 text-xs text-itinera-muted">{{ cliente.ultimaGestion }}</td>
+                <td class="px-5 py-4 text-xs font-semibold">{{ cliente.propuestas ?? '—' }}</td>
+                <td class="px-5 py-4 text-xs text-itinera-muted">{{ cliente.ultimaGestion ?? '—' }}</td>
                 <td class="px-5 py-4">
                   <span class="inline-flex items-center gap-1.5 text-xs" [class]="cliente.estado === 'Activo' ? 'text-emerald-700' : 'text-stone-500'">
                     <span class="h-1.5 w-1.5 rounded-full" [class]="cliente.estado === 'Activo' ? 'bg-emerald-500' : 'bg-stone-400'"></span>
@@ -166,6 +152,11 @@
         }
       </div>
     }
+
+    <p class="mt-3 text-right text-xs text-itinera-muted">
+      Mostrando <span class="font-semibold text-itinera-foreground">{{ clientesFiltrados().length }}</span>
+      de {{ clientes().length }}
+    </p>
   </section>
 
   @if (aviso()) {
@@ -175,9 +166,15 @@
   }
 
   @if (editor()) {
-    <div class="fixed inset-0 z-40 flex justify-end">
+    <div
+      class="fixed inset-0 z-40 flex items-center justify-center p-4"
+      (click)="cerrarEditor()"
+    >
       <button class="absolute inset-0 bg-itinera-foreground/25 backdrop-blur-[2px]" aria-label="Cerrar panel" (click)="cerrarEditor()"></button>
-      <aside class="relative flex h-full w-full max-w-md flex-col border-l bg-itinera-card shadow-2xl">
+      <aside
+        class="relative flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border bg-itinera-card shadow-2xl"
+        (click)="$event.stopPropagation()"
+      >
         <div class="flex items-start justify-between border-b px-6 py-5">
           <div>
             <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">

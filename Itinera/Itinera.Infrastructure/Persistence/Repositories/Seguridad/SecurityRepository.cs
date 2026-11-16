@@ -1,4 +1,5 @@
 using Itinera.Application.Common.Interfaces;
+using Itinera.Security.Application.Common;
 using Itinera.Security.Application.Interfaces;
 using Itinera.Security.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,22 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
         return permisos.Any(p => p.Codigo == codigoPermiso);
     }
 
+    public async Task<(int? EmpresaId, string? EmpresaRazonSocial)> ObtenerEmpresaUsuarioAsync(Guid usuarioId)
+    {
+        var empresa = await _context.UsuariosEmpleados
+            .Where(vinculo => vinculo.UsuarioId == usuarioId && vinculo.Activo)
+            .Select(vinculo => new
+            {
+                EmpresaId = (int?)vinculo.Empleado.EmpresaId,
+                EmpresaRazonSocial = vinculo.Empleado.Empresa.RazonSocial
+            })
+            .FirstOrDefaultAsync();
+
+        return empresa is null
+            ? (null, null)
+            : (empresa.EmpresaId, empresa.EmpresaRazonSocial);
+    }
+
     public Task<List<Usuario>> ListarUsuariosAsync()
     {
         if (EsAdministradorPlataforma)
@@ -67,10 +84,17 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
     }
 
     public Task<List<Rol>> ListarRolesAsync()
-        => RolesConPermisos().OrderBy(r => r.Nombre).ToListAsync();
+        => RolesConPermisos()
+            .Where(rol => EsAdministradorPlataforma
+                || !rol.Permisos.Any(permiso => Roles.EsDePlataforma(permiso.Codigo)))
+            .OrderBy(r => r.Nombre)
+            .ToListAsync();
 
     public Task<Rol?> GetRolAsync(int id)
-        => RolesConPermisos().FirstOrDefaultAsync(r => r.Id == id);
+        => RolesConPermisos()
+            .Where(rol => EsAdministradorPlataforma
+                || !rol.Permisos.Any(permiso => Roles.EsDePlataforma(permiso.Codigo)))
+            .FirstOrDefaultAsync(r => r.Id == id);
 
     public Task<List<Permiso>> ListarPermisosAsync()
         => _context.Permisos.OrderBy(p => p.Codigo).ToListAsync();
@@ -107,6 +131,13 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
             ?? throw new KeyNotFoundException("Componente de seguridad no encontrado.");
         var rol = await _context.Roles.FirstOrDefaultAsync(r => r.Id == rolId)
             ?? throw new KeyNotFoundException("Rol no encontrado.");
+
+        if (!EsAdministradorPlataforma
+            && rol.Permisos.Any(permiso => Roles.EsDePlataforma(permiso.Codigo)))
+        {
+            throw new UnauthorizedAccessException(
+                "Solo el administrador de plataforma puede asignar roles de plataforma.");
+        }
 
         _context.UsuarioComponentRoles.Add(new UsuarioComponentRol(componente, rol));
         await _context.SaveChangesAsync();

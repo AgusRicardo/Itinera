@@ -5,4 +5,5 @@ public record LoginResponse(
     Guid UsuarioId,
     string Nombre,
     string Email,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    IReadOnlyList<string> Permisos);
