@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/AgusRicardo/Itinera/compare/v1.2.0...v1.3.0) (2026-11-16)
+
+
+### Features
+
+* usuario administrador plataforma ([1d92065](https://github.com/AgusRicardo/Itinera/commit/1d920654a6ebcd9ffececfa047a99b872e9828e8))
+* usuario administrador plataforma ([772bb7f](https://github.com/AgusRicardo/Itinera/commit/772bb7fe614dcd427357c7667ce589775413e5eb))
+
 ## [1.2.0](https://github.com/AgusRicardo/Itinera/compare/v1.1.1...v1.2.0) (2026-11-15)
 
 
