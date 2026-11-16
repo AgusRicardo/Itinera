@@ -4,4 +4,5 @@ export interface RespuestaLogin {
   nombre: string;
   email: string;
   roles: string[];
+  permisos: string[];
 }

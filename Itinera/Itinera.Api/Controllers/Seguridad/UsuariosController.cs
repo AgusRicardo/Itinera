@@ -1,15 +1,19 @@
 using Itinera.Security.Application.Common;
 using Itinera.Security.Application.Dtos;
 using Itinera.Security.Application.Interfaces;
+using Itinera.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Seguridad;
 
 [Authorize(Policy = Permisos.SeguridadGestionar)]
-public class UsuariosController(IUsuarioAdminService usuarioAdminService) : ApiController
+public class UsuariosController(
+    IUsuarioAdminService usuarioAdminService,
+    ICurrentUserService currentUserService) : ApiController
 {
     private readonly IUsuarioAdminService _usuarioAdminService = usuarioAdminService;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
     [HttpGet]
     [ProducesResponseType(typeof(List<UsuarioAdminResponse>), StatusCodes.Status200OK)]
@@ -54,6 +58,10 @@ public class UsuariosController(IUsuarioAdminService usuarioAdminService) : ApiC
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Desactivar(Guid id)
     {
+        if (_currentUserService.UsuarioId == id)
+            throw new InvalidOperationException(
+                "No se puede desactivar el usuario actualmente autenticado.");
+
         await _usuarioAdminService.DesactivarAsync(id);
 
         return NoContent();

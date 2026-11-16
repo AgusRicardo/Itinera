@@ -57,10 +57,16 @@ public sealed class SecuritySeeder(
             porNombre, Roles.Agente, "Gestión operativa de clientes, propuestas y facturación");
 
         var todos = permisos.Values.ToList();
-        var noPlataforma = todos.Where(p => !Roles.EsDePlataforma(p.Codigo)).ToList();
+        var noPlataforma = todos
+            .Where(p => !Roles.EsDePlataforma(p.Codigo)
+                && p.Codigo != Permisos.EmpresasGestionar)
+            .ToList();
         var delAgente = Roles.PermisosDelAgente.Select(codigo => permisos[codigo]).ToList();
+        var delAdministradorItinera = Roles.PermisosDelAdministradorItinera
+            .Select(codigo => permisos[codigo])
+            .ToList();
 
-        SincronizarPermisos(administradorItinera, todos);
+        SincronizarPermisos(administradorItinera, delAdministradorItinera);
         SincronizarPermisos(administrador, noPlataforma);
         SincronizarPermisos(agente, delAgente);
 
@@ -103,14 +109,79 @@ public sealed class SecuritySeeder(
             .AnyAsync(ucr => ucr.UsuarioComponentId == usuario.Id
                 && ucr.RolId == rolAdministradorItinera.Id, cancellationToken);
 
-        if (yaTieneRol)
-            return;
+        if (!yaTieneRol)
+        {
+            context.UsuarioComponentRoles.Add(
+                new UsuarioComponentRol(usuario, rolAdministradorItinera));
 
-        context.UsuarioComponentRoles.Add(
-            new UsuarioComponentRol(usuario, rolAdministradorItinera));
+            await context.SaveChangesAsync(cancellationToken);
+        }
+
+        await QuitarMembresiasOperativasAsync(usuario.Id, cancellationToken);
+        logger.LogInformation("Administrador de plataforma configurado: {Email}", email);
+    }
+
+    private async Task QuitarMembresiasOperativasAsync(
+        Guid usuarioId,
+        CancellationToken cancellationToken)
+    {
+        var aristas = await context.GrupoMiembros
+            .Select(miembro => new { miembro.GrupoId, miembro.MiembroId })
+            .ToListAsync(cancellationToken);
+
+        var asignaciones = await context.UsuarioComponentRoles
+            .Include(asignacion => asignacion.Rol)
+                .ThenInclude(rol => rol.Permisos)
+            .ToListAsync(cancellationToken);
+
+        var gruposConPermisosOperativos = asignaciones
+            .Where(asignacion =>
+                asignacion.UsuarioComponentId != usuarioId
+                && asignacion.Rol.Permisos.Any(permiso => !Roles.EsDePlataforma(permiso.Codigo)
+                    && permiso.Codigo != Permisos.SeguridadGestionar))
+            .Select(asignacion => asignacion.UsuarioComponentId)
+            .ToHashSet();
+
+        var membresiasDirectas = aristas
+            .Where(arista => arista.MiembroId == usuarioId)
+            .ToList();
+
+        foreach (var membresia in membresiasDirectas)
+        {
+            var visitados = new HashSet<Guid>();
+            var pendientes = new Stack<Guid>();
+            pendientes.Push(membresia.GrupoId);
+            var alcanzaGrupoOperativo = false;
+
+            while (pendientes.Count > 0)
+            {
+                var grupoId = pendientes.Pop();
+                if (!visitados.Add(grupoId))
+                    continue;
+
+                if (gruposConPermisosOperativos.Contains(grupoId))
+                {
+                    alcanzaGrupoOperativo = true;
+                    break;
+                }
+
+                foreach (var padre in aristas.Where(arista => arista.MiembroId == grupoId))
+                    pendientes.Push(padre.GrupoId);
+            }
+
+            if (alcanzaGrupoOperativo)
+            {
+                var entidad = await context.GrupoMiembros
+                    .FirstAsync(
+                        miembro => miembro.GrupoId == membresia.GrupoId
+                            && miembro.MiembroId == usuarioId,
+                        cancellationToken);
+
+                context.GrupoMiembros.Remove(entidad);
+            }
+        }
 
         await context.SaveChangesAsync(cancellationToken);
-        logger.LogInformation("Administrador de plataforma configurado: {Email}", email);
     }
 
     private Rol ObtenerOCrearRol(Dictionary<string, Rol> roles, string nombre, string descripcion)

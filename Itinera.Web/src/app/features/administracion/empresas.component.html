@@ -1,0 +1,152 @@
+<app-menu-principal />
+
+<main class="min-h-screen bg-itinera-background lg:pl-64">
+  <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
+    <div class="mb-8 flex items-end justify-between gap-5">
+      <div>
+        <p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">
+          Administración de plataforma
+        </p>
+        <h1 class="font-itinera-display text-3xl tracking-tight sm:text-4xl">Empresas</h1>
+        <p class="mt-1.5 text-sm text-itinera-muted">
+          Gestioná las agencias y sus administradores iniciales.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background"
+        (click)="abrirModal()"
+      >
+        + Nueva empresa
+      </button>
+    </div>
+
+    <section class="mb-7 grid grid-cols-2 border-y bg-itinera-card/40 lg:grid-cols-3">
+      <div class="px-4 py-4 sm:px-6">
+        <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Total empresas</p>
+        <p class="mt-1 text-2xl font-semibold">{{ empresas().length }}</p>
+      </div>
+      <div class="border-l px-4 py-4 sm:px-6">
+        <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Activas</p>
+        <p class="mt-1 text-2xl font-semibold">{{ empresasActivas() }}</p>
+      </div>
+      <div class="border-l border-t px-4 py-4 sm:border-t-0 sm:px-6">
+        <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Alcance</p>
+        <p class="mt-1 text-2xl font-semibold text-itinera-accent">Plataforma</p>
+      </div>
+    </section>
+
+    @if (cargando()) {
+      <div class="rounded-xl border bg-itinera-card p-12 text-center">
+        <p class="text-sm text-itinera-muted">Cargando empresas…</p>
+      </div>
+    } @else if (error() && !modalAbierto()) {
+      <div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center">
+        <p class="text-sm text-red-700">{{ error() }}</p>
+      </div>
+    } @else {
+      <div class="overflow-x-auto rounded-xl border bg-itinera-card shadow-sm">
+        <table class="w-full min-w-[680px]">
+          <thead class="border-b bg-itinera-secondary/35">
+            <tr>
+              <th class="px-5 py-3.5 text-left text-[10px] uppercase tracking-[0.12em] text-itinera-muted">Razón social</th>
+              <th class="px-5 py-3.5 text-left text-[10px] uppercase tracking-[0.12em] text-itinera-muted">CUIT</th>
+              <th class="px-5 py-3.5 text-left text-[10px] uppercase tracking-[0.12em] text-itinera-muted">Teléfono</th>
+              <th class="px-5 py-3.5 text-left text-[10px] uppercase tracking-[0.12em] text-itinera-muted">Estado</th>
+              <th class="px-5 py-3.5 text-right text-[10px] uppercase tracking-[0.12em] text-itinera-muted">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            @for (empresa of empresas(); track empresa.id) {
+              <tr class="hover:bg-itinera-secondary/25">
+                <td class="px-5 py-4 text-sm font-semibold">{{ empresa.razonSocial }}</td>
+                <td class="px-5 py-4 text-sm text-itinera-muted">{{ empresa.cuit }}</td>
+                <td class="px-5 py-4 text-sm text-itinera-muted">{{ empresa.telefono || '—' }}</td>
+                <td class="px-5 py-4 text-sm">
+                  <span class="inline-flex items-center gap-1.5" [class]="empresa.activo ? 'text-emerald-700' : 'text-stone-500'">
+                    <span class="h-1.5 w-1.5 rounded-full" [class]="empresa.activo ? 'bg-emerald-500' : 'bg-stone-400'"></span>
+                    {{ empresa.activo ? 'Activa' : 'Inactiva' }}
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-right">
+                  <button type="button" class="mr-2 rounded-lg bg-itinera-secondary px-3 py-1.5 text-xs" (click)="abrirEdicion(empresa)">
+                    Editar
+                  </button>
+                  @if (empresa.activo) {
+                    <button type="button" class="rounded-lg bg-red-50 px-3 py-1.5 text-xs text-red-700" (click)="desactivar(empresa)">
+                      Desactivar
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  @if (aviso()) {
+    <div class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm text-itinera-background shadow-xl">
+      {{ aviso() }}
+    </div>
+  }
+
+  @if (modalAbierto()) {
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4 backdrop-blur-[2px]" (click)="cerrarModal()">
+      <section class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border bg-itinera-card shadow-xl" (click)="$event.stopPropagation()">
+        <header class="flex items-start justify-between border-b px-6 py-5">
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">Alta de empresa</p>
+            <h2 class="mt-1 font-itinera-display text-xl">Nueva empresa</h2>
+          </div>
+          <button type="button" class="p-2 text-itinera-muted" (click)="cerrarModal()">✕</button>
+        </header>
+        <form class="grid gap-4 p-6 sm:grid-cols-2" [formGroup]="formulario" (ngSubmit)="registrar($event)">
+          <input formControlName="razonSocial" placeholder="Razón social" class="rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm sm:col-span-2" />
+          <input formControlName="cuit" placeholder="CUIT" class="rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+          <input formControlName="telefono" placeholder="Teléfono" class="rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+          <p class="text-xs font-semibold text-itinera-muted sm:col-span-2">Administrador inicial</p>
+          <input formControlName="administradorNombre" placeholder="Nombre" class="rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+          <input formControlName="administradorApellido" placeholder="Apellido" class="rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+          <input formControlName="administradorEmail" type="email" placeholder="Email" class="rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm sm:col-span-2" />
+          <input formControlName="administradorPassword" type="password" placeholder="Contraseña inicial" class="rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm sm:col-span-2" />
+          @if (error()) {
+            <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">{{ error() }}</p>
+          }
+          <div class="flex justify-end gap-2 border-t pt-5 sm:col-span-2">
+            <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrarModal()">Cancelar</button>
+            <button type="submit" [disabled]="guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">
+              {{ guardando() ? 'Creando…' : 'Crear empresa' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+
+  @if (empresaEditando(); as empresa) {
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4 backdrop-blur-[2px]" (click)="cerrarEdicion()">
+      <section class="w-full max-w-lg rounded-2xl border bg-itinera-card shadow-xl" (click)="$event.stopPropagation()">
+        <header class="flex items-start justify-between border-b px-6 py-5">
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">Empresa</p>
+            <h2 class="mt-1 font-itinera-display text-xl">Editar empresa</h2>
+          </div>
+          <button type="button" class="p-2 text-itinera-muted" (click)="cerrarEdicion()">✕</button>
+        </header>
+        <form class="space-y-4 p-6" [formGroup]="formularioEdicion" (ngSubmit)="actualizar()">
+          <input formControlName="razonSocial" placeholder="Razón social" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+          <input formControlName="cuit" placeholder="CUIT" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+          <input formControlName="telefono" placeholder="Teléfono" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+          <div class="flex justify-end gap-2 border-t pt-5">
+            <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrarEdicion()">Cancelar</button>
+            <button type="submit" [disabled]="guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">
+              {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+</main>

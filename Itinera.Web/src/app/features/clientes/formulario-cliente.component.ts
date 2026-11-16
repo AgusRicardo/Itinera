@@ -3,10 +3,11 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { ClientesService } from '../../core/services/clientes.service';
+import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 
 @Component({
   selector: 'app-formulario-cliente',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MenuPrincipalComponent],
   templateUrl: './formulario-cliente.component.html'
 })
 export class FormularioClienteComponent {

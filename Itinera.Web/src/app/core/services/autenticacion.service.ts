@@ -22,8 +22,21 @@ export class AutenticacionService {
     return localStorage.getItem(this.claveToken);
   }
 
+  obtenerUsuario(): RespuestaLogin | null {
+    const usuario = localStorage.getItem(this.claveUsuario);
+    return usuario ? JSON.parse(usuario) as RespuestaLogin : null;
+  }
+
   estaAutenticado(): boolean {
     return Boolean(this.obtenerToken());
+  }
+
+  esAdministradorPlataforma(): boolean {
+    return this.obtenerUsuario()?.roles.includes('AdministradorItinera') ?? false;
+  }
+
+  tienePermiso(codigo: string): boolean {
+    return this.obtenerUsuario()?.permisos?.includes(codigo) ?? false;
   }
 
   cerrarSesion(): void {

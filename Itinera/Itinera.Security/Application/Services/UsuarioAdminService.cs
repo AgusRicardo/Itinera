@@ -13,12 +13,15 @@ public class UsuarioAdminService(ISecurityRepository repository) : IUsuarioAdmin
         foreach (var usuario in usuarios)
         {
             var roles = await repository.GetRolesDeUsuarioAsync(usuario.Id);
+            var empresa = await repository.ObtenerEmpresaUsuarioAsync(usuario.Id);
             resultado.Add(new UsuarioAdminResponse(
                 usuario.Id,
                 usuario.Nombre,
                 usuario.Email,
                 usuario.Activo,
-                roles.Select(r => r.Nombre).ToList()));
+                roles.Select(r => r.Nombre).ToList(),
+                empresa.EmpresaId,
+                empresa.EmpresaRazonSocial));
         }
 
         return resultado;

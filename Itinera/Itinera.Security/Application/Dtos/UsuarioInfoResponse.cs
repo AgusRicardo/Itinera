@@ -4,4 +4,5 @@ public record UsuarioInfoResponse(
     Guid UsuarioId,
     string Email,
     string Nombre,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    IReadOnlyList<string> Permisos);
