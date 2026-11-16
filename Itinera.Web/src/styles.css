@@ -38,4 +38,16 @@
   [role='button'] {
     cursor: pointer;
   }
+
+  a.router-link-active,
+  a.router-link-active *,
+  a.router-link-active .text-itinera-muted {
+    color: #f7f5f0 !important;
+  }
+
+  a.router-link-active svg {
+    color: #f7f5f0 !important;
+    stroke: #f7f5f0 !important;
+    fill: none !important;
+  }
 }

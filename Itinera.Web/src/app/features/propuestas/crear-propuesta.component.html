@@ -1,19 +1,30 @@
-<main class="min-h-screen bg-itinera-background">
-  <header class="flex h-14 items-center border-b bg-itinera-card px-6">
-    <a routerLink="/propuestas" class="text-sm text-itinera-muted hover:text-itinera-foreground">
-      ← Propuestas
-    </a>
-    <span class="mx-3 text-itinera-border">|</span>
-    <span class="text-sm font-medium">Nueva propuesta</span>
+<section
+  class="max-h-[90vh] w-full overflow-y-auto rounded-2xl border bg-itinera-card shadow-xl"
+  (click)="$event.stopPropagation()"
+>
+  <header class="flex items-start justify-between border-b px-6 py-5">
+    <div>
+      <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">
+        Operación comercial
+      </p>
+      <h1 class="mt-1 font-itinera-display text-xl">Nueva propuesta</h1>
+    </div>
+    <button
+      type="button"
+      aria-label="Cerrar nueva propuesta"
+      class="rounded-md p-2 text-itinera-muted transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+      (click)="salir()"
+    >
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M6 6l12 12M18 6 6 18" />
+      </svg>
+    </button>
   </header>
 
-  <section class="mx-auto w-full max-w-2xl p-6">
-    <header class="mb-5">
-      <h1 class="text-xl font-semibold">Nueva propuesta</h1>
-      <p class="mt-1 text-sm text-itinera-muted">
-        Completá los datos para generar un itinerario personalizado.
-      </p>
-    </header>
+  <section class="p-6">
+    <p class="mb-5 text-sm text-itinera-muted">
+      Completá los datos para generar un itinerario personalizado.
+    </p>
 
     <form
       class="space-y-5 rounded-2xl border bg-itinera-card p-6 shadow-sm"
@@ -144,4 +155,4 @@
       </button>
     </form>
   </section>
-</main>
+</section>

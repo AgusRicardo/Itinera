@@ -1,10 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { ClientesService } from '../../core/services/clientes.service';
-import { MenuUsuarioComponent } from '../../shared/components/menu-usuario/menu-usuario.component';
-import { NavegacionSeccionesComponent } from '../../shared/components/navegacion-secciones/navegacion-secciones.component';
+import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 
 interface ClienteVista {
   id: number;
@@ -12,18 +11,16 @@ interface ClienteVista {
   email: string;
   telefono: string;
   ciudad: string;
-  propuestas: number;
-  ultimaGestion: string;
+  propuestas?: number;
+  ultimaGestion?: string;
   estado: 'Activo' | 'Inactivo';
 }
 
 @Component({
   selector: 'app-clientes',
   imports: [
-    RouterLink,
     ReactiveFormsModule,
-    MenuUsuarioComponent,
-    NavegacionSeccionesComponent
+    MenuPrincipalComponent
   ],
   templateUrl: './clientes.component.html'
 })
@@ -45,7 +42,7 @@ export class ClientesComponent {
     nombre: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     telefono: ['', Validators.required],
-    ciudad: ['', Validators.required],
+    ciudad: [''],
     estado: ['Activo' as 'Activo' | 'Inactivo']
   });
 
@@ -61,10 +58,6 @@ export class ClientesComponent {
 
   protected readonly cantidadActivos = computed(() =>
     this.clientes().filter(cliente => cliente.estado === 'Activo').length
-  );
-
-  protected readonly cantidadConPropuestas = computed(() =>
-    this.clientes().filter(cliente => cliente.propuestas > 0).length
   );
 
   constructor() {
@@ -134,9 +127,13 @@ export class ClientesComponent {
         this.cerrarEditor();
         this.mostrarAviso(actual === 'nuevo' ? 'Cliente creado correctamente' : 'Cliente actualizado');
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.guardando.set(false);
-        this.error.set('No se pudo guardar el cliente.');
+        this.error.set(
+          error.error?.detail
+          ?? error.error?.message
+          ?? 'No se pudo guardar el cliente.'
+        );
       }
     });
   }
@@ -200,8 +197,6 @@ export class ClientesComponent {
       email: cliente.email,
       telefono: cliente.telefono,
       ciudad: '—',
-      propuestas: 0,
-      ultimaGestion: '—',
       estado: cliente.activo === false ? 'Inactivo' : 'Activo'
     };
   }

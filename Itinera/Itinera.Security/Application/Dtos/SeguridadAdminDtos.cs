@@ -5,7 +5,9 @@ public sealed record UsuarioAdminResponse(
     string Nombre,
     string Email,
     bool Activo,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    int? EmpresaId,
+    string EmpresaRazonSocial);
 
 public sealed record RolAdminResponse(
     int Id,

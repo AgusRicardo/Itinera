@@ -9,6 +9,16 @@ public static class Roles
     public static bool EsDePlataforma(string codigoPermiso)
         => codigoPermiso.StartsWith("plataforma.", StringComparison.Ordinal);
 
+    public static readonly IReadOnlyList<string> PermisosDelAdministradorItinera = new List<string>
+    {
+        Permisos.CatalogosVer,
+        Permisos.PlataformaGestionarEmpresas,
+        Permisos.PlataformaGestionarUsuarios,
+        Permisos.PlataformaGestionarRoles,
+        Permisos.PlataformaGestionarGrupos,
+        Permisos.SeguridadGestionar
+    };
+
     public static readonly IReadOnlyList<string> PermisosDelAgente = new List<string>
     {
         Permisos.CatalogosVer,

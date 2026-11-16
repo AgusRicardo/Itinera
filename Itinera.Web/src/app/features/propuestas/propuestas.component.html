@@ -1,14 +1,6 @@
-<main class="min-h-screen bg-itinera-background">
-  <header class="flex h-14 items-center justify-between border-b bg-itinera-card px-6">
-    <div class="flex items-center gap-3">
-      <span class="font-itinera-display text-xl tracking-wide">ITINERA</span>
-      <span class="text-itinera-border">|</span>
-      <span class="text-sm font-medium">Propuestas</span>
-      <app-navegacion-secciones />
-    </div>
-    <app-menu-usuario />
-  </header>
+<app-menu-principal />
 
+<main class="min-h-screen bg-itinera-background lg:pl-64">
   <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
     <div class="mb-8 grid items-end gap-5 lg:grid-cols-[1fr_auto]">
       <div>
@@ -23,13 +15,14 @@
           Diseñá, seguí y convertí cada viaje desde un único lugar.
         </p>
       </div>
-      <a
-        routerLink="/propuestas/nueva"
+      <button
+        type="button"
         class="flex items-center justify-center gap-2 rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background shadow-sm transition-opacity hover:opacity-90"
+        (click)="abrirNuevaPropuesta()"
       >
         <span class="text-lg leading-none">+</span>
         Nueva propuesta
-      </a>
+      </button>
     </div>
 
     <section class="mb-7 grid grid-cols-2 border-y bg-itinera-card/40 lg:grid-cols-4">
@@ -78,10 +71,6 @@
           }
         </select>
       </div>
-      <p class="text-xs text-itinera-muted">
-        Mostrando <span class="font-semibold text-itinera-foreground">{{ propuestasFiltradas().length }}</span>
-        de {{ propuestas().length }}
-      </p>
     </div>
 
     @if (cargando()) {
@@ -178,5 +167,22 @@
         }
       </div>
     }
+
+    <p class="mt-3 text-right text-xs text-itinera-muted">
+      Mostrando <span class="font-semibold text-itinera-foreground">{{ propuestasFiltradas().length }}</span>
+      de {{ propuestas().length }}
+    </p>
   </section>
+
+  @if (nuevaPropuestaAbierta()) {
+    <div
+      class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4 backdrop-blur-[2px]"
+      (click)="cerrarNuevaPropuesta()"
+    >
+      <app-crear-propuesta
+        class="block w-[840px] max-w-[calc(100vw-2rem)]"
+        (cerrar)="cerrarNuevaPropuesta()"
+      />
+    </div>
+  }
 </main>

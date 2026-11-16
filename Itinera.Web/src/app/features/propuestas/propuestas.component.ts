@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 
 import { PropuestasService } from '../../core/services/propuestas.service';
 import { Propuesta } from '../../core/models/propuesta';
@@ -9,18 +8,17 @@ import {
   EstadosPropuestasService
 } from '../../core/services/estados-propuestas.service';
 import { MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
-import { MenuUsuarioComponent } from '../../shared/components/menu-usuario/menu-usuario.component';
-import { NavegacionSeccionesComponent } from '../../shared/components/navegacion-secciones/navegacion-secciones.component';
+import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { CrearPropuestaComponent } from './crear-propuesta.component';
 
 @Component({
   selector: 'app-propuestas',
   imports: [
-    RouterLink,
     CurrencyPipe,
     DecimalPipe,
     MenuAccionesComponent,
-    MenuUsuarioComponent,
-    NavegacionSeccionesComponent
+    MenuPrincipalComponent,
+    CrearPropuestaComponent
   ],
   templateUrl: './propuestas.component.html'
 })
@@ -34,6 +32,7 @@ export class PropuestasComponent {
   protected readonly estado = signal('');
   protected readonly estados = signal<EstadoPropuesta[]>([]);
   protected readonly eliminando = signal<number | null>(null);
+  protected readonly nuevaPropuestaAbierta = signal(false);
 
   protected readonly propuestasFiltradas = computed(() => {
     const texto = this.busqueda().trim().toLowerCase();
@@ -94,6 +93,14 @@ export class PropuestasComponent {
         this.eliminando.set(null);
       }
     });
+  }
+
+  protected abrirNuevaPropuesta(): void {
+    this.nuevaPropuestaAbierta.set(true);
+  }
+
+  protected cerrarNuevaPropuesta(): void {
+    this.nuevaPropuestaAbierta.set(false);
   }
 
   private cargarPropuestas(): void {

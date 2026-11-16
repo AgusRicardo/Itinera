@@ -24,4 +24,5 @@ public class UsuarioEmpleado
 
     public void Desactivar() => Activo = false;
     public void Activar() => Activo = true;
+    public void ReasignarEmpleado(int empleadoId) => EmpleadoId = empleadoId;
 }

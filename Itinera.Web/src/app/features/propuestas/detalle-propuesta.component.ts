@@ -7,10 +7,11 @@ import {
   PropuestasService,
   RespuestaCliente
 } from '../../core/services/propuestas.service';
+import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 
 @Component({
   selector: 'app-detalle-propuesta',
-  imports: [RouterLink, CurrencyPipe],
+  imports: [RouterLink, CurrencyPipe, MenuPrincipalComponent],
   templateUrl: './detalle-propuesta.component.html'
 })
 export class DetallePropuestaComponent {

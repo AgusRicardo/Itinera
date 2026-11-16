@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Empresas;
 
-[Authorize(Policy = Permisos.EmpresasGestionar)]
+[Authorize(Policy = Permisos.PlataformaGestionarEmpresas)]
 public class EmpresasController(IEmpresaService empresaService) : ApiController
 {
     private readonly IEmpresaService _empresaService = empresaService;

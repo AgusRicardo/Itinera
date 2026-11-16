@@ -36,12 +36,28 @@ export class LoginComponent {
     this.autenticacion.iniciarSesion(email, password).subscribe({
       next: () => {
         this.cargando.set(false);
-        void this.router.navigateByUrl('/propuestas');
+        void this.router.navigateByUrl(this.obtenerRutaInicial());
       },
       error: () => {
         this.cargando.set(false);
         this.error.set('No se pudo iniciar sesión. Verificá tus credenciales.');
       }
     });
+  }
+
+  private obtenerRutaInicial(): string {
+    if (this.autenticacion.tienePermiso('plataforma.empresas.gestionar')) {
+      return '/administracion/empresas';
+    }
+
+    if (this.autenticacion.tienePermiso('propuestas.ver')) {
+      return '/propuestas';
+    }
+
+    if (this.autenticacion.tienePermiso('clientes.ver')) {
+      return '/clientes';
+    }
+
+    return '/acceso-denegado';
   }
 }

@@ -1,0 +1,129 @@
+<aside
+  class="fixed inset-y-0 left-0 z-30 hidden flex-col border-r bg-itinera-card transition-[width] duration-300 lg:flex"
+  [class.w-20]="contraido()"
+  [class.w-64]="!contraido()"
+>
+  <div class="flex h-20 items-center border-b px-3" [class.justify-center]="contraido()" [class.justify-between]="!contraido()">
+    <button type="button" class="flex items-center gap-3" (click)="irInicio()">
+      <span class="flex h-9 w-9 items-center justify-center rounded-lg p-1">
+        <img
+          src="/itinera-logo.svg"
+          alt="Logo de Itinera"
+          class="h-full w-full object-contain"
+        />
+      </span>
+      @if (!contraido()) {
+        <span class="font-itinera-display text-xl tracking-[0.12em]">ITINERA</span>
+      }
+    </button>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-3 py-5">
+    @if (!contraido()) {
+      <p class="mb-2 px-3 text-[9px] font-semibold uppercase tracking-[0.18em]  ">
+        {{ autenticacion.tienePermiso('plataforma.empresas.gestionar') ? 'Plataforma' : 'Operación' }}
+      </p>
+    }
+
+    @if (autenticacion.tienePermiso('plataforma.empresas.gestionar')) {
+      <a
+        routerLink="/administracion/empresas"
+        routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+        class="mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm   transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+        [class.justify-center]="contraido()"
+        [title]="contraido() ? 'Empresas' : ''"
+      >
+        <span class="text-base">▦</span>
+        @if (!contraido()) { <span class="font-medium">Empresas</span> }
+      </a>
+      <a
+        routerLink="/administracion/usuarios"
+        routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+        class="mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm   transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+        [class.justify-center]="contraido()"
+        [title]="contraido() ? 'Usuarios' : ''"
+      >
+        <span class="text-base">♙</span>
+        @if (!contraido()) { <span class="font-medium">Usuarios</span> }
+      </a>
+      <a
+        routerLink="/administracion/roles"
+        routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+        class="mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm   transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+        [class.justify-center]="contraido()"
+        [title]="contraido() ? 'Roles y permisos' : ''"
+      >
+        <span class="text-base">◇</span>
+        @if (!contraido()) { <span class="font-medium">Roles y permisos</span> }
+      </a>
+      <a
+        routerLink="/administracion/grupos"
+        routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+        class="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm   transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+        [class.justify-center]="contraido()"
+        [title]="contraido() ? 'Grupos' : ''"
+      >
+        <span class="text-base">◎</span>
+        @if (!contraido()) { <span class="font-medium">Grupos</span> }
+      </a>
+    } @else {
+      <a
+        routerLink="/propuestas"
+        routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+        class="mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm   transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+        [class.justify-center]="contraido()"
+        [title]="contraido() ? 'Propuestas' : ''"
+      >
+        <span class="text-base">✦</span>
+        @if (!contraido()) { <span class="font-medium">Propuestas</span> }
+      </a>
+      <a
+        routerLink="/clientes"
+        routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm   transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+        [class.justify-center]="contraido()"
+        [title]="contraido() ? 'Clientes' : ''"
+      >
+        <span class="text-base">♙</span>
+        @if (!contraido()) { <span class="font-medium">Clientes</span> }
+      </a>
+    }
+  </nav>
+
+  <div class="border-t p-3">
+    @if (!contraido()) {
+      <div class="rounded-xl bg-itinera-secondary/55 p-3">
+        <p class="truncate text-xs font-semibold">{{ usuario?.nombre || 'Usuario' }}</p>
+        <p class="mt-0.5 truncate text-[10px]  ">
+          {{ usuario?.roles?.[0] || 'Usuario' }}
+        </p>
+        <button
+          type="button"
+          class="mt-3 w-full rounded-lg py-2 text-xs   hover:bg-itinera-card hover:text-itinera-foreground"
+          (click)="cerrarSesion()"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    } @else {
+      <button
+        type="button"
+        class="flex h-9 w-9 items-center justify-center rounded-full bg-itinera-accent/30 text-xs font-semibold"
+        [title]="usuario?.nombre || 'Usuario'"
+        (click)="cerrarSesion()"
+      >
+        {{ usuario?.nombre?.charAt(0) || 'U' }}
+      </button>
+    }
+
+    <button
+      type="button"
+      class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs   hover:bg-itinera-secondary hover:text-itinera-foreground"
+      [title]="contraido() ? 'Expandir menú' : 'Contraer menú'"
+      (click)="alternar()"
+    >
+      <span [class.rotate-180]="contraido()">‹</span>
+      @if (!contraido()) { <span>Contraer menú</span> }
+    </button>
+  </div>
+</aside>

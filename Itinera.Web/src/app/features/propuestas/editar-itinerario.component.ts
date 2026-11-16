@@ -8,10 +8,11 @@ import {
   ModificarItinerarioRequest,
   PropuestasService
 } from '../../core/services/propuestas.service';
+import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 
 @Component({
   selector: 'app-editar-itinerario',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, MenuPrincipalComponent],
   templateUrl: './editar-itinerario.component.html'
 })
 export class EditarItinerarioComponent {

@@ -8,6 +8,7 @@ using Itinera.Application.Empresas.Interfaces;
 using Itinera.Application.EstadosFacturas.Interfaces;
 using Itinera.Application.EstadosPropuestas.Interfaces;
 using Itinera.Application.Onboarding.Interfaces;
+using Itinera.Application.Plataforma.Interfaces;
 using Itinera.Application.Paises.Interfaces;
 using Itinera.Application.Propuestas.Interfaces;
 using Itinera.Security.Application.Interfaces;
@@ -51,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditoriaService, AuditoriaService>();
 
         services.AddScoped<IOnboardingService, OnboardingService>();
+        services.AddScoped<IAdministracionPlataformaService, AdministracionPlataformaService>();
 
         services.AddScoped<SecuritySeeder>();
 
