@@ -19,6 +19,10 @@ public class Pago
             throw new ArgumentOutOfRangeException(nameof(importe));
         if (string.IsNullOrWhiteSpace(medioPago))
             throw new ArgumentException("El medio de pago es obligatorio.", nameof(medioPago));
+        if (fecha > DateTime.UtcNow)
+            throw new ArgumentException(
+                "La fecha de pago no puede ser futura.",
+                nameof(fecha));
 
         Importe = importe;
         Fecha = fecha;

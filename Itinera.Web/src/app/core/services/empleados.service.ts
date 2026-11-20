@@ -8,6 +8,7 @@ interface EmpleadoApi {
   id: number;
   nombre: string;
   apellido: string;
+  email: string;
 }
 
 @Injectable({ providedIn: 'root' })

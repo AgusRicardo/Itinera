@@ -21,6 +21,8 @@ public class FacturaConfiguration : IEntityTypeConfiguration<Factura>
                .HasPrecision(18, 2);
         builder.Property(x => x.SaldoPendiente)
                .HasPrecision(18, 2);
+        builder.HasIndex(x => new { x.EmpresaId, x.Numero })
+               .IsUnique();
         builder.Ignore(x => x.Estado);
 
         builder.HasOne(x => x.EstadoFacturaCatalogo)

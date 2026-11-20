@@ -84,12 +84,10 @@ export class EmpresasComponent {
 
     this.guardando.set(true);
     this.empresasService.actualizar(empresa.id, this.formularioEdicion.getRawValue()).subscribe({
-      next: actualizada => {
-        this.empresas.update(empresas =>
-          empresas.map(item => item.id === actualizada.id ? actualizada : item)
-        );
+      next: () => {
         this.guardando.set(false);
         this.cerrarEdicion();
+        this.cargarEmpresas();
         this.aviso.set('Empresa actualizada correctamente');
         setTimeout(() => this.aviso.set(''), 2600);
       },
@@ -107,9 +105,7 @@ export class EmpresasComponent {
 
     this.empresasService.desactivar(empresa.id).subscribe({
       next: () => {
-        this.empresas.update(empresas =>
-          empresas.map(item => item.id === empresa.id ? { ...item, activo: false } : item)
-        );
+        this.cargarEmpresas();
         this.aviso.set('Empresa desactivada');
         setTimeout(() => this.aviso.set(''), 2600);
       },

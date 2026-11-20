@@ -38,6 +38,8 @@ public class PropuestaRepository(AppDbContext context) : IPropuestaRepository
         => _context.Propuestas
             .Include(propuesta => propuesta.Cliente)
             .Include(propuesta => propuesta.Empleado)
+            .Include(propuesta => propuesta.Etiquetas)
+                .ThenInclude(item => item.Etiqueta)
             .Include(propuesta => propuesta.Itinerario)
                 .ThenInclude(itinerario => itinerario.Destinos)
                     .ThenInclude(destinoItinerario => destinoItinerario.Destino)

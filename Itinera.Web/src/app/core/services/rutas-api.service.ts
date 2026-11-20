@@ -42,12 +42,56 @@ export class RutasApiService {
     return `${this.apiUrl}/usuarios`;
   }
 
+  get usuariosBuscar(): string {
+    return `${this.usuarios}/buscar`;
+  }
+
   get roles(): string {
     return `${this.apiUrl}/roles`;
   }
 
   get cargos(): string {
     return `${this.apiUrl}/cargos`;
+  }
+
+  get facturas(): string {
+    return `${this.apiUrl}/facturas`;
+  }
+
+  get etiquetas(): string {
+    return `${this.apiUrl}/etiquetas`;
+  }
+
+  get paises(): string {
+    return `${this.apiUrl}/paises`;
+  }
+
+  get ciudades(): string {
+    return `${this.apiUrl}/ciudades`;
+  }
+
+  etiquetaPorId(id: number): string {
+    return `${this.etiquetas}/${id}`;
+  }
+
+  paisPorId(id: number): string {
+    return `${this.paises}/${id}`;
+  }
+
+  ciudadPorId(id: number): string {
+    return `${this.ciudades}/${id}`;
+  }
+
+  destinoPorId(id: number): string {
+    return `${this.destinos}/${id}`;
+  }
+
+  actividadPorId(id: number): string {
+    return `${this.actividades}/${id}`;
+  }
+
+  cargoPorId(id: number): string {
+    return `${this.cargos}/${id}`;
   }
 
   get administracionUsuarios(): string {
@@ -120,5 +164,21 @@ export class RutasApiService {
 
   eliminarPropuesta(id: number): string {
     return this.propuestaPorId(id);
+  }
+
+  facturaPorId(id: number): string {
+    return `${this.facturas}/${id}`;
+  }
+
+  pagosFactura(id: number): string {
+    return `${this.facturaPorId(id)}/pagos`;
+  }
+
+  anularFactura(id: number): string {
+    return `${this.facturaPorId(id)}/anular`;
+  }
+
+  pdfFactura(id: number): string {
+    return `${this.facturaPorId(id)}/pdf`;
   }
 }

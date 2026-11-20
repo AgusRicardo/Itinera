@@ -177,6 +177,7 @@ public class PropuestaPersistenciaTests
             new EmpleadoRepository(contexto, new TenantContextFake()),
             new DestinoRepository(contexto),
             new ActividadRepository(contexto),
+            new EtiquetaRepository(contexto, new TenantContextFake()),
             new MockGeneradorItinerarioIA(),
             new AuditoriaService(
                 contexto,

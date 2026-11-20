@@ -75,6 +75,11 @@ export class UsuariosComponent {
   protected crear(): void {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
+      if (this.formulario.controls.password.hasError('minlength')) {
+        this.error.set('La contraseña debe tener al menos 8 caracteres.');
+      } else {
+        this.error.set('Completá todos los campos obligatorios.');
+      }
       return;
     }
 

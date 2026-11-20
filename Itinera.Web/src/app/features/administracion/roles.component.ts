@@ -80,10 +80,10 @@ export class RolesComponent {
       ...this.formulario.getRawValue(),
       permisos: this.permisosSeleccionados()
     }).subscribe({
-      next: rol => {
-        this.roles.update(roles => [...roles, rol]);
+      next: () => {
         this.guardando.set(false);
         this.cerrarModal();
+        this.cargarDatos();
         this.aviso.set('Rol creado correctamente');
         setTimeout(() => this.aviso.set(''), 2600);
       },

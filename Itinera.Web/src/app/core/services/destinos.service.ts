@@ -4,9 +4,12 @@ import { Observable } from 'rxjs';
 
 import { RutasApiService } from './rutas-api.service';
 
-interface DestinoApi {
+export interface DestinoApi {
   id: number;
+  activo: boolean;
+  ciudadId: number;
   ciudadNombre: string;
+  paisId: number;
   paisNombre: string;
 }
 
@@ -17,5 +20,17 @@ export class DestinosService {
 
   obtenerTodos(): Observable<DestinoApi[]> {
     return this.http.get<DestinoApi[]>(this.rutasApi.destinos);
+  }
+
+  crear(ciudadId: number): Observable<DestinoApi> {
+    return this.http.post<DestinoApi>(this.rutasApi.destinos, { ciudadId });
+  }
+
+  actualizar(id: number, ciudadId: number): Observable<DestinoApi> {
+    return this.http.put<DestinoApi>(this.rutasApi.destinoPorId(id), { ciudadId });
+  }
+
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(this.rutasApi.destinoPorId(id));
   }
 }

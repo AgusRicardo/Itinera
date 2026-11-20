@@ -1,4 +1,5 @@
 ﻿using Itinera.Domain.Common;
+using Itinera.Domain.Catalogos;
 using Itinera.Domain.Facturacion;
 using Itinera.Domain.Usuarios;
 
@@ -24,6 +25,7 @@ public class Propuesta
     public Itinerario Itinerario { get; private set; }
     public EstadoPropuestaCatalogo EstadoPropuestaCatalogo { get; private set; }
     public List<Factura> Facturas { get; private set; } = new();
+    public List<PropuestaEtiqueta> Etiquetas { get; private set; } = new();
 
     private Propuesta()
     {
@@ -50,6 +52,19 @@ public class Propuesta
     public void AgregarDestino(DestinoItinerario destinoItinerario)
     {
         Itinerario.AgregarDestino(destinoItinerario);
+    }
+
+    public void AsignarEtiqueta(Etiqueta etiqueta)
+    {
+        if (Etiquetas.All(item => item.EtiquetaId != etiqueta.Id))
+            Etiquetas.Add(new PropuestaEtiqueta(this, etiqueta));
+    }
+
+    public void ReemplazarEtiquetas(IEnumerable<Etiqueta> etiquetas)
+    {
+        Etiquetas.Clear();
+        foreach (var etiqueta in etiquetas)
+            AsignarEtiqueta(etiqueta);
     }
 
     public void Presentar()

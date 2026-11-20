@@ -65,6 +65,61 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'facturacion',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['facturacion.ver'] },
+    loadComponent: () =>
+      import('./features/facturacion/facturas.component').then(
+        componente => componente.FacturasComponent
+      )
+  },
+  {
+    path: 'facturacion/:id',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['facturacion.ver'] },
+    loadComponent: () =>
+      import('./features/facturacion/detalle-factura.component').then(
+        componente => componente.DetalleFacturaComponent
+      )
+  },
+  {
+    path: 'etiquetas',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['etiquetas.gestionar'] },
+    loadComponent: () =>
+      import('./features/etiquetas/etiquetas.component').then(
+        componente => componente.EtiquetasComponent
+      )
+  },
+  {
+    path: 'catalogos/paises',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['catalogos.operativos.gestionar'] },
+    loadComponent: () =>
+      import('./features/catalogos/paises.component').then(componente => componente.PaisesComponent)
+  },
+  {
+    path: 'catalogos/ciudades',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['catalogos.operativos.gestionar'] },
+    loadComponent: () =>
+      import('./features/catalogos/ciudades.component').then(componente => componente.CiudadesComponent)
+  },
+  {
+    path: 'catalogos/destinos',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['catalogos.operativos.gestionar'] },
+    loadComponent: () =>
+      import('./features/catalogos/destinos.component').then(componente => componente.DestinosComponent)
+  },
+  {
+    path: 'catalogos/actividades',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['catalogos.operativos.gestionar'] },
+    loadComponent: () =>
+      import('./features/catalogos/actividades.component').then(componente => componente.ActividadesComponent)
+  },
+  {
     path: 'administracion/empresas',
     canActivate: [guardAutenticacion, guardPermiso],
     data: { permisos: ['plataforma.empresas.gestionar'] },
@@ -89,6 +144,15 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/administracion/roles.component').then(
         componente => componente.RolesComponent
+      )
+  },
+  {
+    path: 'administracion/cargos',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['catalogos.gestionar'] },
+    loadComponent: () =>
+      import('./features/administracion/cargos.component').then(
+        componente => componente.CargosComponent
       )
   },
   {

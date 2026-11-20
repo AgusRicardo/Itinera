@@ -12,7 +12,7 @@ public class PaisesController(IPaisService paisService) : ApiController
     private readonly IPaisService _paisService = paisService;
 
     [HttpPost]
-    [Authorize(Policy = Permisos.CatalogosGestionar)]
+    [Authorize(Policy = Permisos.CatalogosOperativosGestionar)]
     [ProducesResponseType(typeof(PaisResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PaisResponse>> Crear(CrearPaisRequest request)
@@ -26,7 +26,7 @@ public class PaisesController(IPaisService paisService) : ApiController
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.CatalogosVer)]
+    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(List<PaisResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<PaisResponse>>> ObtenerTodos()
     {
@@ -36,7 +36,7 @@ public class PaisesController(IPaisService paisService) : ApiController
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosVer)]
+    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(PaisResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PaisResponse>> ObtenerPorId(int id)
@@ -47,7 +47,7 @@ public class PaisesController(IPaisService paisService) : ApiController
     }
 
     [HttpPut("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosGestionar)]
+    [Authorize(Policy = Permisos.CatalogosOperativosGestionar)]
     [ProducesResponseType(typeof(PaisResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,7 +59,7 @@ public class PaisesController(IPaisService paisService) : ApiController
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosGestionar)]
+    [Authorize(Policy = Permisos.CatalogosOperativosGestionar)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Eliminar(int id)
