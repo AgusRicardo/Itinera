@@ -1,5 +1,6 @@
 using Itinera.Security.Application.Dtos;
 using Itinera.Security.Application.Interfaces;
+using Itinera.Security.Domain;
 
 namespace Itinera.Security.Application.Services;
 
@@ -8,6 +9,18 @@ public class UsuarioAdminService(ISecurityRepository repository) : IUsuarioAdmin
     public async Task<List<UsuarioAdminResponse>> ListarAsync()
     {
         var usuarios = await repository.ListarUsuariosAsync();
+        return await CrearRespuestasAsync(usuarios);
+    }
+
+    public async Task<List<UsuarioAdminResponse>> BuscarAsync(string texto)
+    {
+        var usuarios = await repository.BuscarUsuariosAsync(texto);
+        return await CrearRespuestasAsync(usuarios);
+    }
+
+    private async Task<List<UsuarioAdminResponse>> CrearRespuestasAsync(
+        List<Usuario> usuarios)
+    {
         var resultado = new List<UsuarioAdminResponse>(usuarios.Count);
 
         foreach (var usuario in usuarios)

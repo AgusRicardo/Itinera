@@ -1,5 +1,6 @@
 ﻿using Itinera.Application.Common.Interfaces;
 using Itinera.Domain.Common;
+using Itinera.Domain.Catalogos;
 using Itinera.Domain.Empresa;
 using Itinera.Domain.Facturacion;
 using Itinera.Domain.Propuestas;
@@ -37,6 +38,8 @@ public class AppDbContext : DbContext
     public DbSet<Factura> Facturas => Set<Factura>();
     public DbSet<DetalleFactura> DetallesFactura => Set<DetalleFactura>();
     public DbSet<Pago> Pagos => Set<Pago>();
+    public DbSet<Etiqueta> Etiquetas => Set<Etiqueta>();
+    public DbSet<PropuestaEtiqueta> PropuestasEtiquetas => Set<PropuestaEtiqueta>();
     public DbSet<RegistroAuditoria> RegistrosAuditoria => Set<RegistroAuditoria>();
     public DbSet<EmpresaCliente> EmpresaClientes => Set<EmpresaCliente>();
     public DbSet<UsuarioComponent> UsuariosSeguridad => Set<UsuarioComponent>();
@@ -61,6 +64,18 @@ public class AppDbContext : DbContext
     {
         modelBuilder.Entity<Propuesta>()
             .HasQueryFilter(p => _tenantContext.EsAdministradorPlataforma || p.EmpresaId == _tenantContext.EmpresaId);
+
+        modelBuilder.Entity<Factura>()
+            .HasQueryFilter(f =>
+                _tenantContext.EsAdministradorPlataforma
+                || (_tenantContext.EmpresaId.HasValue
+                    && f.EmpresaId == _tenantContext.EmpresaId.Value));
+
+        modelBuilder.Entity<Etiqueta>()
+            .HasQueryFilter(etiqueta =>
+                _tenantContext.EsAdministradorPlataforma
+                || (_tenantContext.EmpresaId.HasValue
+                    && etiqueta.EmpresaId == _tenantContext.EmpresaId.Value));
 
         modelBuilder.Entity<EmpresaCliente>()
             .HasQueryFilter(ec => _tenantContext.EsAdministradorPlataforma || ec.EmpresaId == _tenantContext.EmpresaId);

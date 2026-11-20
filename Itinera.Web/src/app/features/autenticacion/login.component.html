@@ -15,7 +15,7 @@
       (ngSubmit)="iniciarSesion()"
     >
       <div>
-        <label class="mb-1.5 block text-sm font-medium" for="email">Email</label>
+        <label class="mb-1.5 block text-sm font-medium" for="email">Email <span class="text-red-600">*</span></label>
         <input
           id="email"
           type="email"
@@ -29,7 +29,7 @@
       </div>
 
       <div>
-        <label class="mb-1.5 block text-sm font-medium" for="password">Contraseña</label>
+        <label class="mb-1.5 block text-sm font-medium" for="password">Contraseña <span class="text-red-600">*</span></label>
         <input
           id="password"
           type="password"
@@ -45,7 +45,7 @@
 
       <button
         type="submit"
-        [disabled]="cargando()"
+        [disabled]="formulario.invalid || cargando()"
         class="w-full rounded-lg bg-itinera-foreground py-2.5 text-sm font-semibold text-itinera-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {{ cargando() ? 'Ingresando…' : 'Iniciar Sesión' }}

@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 
 import { PropuestasService } from '../../core/services/propuestas.service';
 import { Propuesta } from '../../core/models/propuesta';
@@ -15,6 +15,7 @@ import { CrearPropuestaComponent } from './crear-propuesta.component';
   selector: 'app-propuestas',
   imports: [
     CurrencyPipe,
+    DatePipe,
     DecimalPipe,
     MenuAccionesComponent,
     MenuPrincipalComponent,
@@ -83,9 +84,7 @@ export class PropuestasComponent {
     this.eliminando.set(propuesta.id);
     this.propuestasService.eliminar(propuesta.id).subscribe({
       next: () => {
-        this.propuestas.update(actuales =>
-          actuales.filter(item => item.id !== propuesta.id)
-        );
+        this.cargarPropuestas();
         this.eliminando.set(null);
       },
       error: () => {

@@ -1,0 +1,106 @@
+<app-menu-principal />
+
+<main class="min-h-screen bg-itinera-background lg:pl-64">
+  <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
+    <div class="mb-8 flex items-end justify-between gap-5">
+      <div>
+        <p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">
+          Administración de plataforma
+        </p>
+        <h1 class="font-itinera-display text-3xl tracking-tight sm:text-4xl">Cargos</h1>
+        <p class="mt-1.5 text-sm text-itinera-muted">Administrá los cargos laborales disponibles.</p>
+      </div>
+      <button
+        type="button"
+        class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background"
+        (click)="abrirModal()"
+      >
+        + Nuevo cargo
+      </button>
+    </div>
+
+    @if (cargando()) {
+      <div class="rounded-xl border bg-itinera-card p-12 text-center">
+        <p class="text-sm text-itinera-muted">Cargando cargos…</p>
+      </div>
+    } @else if (error() && !modalAbierto()) {
+      <div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center">
+        <p class="text-sm text-red-700">{{ error() }}</p>
+      </div>
+    } @else if (!cargos().length) {
+      <div class="rounded-xl border bg-itinera-card p-12 text-center shadow-sm">
+        <p class="text-sm font-medium">No hay cargos creados</p>
+        <p class="mt-1 text-xs text-itinera-muted">Creá el primer cargo para poder asignarlo a los usuarios.</p>
+      </div>
+    } @else {
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        @for (cargo of cargos(); track cargo.id) {
+          <article class="rounded-xl border bg-itinera-card p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+              <h2 class="text-base font-semibold">{{ cargo.descripcion }}</h2>
+              <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] text-emerald-700">
+                Activo
+              </span>
+            </div>
+            <div class="mt-5 flex gap-2 border-t pt-4">
+              <button
+                type="button"
+                class="rounded-lg border px-3 py-2 text-xs hover:bg-itinera-secondary"
+                (click)="abrirModal(cargo)"
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                class="rounded-lg px-3 py-2 text-xs text-red-700 hover:bg-red-50"
+                (click)="eliminar(cargo)"
+              >
+                Eliminar
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  @if (aviso()) {
+    <div class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm text-itinera-background shadow-xl">
+      {{ aviso() }}
+    </div>
+  }
+
+  @if (modalAbierto()) {
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4 backdrop-blur-[2px]" (click)="cerrarModal()">
+      <section class="w-full max-w-md rounded-2xl border bg-itinera-card shadow-xl" (click)="$event.stopPropagation()">
+        <header class="flex items-start justify-between border-b px-6 py-5">
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">Catálogo de plataforma</p>
+            <h2 class="mt-1 font-itinera-display text-xl">
+              {{ cargoEnEdicion() ? 'Editar cargo' : 'Nuevo cargo' }}
+            </h2>
+          </div>
+          <button type="button" class="p-2 text-itinera-muted" [disabled]="guardando()" (click)="cerrarModal()">✕</button>
+        </header>
+        <form class="space-y-5 p-6" [formGroup]="formulario" (ngSubmit)="guardar()">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="descripcion">Descripción <span class="text-red-600">*</span></label>
+            <input id="descripcion" formControlName="descripcion" placeholder="Ej.: Agente de viajes" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+            @if (formulario.controls.descripcion.touched && formulario.controls.descripcion.invalid) {
+              <p class="mt-1 text-xs text-red-700">Ingresá una descripción.</p>
+            }
+          </div>
+          @if (error()) {
+            <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error() }}</p>
+          }
+          <div class="flex justify-end gap-2 border-t pt-5">
+            <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" [disabled]="guardando()" (click)="cerrarModal()">Cancelar</button>
+            <button type="submit" [disabled]="formulario.invalid || guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">
+              {{ guardando() ? 'Guardando…' : cargoEnEdicion() ? 'Guardar cambios' : 'Crear cargo' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+</main>

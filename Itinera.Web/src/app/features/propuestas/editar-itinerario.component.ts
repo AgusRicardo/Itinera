@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -12,7 +13,7 @@ import { MenuPrincipalComponent } from '../../shared/components/menu-principal/m
 
 @Component({
   selector: 'app-editar-itinerario',
-  imports: [ReactiveFormsModule, RouterLink, MenuPrincipalComponent],
+  imports: [ReactiveFormsModule, RouterLink, DatePipe, MenuPrincipalComponent],
   templateUrl: './editar-itinerario.component.html'
 })
 export class EditarItinerarioComponent {

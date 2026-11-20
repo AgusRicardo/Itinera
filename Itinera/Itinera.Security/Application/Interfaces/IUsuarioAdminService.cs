@@ -5,6 +5,7 @@ namespace Itinera.Security.Application.Interfaces;
 public interface IUsuarioAdminService
 {
     Task<List<UsuarioAdminResponse>> ListarAsync();
+    Task<List<UsuarioAdminResponse>> BuscarAsync(string texto);
     Task AsignarRolAsync(Guid usuarioId, int rolId);
     Task QuitarRolAsync(Guid usuarioId, int rolId);
     Task ActivarAsync(Guid usuarioId);

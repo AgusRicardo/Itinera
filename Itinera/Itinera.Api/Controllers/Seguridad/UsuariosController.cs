@@ -24,6 +24,18 @@ public class UsuariosController(
         return Ok(response);
     }
 
+    [HttpGet("buscar")]
+    [ProducesResponseType(typeof(List<UsuarioAdminResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<UsuarioAdminResponse>>> Buscar(
+        [FromQuery] string texto)
+    {
+        if (texto.Trim().Length < 3)
+            return Ok(new List<UsuarioAdminResponse>());
+
+        var response = await _usuarioAdminService.BuscarAsync(texto);
+        return Ok(response);
+    }
+
     [HttpPost("{id:guid}/roles")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

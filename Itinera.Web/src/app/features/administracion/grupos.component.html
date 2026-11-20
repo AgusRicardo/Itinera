@@ -66,6 +66,7 @@
                   <app-buscador-opciones
                     [opciones]="opcionesUsuarios()"
                     placeholder="Buscar usuario..."
+                    (textoBuscado)="buscarUsuario($event)"
                     (seleccionada)="seleccionarMiembro($event)"
                   />
                 </div>
@@ -101,7 +102,7 @@
             </div>
             <div class="mt-3 flex gap-2">
               <select formControlName="rolId" [formGroup]="formulario" [disabled]="cargandoOpciones() || !roles().length" class="rounded-lg border bg-itinera-secondary px-3 py-2 text-sm">
-                <option [ngValue]="0">Seleccionar rol</option>
+                <option [ngValue]="0" disabled>Seleccionar rol</option>
                 @for (rol of roles(); track rol.id) {
                   <option [ngValue]="rol.id">{{ rol.nombre }}</option>
                 }
@@ -125,19 +126,19 @@
       <section class="w-full max-w-md rounded-2xl border bg-itinera-card shadow-xl" (click)="$event.stopPropagation()">
         <header class="flex items-start justify-between border-b px-6 py-5">
           <div>
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">Composite de seguridad</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">Organización de usuarios</p>
             <h2 class="mt-1 font-itinera-display text-xl">Nuevo grupo</h2>
           </div>
           <button type="button" class="p-2 text-itinera-muted" (click)="cerrarModal()">✕</button>
         </header>
         <form class="space-y-5 p-6" [formGroup]="formulario" (ngSubmit)="crear()">
-          <input formControlName="nombre" placeholder="Nombre del grupo" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+           <label class="text-sm font-medium">Nombre <span class="text-red-600">*</span><input formControlName="nombre" placeholder="Nombre del grupo" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
           @if (error()) {
             <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error() }}</p>
           }
           <div class="flex justify-end gap-2 border-t pt-5">
             <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrarModal()">Cancelar</button>
-            <button type="submit" [disabled]="guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">
+            <button type="submit" [disabled]="formulario.invalid || guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">
               {{ guardando() ? 'Creando…' : 'Crear grupo' }}
             </button>
           </div>

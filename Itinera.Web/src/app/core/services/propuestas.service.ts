@@ -12,6 +12,7 @@ export interface CrearPropuestaRequest {
   fechaFin: string;
   preferencias: string;
   destinoIds: number[];
+  etiquetaIds: number[];
 }
 
 export type RespuestaCliente = 'Aceptada' | 'Rechazada' | 'SolicitaModificaciones';

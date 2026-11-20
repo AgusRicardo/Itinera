@@ -8,6 +8,9 @@ import { ClientesService } from '../../core/services/clientes.service';
 import { DestinosService } from '../../core/services/destinos.service';
 import { EmpleadosService } from '../../core/services/empleados.service';
 import { PropuestasService } from '../../core/services/propuestas.service';
+import { AutenticacionService } from '../../core/services/autenticacion.service';
+import { Etiqueta } from '../../core/models/etiqueta';
+import { EtiquetasService } from '../../core/services/etiquetas.service';
 
 @Component({
   selector: 'app-crear-propuesta',
@@ -22,6 +25,8 @@ export class CrearPropuestaComponent {
   private readonly empleadosService = inject(EmpleadosService);
   private readonly destinosService = inject(DestinosService);
   private readonly router = inject(Router);
+  private readonly autenticacion = inject(AutenticacionService);
+  private readonly etiquetasService = inject(EtiquetasService);
 
   protected readonly cargando = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -33,6 +38,8 @@ export class CrearPropuestaComponent {
   protected readonly clientes = signal<OpcionPropuesta[]>([]);
   protected readonly empleados = signal<OpcionPropuesta[]>([]);
   protected readonly destinos = signal<OpcionPropuesta[]>([]);
+  protected readonly etiquetas = signal<Etiqueta[]>([]);
+  protected readonly etiquetasSeleccionadas = signal<number[]>([]);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
     clienteId: [0, Validators.required],
@@ -63,7 +70,8 @@ export class CrearPropuestaComponent {
     forkJoin({
       clientes: this.clientesService.obtenerTodos(),
       empleados: this.empleadosService.obtenerTodos(),
-      destinos: this.destinosService.obtenerTodos()
+      destinos: this.destinosService.obtenerTodos(),
+      etiquetas: this.etiquetasService.obtenerTodas()
     }).subscribe({
       next: respuesta => {
         this.clientes.set(
@@ -84,8 +92,15 @@ export class CrearPropuestaComponent {
             nombre: `${destino.ciudadNombre}, ${destino.paisNombre}`
           }))
         );
+        this.etiquetas.set(respuesta.etiquetas);
 
-        if (respuesta.empleados.length) {
+        const usuario = this.autenticacion.obtenerUsuario();
+        const empleadoActual = respuesta.empleados.find(empleado =>
+          empleado.email.toLowerCase() === usuario?.email.toLowerCase());
+
+        if (empleadoActual) {
+          this.formulario.controls.empleadoId.setValue(empleadoActual.id);
+        } else if (respuesta.empleados.length) {
           this.formulario.controls.empleadoId.setValue(respuesta.empleados[0].id);
         }
       },
@@ -129,6 +144,19 @@ export class CrearPropuestaComponent {
     return this.destinosSeleccionados().includes(id);
   }
 
+  protected alternarEtiqueta(id: number): void {
+    const seleccionadas = this.etiquetasSeleccionadas();
+    this.etiquetasSeleccionadas.set(
+      seleccionadas.includes(id)
+        ? seleccionadas.filter(etiquetaId => etiquetaId !== id)
+        : [...seleccionadas, id]
+    );
+  }
+
+  protected etiquetaSeleccionada(id: number): boolean {
+    return this.etiquetasSeleccionadas().includes(id);
+  }
+
   protected crear(): void {
     if (this.formulario.invalid || this.destinosSeleccionados().length === 0) {
       this.formulario.markAllAsTouched();
@@ -141,7 +169,8 @@ export class CrearPropuestaComponent {
 
     this.propuestasService.crear({
       ...this.formulario.getRawValue(),
-      destinoIds: this.destinosSeleccionados()
+      destinoIds: this.destinosSeleccionados(),
+      etiquetaIds: this.etiquetasSeleccionadas()
     }).subscribe({
       next: propuesta => {
         this.cargando.set(false);

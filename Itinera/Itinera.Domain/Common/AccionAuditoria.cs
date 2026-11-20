@@ -6,5 +6,8 @@ public enum AccionAuditoria
     PresentarPropuesta,
     RegistrarRespuestaPropuesta,
     ModificarItinerario,
-    EliminarPropuesta
+    EliminarPropuesta,
+    CrearFactura,
+    RegistrarPagoFactura,
+    AnularFactura
 }

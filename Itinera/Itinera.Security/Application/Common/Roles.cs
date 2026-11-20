@@ -12,6 +12,7 @@ public static class Roles
     public static readonly IReadOnlyList<string> PermisosDelAdministradorItinera = new List<string>
     {
         Permisos.CatalogosVer,
+        Permisos.CatalogosGestionar,
         Permisos.PlataformaGestionarEmpresas,
         Permisos.PlataformaGestionarUsuarios,
         Permisos.PlataformaGestionarRoles,
@@ -22,8 +23,12 @@ public static class Roles
     public static readonly IReadOnlyList<string> PermisosDelAgente = new List<string>
     {
         Permisos.CatalogosVer,
+        Permisos.CatalogosOperativosVer,
+        Permisos.CatalogosOperativosGestionar,
+        Permisos.EtiquetasVer,
+        Permisos.EtiquetasGestionar,
         Permisos.ClientesVer,
-        Permisos.ClientesGestionar,
+        Permisos.EmpleadosVer,
         Permisos.PropuestasVer,
         Permisos.PropuestasCrear,
         Permisos.PropuestasPresentar,

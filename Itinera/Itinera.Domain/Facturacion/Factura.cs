@@ -11,8 +11,9 @@ public class Factura
     public DateTime FechaVencimiento { get; private set; }
     public decimal ImporteTotal { get; private set; }
     public decimal SaldoPendiente { get; private set; }
-    public EstadoFactura Estado { get; private set; }
+    public EstadoFactura Estado => (EstadoFactura)EstadoFacturaId;
     public int EstadoFacturaId { get; private set; }
+    public int EmpresaId { get; private set; }
     public int PropuestaId { get; private set; }
     public Propuesta Propuesta { get; private set; }
     public EstadoFacturaCatalogo EstadoFacturaCatalogo { get; private set; }
@@ -27,11 +28,16 @@ public class Factura
     {
         if (string.IsNullOrWhiteSpace(numero))
             throw new ArgumentException("El número de factura es obligatorio.", nameof(numero));
+        if (fechaVencimiento.Date < DateTime.UtcNow.Date)
+            throw new ArgumentException(
+                "La fecha de vencimiento no puede ser anterior a la fecha de emisión.",
+                nameof(fechaVencimiento));
 
         Numero = numero;
         FechaEmision = DateTime.UtcNow;
         FechaVencimiento = fechaVencimiento;
         Propuesta = propuesta ?? throw new ArgumentNullException(nameof(propuesta));
+        EmpresaId = propuesta.EmpresaId;
         PropuestaId = propuesta.Id;
         CambiarEstado(EstadoFactura.Pendiente);
     }
@@ -51,7 +57,8 @@ public class Factura
             throw new InvalidOperationException("La factura no admite nuevos pagos en su estado actual.");
 
         if (pago.Importe > SaldoPendiente)
-            throw new ArgumentException("El importe del pago supera el saldo pendiente.", nameof(pago));
+            throw new InvalidOperationException(
+                "El importe del pago supera el saldo pendiente.");
 
         Pagos.Add(pago);
         SaldoPendiente -= pago.Importe;
@@ -62,6 +69,9 @@ public class Factura
 
     public void Anular()
     {
+        if (Estado == EstadoFactura.Anulada)
+            throw new InvalidOperationException("La factura ya se encuentra anulada.");
+
         if (Pagos.Count > 0)
             throw new InvalidOperationException("No se puede anular una factura con pagos registrados.");
 
@@ -79,7 +89,6 @@ public class Factura
 
     private void CambiarEstado(EstadoFactura estado)
     {
-        Estado = estado;
         EstadoFacturaId = (int)estado;
     }
 }

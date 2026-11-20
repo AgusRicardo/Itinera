@@ -16,6 +16,14 @@ public static class PropuestaMapper
             ClienteNombre = NombreCompleto(propuesta.Cliente),
             EmpleadoId = propuesta.EmpleadoId,
             EmpleadoNombre = NombreCompleto(propuesta.Empleado),
+            Etiquetas = propuesta.Etiquetas
+                .Where(item => item.Etiqueta is not null)
+                .Select(item => new EtiquetaPropuestaResponse
+                {
+                    Id = item.EtiquetaId,
+                    Nombre = item.Etiqueta.Nombre
+                })
+                .ToList(),
             Itinerario = propuesta.Itinerario is null
                 ? null
                 : ItinerarioMapper.ToResponse(propuesta.Itinerario)

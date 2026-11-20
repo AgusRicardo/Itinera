@@ -16,6 +16,10 @@ using Itinera.Application.EstadosFacturas.Interfaces;
 using Itinera.Application.EstadosFacturas.Services;
 using Itinera.Application.EstadosPropuestas.Interfaces;
 using Itinera.Application.EstadosPropuestas.Services;
+using Itinera.Application.Facturacion.Interfaces;
+using Itinera.Application.Facturacion.Services;
+using Itinera.Application.Etiquetas.Interfaces;
+using Itinera.Application.Etiquetas.Services;
 using Itinera.Application.Paises.Interfaces;
 using Itinera.Application.Paises.Services;
 using Itinera.Application.Propuestas.Interfaces;
@@ -39,6 +43,8 @@ public static class DependencyInjection
         services.AddScoped<IEmpleadoService, EmpleadoService>();
         services.AddScoped<IEstadoPropuestaService, EstadoPropuestaService>();
         services.AddScoped<IEstadoFacturaService, EstadoFacturaService>();
+        services.AddScoped<IFacturaService, FacturaService>();
+        services.AddScoped<IEtiquetaService, EtiquetaService>();
 
         return services;
     }

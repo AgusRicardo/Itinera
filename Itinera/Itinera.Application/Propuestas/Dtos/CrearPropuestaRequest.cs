@@ -9,4 +9,5 @@ public class CrearPropuestaRequest
     public DateOnly FechaFin { get; set; }
     public string Preferencias { get; set; } = string.Empty;
     public List<int> DestinoIds { get; set; } = new();
+    public List<int> EtiquetaIds { get; set; } = new();
 }

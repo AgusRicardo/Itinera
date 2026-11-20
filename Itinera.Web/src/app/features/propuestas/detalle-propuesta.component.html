@@ -30,12 +30,14 @@
 
           <span
             class="rounded-full px-3 py-1 text-xs font-semibold"
-            [class]="{
-              'bg-stone-100 text-stone-600': propuestaActual.estado === 'Borrador',
-              'bg-blue-50 text-blue-700': propuestaActual.estado === 'Presentada',
-              'bg-emerald-50 text-emerald-700': propuestaActual.estado === 'Aceptada',
-              'bg-red-50 text-red-700': propuestaActual.estado === 'Rechazada'
-            }"
+            [class.bg-stone-100]="propuestaActual.estado === 'Borrador'"
+            [class.text-stone-600]="propuestaActual.estado === 'Borrador'"
+            [class.bg-blue-50]="propuestaActual.estado === 'Presentada'"
+            [class.text-blue-700]="propuestaActual.estado === 'Presentada'"
+            [class.bg-emerald-50]="propuestaActual.estado === 'Aceptada'"
+            [class.text-emerald-700]="propuestaActual.estado === 'Aceptada'"
+            [class.bg-red-50]="propuestaActual.estado === 'Rechazada'"
+            [class.text-red-700]="propuestaActual.estado === 'Rechazada'"
           >
             {{ propuestaActual.estado }}
           </span>
@@ -53,6 +55,15 @@
             <p class="mt-1 text-sm font-semibold">{{ propuestaActual.empleadoNombre }}</p>
           </div>
         </div>
+        @if (propuestaActual.etiquetas.length) {
+          <div class="mt-5 flex flex-wrap gap-2 border-t pt-5">
+            @for (etiqueta of propuestaActual.etiquetas; track etiqueta.id) {
+              <span class="rounded-full bg-itinera-accent/15 px-3 py-1 text-xs font-medium">
+                #{{ etiqueta.nombre }}
+              </span>
+            }
+          </div>
+        }
       </article>
 
       <article class="rounded-2xl border bg-itinera-card p-6 shadow-sm">
@@ -62,11 +73,11 @@
           <div class="mb-5 grid grid-cols-2 gap-4">
             <div>
               <p class="text-xs text-itinera-muted">Inicio</p>
-              <p class="mt-1 text-sm font-medium">{{ itinerario.fechaInicio }}</p>
+              <p class="mt-1 text-sm font-medium">{{ itinerario.fechaInicio | date:'dd/MM/yyyy' }}</p>
             </div>
             <div>
               <p class="text-xs text-itinera-muted">Fin</p>
-              <p class="mt-1 text-sm font-medium">{{ itinerario.fechaFin }}</p>
+              <p class="mt-1 text-sm font-medium">{{ itinerario.fechaFin | date:'dd/MM/yyyy' }}</p>
             </div>
           </div>
 
@@ -134,6 +145,15 @@
       }
 
       <div class="flex gap-3">
+        @if (puedeCrearFactura() && propuestaActual.estado === 'Aceptada' && propuestaActual.itinerario) {
+          <a
+            [routerLink]="['/facturacion']"
+            [queryParams]="{ propuestaId: propuestaActual.id }"
+            class="rounded-lg bg-itinera-secondary px-5 py-2.5 text-sm font-medium hover:bg-itinera-secondary/70"
+          >
+            Generar factura
+          </a>
+        }
         <button
           type="button"
           [routerLink]="['/propuestas', propuestaActual.id, 'editar']"
