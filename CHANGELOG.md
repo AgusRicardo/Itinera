@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/AgusRicardo/Itinera/compare/v1.3.0...v1.4.0) (2026-11-20)
+
+
+### Features
+
+* segunda iteracion =&gt; dev ([033d5ba](https://github.com/AgusRicardo/Itinera/commit/033d5bac97340ed50a7dc6be81e489837d1ac3e5))
+
 ## [1.3.0](https://github.com/AgusRicardo/Itinera/compare/v1.2.0...v1.3.0) (2026-11-16)
 
 
