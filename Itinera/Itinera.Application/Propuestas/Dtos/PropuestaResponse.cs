@@ -10,5 +10,12 @@ public class PropuestaResponse
     public string ClienteNombre { get; set; } = string.Empty;
     public int EmpleadoId { get; set; }
     public string EmpleadoNombre { get; set; } = string.Empty;
+    public List<EtiquetaPropuestaResponse> Etiquetas { get; set; } = new();
     public ItinerarioResponse? Itinerario { get; set; }
+}
+
+public sealed class EtiquetaPropuestaResponse
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; } = string.Empty;
 }

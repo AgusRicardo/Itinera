@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Itinera.Api.Security;
+using Itinera.Api.Services.Facturacion;
 using Itinera.Application;
 using Itinera.Application.Common.Interfaces;
 using Itinera.Infrastructure;
@@ -27,6 +28,7 @@ public static class DependencyInjection
         AgregarCORS(servicios, configuracion);
         servicios.AddHttpContextAccessor();
         servicios.AddScoped<ICurrentUserService, CurrentUserService>();
+        servicios.AddScoped<GeneradorPdfFactura>();
 
         AgregarAutenticacion(servicios, configuracion);
 

@@ -19,13 +19,10 @@
   </div>
 
   <nav class="flex-1 overflow-y-auto px-3 py-5">
-    @if (!contraido()) {
-      <p class="mb-2 px-3 text-[9px] font-semibold uppercase tracking-[0.18em]  ">
-        {{ autenticacion.tienePermiso('plataforma.empresas.gestionar') ? 'Plataforma' : 'Operación' }}
-      </p>
-    }
-
     @if (autenticacion.tienePermiso('plataforma.empresas.gestionar')) {
+      @if (!contraido()) {
+        <p class="mb-2 mt-3 px-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-itinera-muted">Administración</p>
+      }
       <a
         routerLink="/administracion/empresas"
         routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
@@ -57,6 +54,16 @@
         @if (!contraido()) { <span class="font-medium">Roles y permisos</span> }
       </a>
       <a
+        routerLink="/administracion/cargos"
+        routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+        class="mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+        [class.justify-center]="contraido()"
+        [title]="contraido() ? 'Cargos' : ''"
+      >
+        <span class="text-base">▤</span>
+        @if (!contraido()) { <span class="font-medium">Cargos</span> }
+      </a>
+      <a
         routerLink="/administracion/grupos"
         routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
         class="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm   transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
@@ -67,6 +74,9 @@
         @if (!contraido()) { <span class="font-medium">Grupos</span> }
       </a>
     } @else {
+      @if (!contraido()) {
+        <p class="mb-2 mt-3 px-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-itinera-muted">Operación</p>
+      }
       <a
         routerLink="/propuestas"
         routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
@@ -87,6 +97,62 @@
         <span class="text-base">♙</span>
         @if (!contraido()) { <span class="font-medium">Clientes</span> }
       </a>
+      @if (autenticacion.tienePermiso('facturacion.ver')) {
+        @if (!contraido()) {
+          <p class="mb-2 mt-5 px-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-itinera-muted">Facturación</p>
+        }
+        <a
+          routerLink="/facturacion"
+          routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+          class="mt-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+          [class.justify-center]="contraido()"
+          [title]="contraido() ? 'Facturación' : ''"
+        >
+          <span class="text-base">▤</span>
+          @if (!contraido()) { <span class="font-medium">Facturación</span> }
+        </a>
+      }
+      @if (autenticacion.tienePermiso('etiquetas.gestionar') || autenticacion.tienePermiso('catalogos.operativos.gestionar')) {
+        @if (!contraido()) {
+          <p class="mb-2 mt-5 px-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-itinera-muted">Catálogos</p>
+        }
+      }
+      @if (autenticacion.tienePermiso('etiquetas.gestionar')) {
+        <a
+          routerLink="/etiquetas"
+          routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+          class="mt-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+          [class.justify-center]="contraido()"
+          [title]="contraido() ? 'Etiquetas' : ''"
+        >
+          <span class="text-base">#</span>
+          @if (!contraido()) { <span class="font-medium">Etiquetas</span> }
+        </a>
+      }
+      @if (autenticacion.tienePermiso('catalogos.operativos.gestionar')) {
+        <a
+          routerLink="/catalogos/paises"
+          routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm"
+          class="mt-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+          [class.justify-center]="contraido()"
+          [title]="contraido() ? 'Países' : ''"
+        >
+          <span class="text-base">▧</span>
+          @if (!contraido()) { <span class="font-medium">Países</span> }
+        </a>
+        <a routerLink="/catalogos/ciudades" routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm" class="mt-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground" [class.justify-center]="contraido()" [title]="contraido() ? 'Ciudades' : ''">
+          <span class="text-base">⌂</span>
+          @if (!contraido()) { <span class="font-medium">Ciudades</span> }
+        </a>
+        <a routerLink="/catalogos/destinos" routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm" class="mt-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground" [class.justify-center]="contraido()" [title]="contraido() ? 'Destinos' : ''">
+          <span class="text-base">◉</span>
+          @if (!contraido()) { <span class="font-medium">Destinos</span> }
+        </a>
+        <a routerLink="/catalogos/actividades" routerLinkActive="bg-itinera-foreground text-itinera-background shadow-sm" class="mt-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground" [class.justify-center]="contraido()" [title]="contraido() ? 'Actividades' : ''">
+          <span class="text-base">✦</span>
+          @if (!contraido()) { <span class="font-medium">Actividades</span> }
+        </a>
+      }
     }
   </nav>
 

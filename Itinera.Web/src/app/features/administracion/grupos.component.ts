@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 import { GruposService, GrupoAdministracion } from '../../core/services/grupos.service';
 import { UsuarioAdministracion, UsuariosService } from '../../core/services/usuarios.service';
@@ -21,6 +22,7 @@ export class GruposComponent {
   private readonly usuariosService = inject(UsuariosService);
   private readonly rolesService = inject(RolesService);
   private readonly constructorFormulario = inject(FormBuilder);
+  private readonly busquedaUsuarios = new Subject<string>();
 
   protected readonly grupos = signal<GrupoAdministracion[]>([]);
   protected readonly usuarios = signal<UsuarioAdministracion[]>([]);
@@ -40,6 +42,14 @@ export class GruposComponent {
   });
 
   constructor() {
+    this.busquedaUsuarios.pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      switchMap(texto => texto.length < 3
+        ? of([])
+        : this.usuariosService.buscar(texto).pipe(catchError(() => of([]))))
+    ).subscribe(usuarios => this.usuarios.set(usuarios));
+
     this.cargarDatos();
   }
 
@@ -61,10 +71,10 @@ export class GruposComponent {
 
     this.guardando.set(true);
     this.gruposService.crear(this.formulario.controls.nombre.value).subscribe({
-      next: grupo => {
-        this.grupos.update(grupos => [...grupos, grupo]);
+      next: () => {
         this.guardando.set(false);
         this.cerrarModal();
+        this.cargarDatos();
         this.mostrarAviso('Grupo creado correctamente');
       },
       error: respuesta => {
@@ -81,6 +91,15 @@ export class GruposComponent {
 
   protected seleccionarMiembro(opcion: OpcionBuscable): void {
     this.formulario.controls.miembroId.setValue(opcion.id);
+  }
+
+  protected buscarUsuario(texto: string): void {
+    if (texto.length < 3) {
+      this.usuarios.set([]);
+    }
+
+    this.formulario.controls.miembroId.reset();
+    this.busquedaUsuarios.next(texto);
   }
 
   protected opcionesUsuarios(): OpcionBuscable[] {
@@ -114,20 +133,18 @@ export class GruposComponent {
   private cargarDatos(): void {
     forkJoin({
       grupos: this.gruposService.obtenerTodos(),
-      usuarios: this.usuariosService.obtenerTodos(),
       roles: this.rolesService.obtenerTodos()
     }).subscribe({
       next: datos => {
         this.grupos.set(datos.grupos);
-        this.usuarios.set(datos.usuarios);
         this.roles.set(datos.roles);
         this.cargandoOpciones.set(false);
         this.cargando.set(false);
-        this.cargandoOpciones.set(false);
       },
       error: () => {
         this.error.set('No se pudieron cargar los grupos.');
         this.cargando.set(false);
+        this.cargandoOpciones.set(false);
       }
     });
   }

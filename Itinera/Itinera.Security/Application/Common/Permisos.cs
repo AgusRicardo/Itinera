@@ -6,6 +6,10 @@ public static class Permisos
 {
     public const string CatalogosVer = "catalogos.ver";
     public const string CatalogosGestionar = "catalogos.gestionar";
+    public const string CatalogosOperativosVer = "catalogos.operativos.ver";
+    public const string CatalogosOperativosGestionar = "catalogos.operativos.gestionar";
+    public const string EtiquetasVer = "etiquetas.ver";
+    public const string EtiquetasGestionar = "etiquetas.gestionar";
 
     public const string ClientesVer = "clientes.ver";
     public const string ClientesGestionar = "clientes.gestionar";
@@ -41,6 +45,10 @@ public static class Permisos
     {
         new(CatalogosVer, "Ver catálogos (países, ciudades, destinos, actividades, cargos)"),
         new(CatalogosGestionar, "Gestionar catálogos"),
+        new(CatalogosOperativosVer, "Ver catálogos operativos"),
+        new(CatalogosOperativosGestionar, "Gestionar catálogos operativos"),
+        new(EtiquetasVer, "Ver etiquetas"),
+        new(EtiquetasGestionar, "Gestionar etiquetas"),
         new(ClientesVer, "Ver clientes"),
         new(ClientesGestionar, "Gestionar clientes"),
         new(EmpresasGestionar, "Gestionar empresas"),

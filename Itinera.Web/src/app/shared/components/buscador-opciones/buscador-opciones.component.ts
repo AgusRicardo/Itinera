@@ -10,9 +10,16 @@ export interface OpcionBuscable {
   templateUrl: './buscador-opciones.component.html'
 })
 export class BuscadorOpcionesComponent {
-  @Input() opciones: OpcionBuscable[] = [];
+  private readonly opcionesActuales = signal<OpcionBuscable[]>([]);
+
+  @Input()
+  set opciones(valor: OpcionBuscable[]) {
+    this.opcionesActuales.set(valor);
+  }
+
   @Input() placeholder = 'Buscar...';
   @Output() seleccionada = new EventEmitter<OpcionBuscable>();
+  @Output() textoBuscado = new EventEmitter<string>();
 
   protected readonly texto = signal('');
   protected readonly abierto = signal(false);
@@ -20,14 +27,16 @@ export class BuscadorOpcionesComponent {
     const busqueda = this.texto().trim().toLowerCase();
     return busqueda.length < 3
       ? []
-      : this.opciones
+      : this.opcionesActuales()
           .filter(opcion => opcion.nombre.toLowerCase().includes(busqueda))
           .slice(0, 8);
   });
 
   protected buscar(valor: string): void {
     this.texto.set(valor);
-    this.abierto.set(valor.trim().length >= 3);
+    const textoNormalizado = valor.trim();
+    this.abierto.set(textoNormalizado.length >= 3);
+    this.textoBuscado.emit(textoNormalizado);
   }
 
   protected seleccionar(opcion: OpcionBuscable): void {

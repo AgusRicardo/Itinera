@@ -47,6 +47,13 @@ export class UsuariosService {
     return this.http.get<UsuarioAdministracion[]>(this.rutasApi.usuarios);
   }
 
+  buscar(texto: string): Observable<UsuarioAdministracion[]> {
+    return this.http.get<UsuarioAdministracion[]>(
+      this.rutasApi.usuariosBuscar,
+      { params: { texto } }
+    );
+  }
+
   obtenerRoles(): Observable<RolAdministracion[]> {
     return this.http.get<RolAdministracion[]>(this.rutasApi.roles);
   }

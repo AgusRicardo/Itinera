@@ -83,6 +83,24 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
             .ToListAsync();
     }
 
+    public Task<List<Usuario>> BuscarUsuariosAsync(string texto)
+    {
+        var busqueda = texto.Trim().ToLower();
+        var consulta = EsAdministradorPlataforma
+            ? _context.Usuarios.AsQueryable()
+            : EmpresaId is null
+                ? _context.Usuarios.Where(_ => false)
+                : _context.Usuarios.Where(u => _context.UsuariosEmpleados.Any(ue =>
+                    ue.UsuarioId == u.Id && ue.Activo && ue.Empleado.EmpresaId == EmpresaId));
+
+        return consulta
+            .Where(u => u.Nombre.ToLower().Contains(busqueda)
+                || u.Email.ToLower().Contains(busqueda))
+            .OrderBy(u => u.Nombre)
+            .Take(8)
+            .ToListAsync();
+    }
+
     public Task<List<Rol>> ListarRolesAsync()
         => RolesConPermisos()
             .Where(rol => EsAdministradorPlataforma

@@ -13,6 +13,7 @@ public interface ISecurityRepository
     Task<(int? EmpresaId, string EmpresaRazonSocial)> ObtenerEmpresaUsuarioAsync(Guid usuarioId);
 
     Task<List<Usuario>> ListarUsuariosAsync();
+    Task<List<Usuario>> BuscarUsuariosAsync(string texto);
     Task<List<Rol>> ListarRolesAsync();
     Task<Rol> GetRolAsync(int id);
     Task<List<Permiso>> ListarPermisosAsync();

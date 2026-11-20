@@ -12,7 +12,7 @@ public class DestinosController(IDestinoService destinoService) : ApiController
     private readonly IDestinoService _destinoService = destinoService;
 
     [HttpPost]
-    [Authorize(Policy = Permisos.CatalogosGestionar)]
+    [Authorize(Policy = Permisos.CatalogosOperativosGestionar)]
     [ProducesResponseType(typeof(DestinoResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -27,7 +27,7 @@ public class DestinosController(IDestinoService destinoService) : ApiController
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.CatalogosVer)]
+    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(List<DestinoResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<DestinoResponse>>> ObtenerTodos()
     {
@@ -37,7 +37,7 @@ public class DestinosController(IDestinoService destinoService) : ApiController
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosVer)]
+    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(DestinoResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DestinoResponse>> ObtenerPorId(int id)
@@ -48,7 +48,7 @@ public class DestinosController(IDestinoService destinoService) : ApiController
     }
 
     [HttpPut("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosGestionar)]
+    [Authorize(Policy = Permisos.CatalogosOperativosGestionar)]
     [ProducesResponseType(typeof(DestinoResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -60,7 +60,7 @@ public class DestinosController(IDestinoService destinoService) : ApiController
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosGestionar)]
+    [Authorize(Policy = Permisos.CatalogosOperativosGestionar)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Eliminar(int id)

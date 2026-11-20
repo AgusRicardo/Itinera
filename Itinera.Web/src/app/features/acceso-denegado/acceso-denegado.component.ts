@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 
 @Component({
   selector: 'app-acceso-denegado',
-  imports: [RouterLink, MenuPrincipalComponent],
+  imports: [MenuPrincipalComponent],
   template: `
     <app-menu-principal />
     <main class="flex min-h-screen items-center justify-center bg-itinera-background p-6 lg:pl-64">
@@ -13,9 +12,6 @@ import { MenuPrincipalComponent } from '../../shared/components/menu-principal/m
         <p class="mt-2 text-sm text-itinera-muted">
           No tenés permisos para acceder a esta sección.
         </p>
-        <a routerLink="/" class="mt-5 inline-block rounded-lg bg-itinera-foreground px-4 py-2 text-sm text-itinera-background">
-          Volver
-        </a>
       </section>
     </main>
   `

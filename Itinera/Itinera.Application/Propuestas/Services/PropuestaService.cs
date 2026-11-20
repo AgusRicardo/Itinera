@@ -4,6 +4,7 @@ using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Common.Interfaces;
 using Itinera.Application.Destinos.Interfaces;
 using Itinera.Application.Empleados.Interfaces;
+using Itinera.Application.Etiquetas.Interfaces;
 using Itinera.Application.Propuestas.Dtos;
 using Itinera.Application.Propuestas.Interfaces;
 using Itinera.Application.Propuestas.Mappers;
@@ -20,6 +21,7 @@ public class PropuestaService(
     IEmpleadoRepository empleadoRepository,
     IDestinoRepository destinoRepository,
     IActividadRepository actividadRepository,
+    IEtiquetaRepository etiquetaRepository,
     IGeneradorItinerarioIA generadorItinerario,
     IAuditoriaService auditoriaService) : IPropuestaService
 {
@@ -28,6 +30,7 @@ public class PropuestaService(
     private readonly IEmpleadoRepository _empleadoRepository = empleadoRepository;
     private readonly IDestinoRepository _destinoRepository = destinoRepository;
     private readonly IActividadRepository _actividadRepository = actividadRepository;
+    private readonly IEtiquetaRepository _etiquetaRepository = etiquetaRepository;
     private readonly IGeneradorItinerarioIA _generadorItinerario = generadorItinerario;
     private readonly IAuditoriaService _auditoriaService = auditoriaService;
 
@@ -36,8 +39,13 @@ public class PropuestaService(
         Cliente cliente = await ObtenerClienteById(request.ClienteId);
         Empleado empleado = await ObtenerEmpleadoById(request.EmpleadoId);
         List<Destino> destinos = await ObtenerDestinosByIds(request.DestinoIds);
+        var etiquetas = await _etiquetaRepository.GetByIdsAsync(request.EtiquetaIds);
+
+        if (etiquetas.Count != request.EtiquetaIds.Distinct().Count())
+            throw new ArgumentException("Una o más etiquetas no están disponibles.", nameof(request));
 
         var propuesta = new Propuesta(cliente, empleado, request.Presupuesto);
+        propuesta.ReemplazarEtiquetas(etiquetas);
         cliente.AsociarPropuesta(propuesta);
         empleado.AsociarPropuesta(propuesta);
 

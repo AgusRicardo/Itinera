@@ -14,7 +14,9 @@
 
   @if (abierto()) {
     <div
-      class="absolute right-0 top-10 z-20 w-36 rounded-xl border bg-itinera-card p-1.5 text-left shadow-lg"
+      class="fixed z-50 w-36 rounded-xl border bg-itinera-card p-1.5 text-left shadow-lg"
+      [style.top]="posicion().top"
+      [style.left]="posicion().left"
       (click)="$event.stopPropagation()"
     >
       <a

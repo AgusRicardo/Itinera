@@ -22,6 +22,33 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Itinera.Domain.Catalogos.Etiqueta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmpresaId", "Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Etiquetas", (string)null);
+                });
+
             modelBuilder.Entity("Itinera.Domain.Common.EmpresaCliente", b =>
                 {
                     b.Property<int>("EmpresaId")
@@ -326,6 +353,9 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("EstadoFacturaId")
                         .HasColumnType("integer");
 
@@ -359,6 +389,9 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("PropuestaId");
+
+                    b.HasIndex("EmpresaId", "Numero")
+                        .IsUnique();
 
                     b.ToTable("Facturas", (string)null);
                 });
@@ -658,6 +691,21 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.HasIndex("EstadoPropuestaId");
 
                     b.ToTable("Propuestas", (string)null);
+                });
+
+            modelBuilder.Entity("Itinera.Domain.Propuestas.PropuestaEtiqueta", b =>
+                {
+                    b.Property<int>("PropuestaId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EtiquetaId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PropuestaId", "EtiquetaId");
+
+                    b.HasIndex("EtiquetaId");
+
+                    b.ToTable("PropuestasEtiquetas", (string)null);
                 });
 
             modelBuilder.Entity("Itinera.Infrastructure.Persistence.UsuarioEmpleado", b =>
@@ -1025,6 +1073,25 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Navigation("EstadoPropuestaCatalogo");
                 });
 
+            modelBuilder.Entity("Itinera.Domain.Propuestas.PropuestaEtiqueta", b =>
+                {
+                    b.HasOne("Itinera.Domain.Catalogos.Etiqueta", "Etiqueta")
+                        .WithMany()
+                        .HasForeignKey("EtiquetaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Itinera.Domain.Propuestas.Propuesta", "Propuesta")
+                        .WithMany("Etiquetas")
+                        .HasForeignKey("PropuestaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Etiqueta");
+
+                    b.Navigation("Propuesta");
+                });
+
             modelBuilder.Entity("Itinera.Infrastructure.Persistence.UsuarioEmpleado", b =>
                 {
                     b.HasOne("Itinera.Domain.Usuarios.Empleado", "Empleado")
@@ -1172,6 +1239,8 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Itinera.Domain.Propuestas.Propuesta", b =>
                 {
+                    b.Navigation("Etiquetas");
+
                     b.Navigation("Facturas");
 
                     b.Navigation("Itinerario");

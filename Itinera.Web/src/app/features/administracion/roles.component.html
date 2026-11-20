@@ -63,8 +63,8 @@
           <button type="button" class="p-2 text-itinera-muted" (click)="cerrarModal()">✕</button>
         </header>
         <form class="space-y-5 p-6" [formGroup]="formulario" (ngSubmit)="crear()">
-          <input formControlName="nombre" placeholder="Nombre del rol" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
-          <textarea formControlName="descripcion" rows="3" placeholder="Descripción" class="w-full resize-none rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm"></textarea>
+           <label class="text-sm font-medium">Nombre <span class="text-red-600">*</span><input formControlName="nombre" placeholder="Nombre del rol" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
+           <label class="text-sm font-medium">Descripción <span class="text-red-600">*</span><textarea formControlName="descripcion" rows="3" placeholder="Descripción" class="mt-1.5 w-full resize-none rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm"></textarea></label>
           <div>
             <p class="mb-3 text-sm font-semibold">Permisos</p>
             <div class="grid gap-2 sm:grid-cols-2">
@@ -90,7 +90,7 @@
           }
           <div class="flex justify-end gap-2 border-t pt-5">
             <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrarModal()">Cancelar</button>
-            <button type="submit" [disabled]="guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">
+            <button type="submit" [disabled]="formulario.invalid || guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">
               {{ guardando() ? 'Creando…' : 'Crear rol' }}
             </button>
           </div>

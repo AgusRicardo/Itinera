@@ -4,10 +4,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ClientesService } from '../../core/services/clientes.service';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { AutenticacionService } from '../../core/services/autenticacion.service';
 
 interface ClienteVista {
   id: number;
   nombre: string;
+  nombrePrincipal: string;
+  apellido: string;
   email: string;
   telefono: string;
   ciudad: string;
@@ -27,6 +30,7 @@ interface ClienteVista {
 export class ClientesComponent {
   private readonly clientesService = inject(ClientesService);
   private readonly constructorFormulario = inject(FormBuilder);
+  private readonly autenticacion = inject(AutenticacionService);
 
   protected readonly clientes = signal<ClienteVista[]>([]);
   protected readonly cargando = signal(true);
@@ -40,6 +44,7 @@ export class ClientesComponent {
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
     nombre: ['', Validators.required],
+    apellido: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     telefono: ['', Validators.required],
     ciudad: [''],
@@ -60,6 +65,15 @@ export class ClientesComponent {
     this.clientes().filter(cliente => cliente.estado === 'Activo').length
   );
 
+  protected puedeGestionarClientes(): boolean {
+    return this.autenticacion.tienePermiso('clientes.gestionar');
+  }
+
+  protected campoInvalido(nombre: string): boolean {
+    const control = this.formulario.get(nombre);
+    return Boolean(control?.touched && control.invalid);
+  }
+
   constructor() {
     this.cargarClientes();
   }
@@ -67,6 +81,7 @@ export class ClientesComponent {
   protected abrirNuevo(): void {
     this.formulario.reset({
       nombre: '',
+      apellido: '',
       email: '',
       telefono: '',
       ciudad: '',
@@ -77,7 +92,8 @@ export class ClientesComponent {
 
   protected abrirEdicion(cliente: ClienteVista): void {
     this.formulario.reset({
-      nombre: cliente.nombre,
+      nombre: cliente.nombrePrincipal,
+      apellido: cliente.apellido,
       email: cliente.email,
       telefono: cliente.telefono,
       ciudad: cliente.ciudad,
@@ -103,10 +119,9 @@ export class ClientesComponent {
 
     this.guardando.set(true);
     const datos = this.formulario.getRawValue();
-    const partesNombre = datos.nombre.trim().split(/\s+/);
     const datosApi = {
-      nombre: partesNombre.shift() ?? '',
-      apellido: partesNombre.join(' '),
+      nombre: datos.nombre.trim(),
+      apellido: datos.apellido.trim(),
       email: datos.email,
       telefono: datos.telefono,
       activo: datos.estado === 'Activo'
@@ -116,15 +131,10 @@ export class ClientesComponent {
       : this.clientesService.actualizar(actual.id, datosApi);
 
     peticion.subscribe({
-      next: cliente => {
-        const clienteVista = this.convertirCliente(cliente);
-        this.clientes.update(clientes =>
-          actual === 'nuevo'
-            ? [clienteVista, ...clientes]
-            : clientes.map(item => item.id === clienteVista.id ? { ...item, ...clienteVista } : item)
-        );
+      next: () => {
         this.guardando.set(false);
         this.cerrarEditor();
+        this.cargarClientes();
         this.mostrarAviso(actual === 'nuevo' ? 'Cliente creado correctamente' : 'Cliente actualizado');
       },
       error: (error: HttpErrorResponse) => {
@@ -154,7 +164,7 @@ export class ClientesComponent {
 
     this.clientesService.desactivar(cliente.id).subscribe({
       next: () => {
-        this.clientes.update(clientes => clientes.filter(item => item.id !== cliente.id));
+        this.cargarClientes();
         this.clienteAEliminar.set(null);
         this.mostrarAviso('Cliente desactivado');
       },
@@ -194,6 +204,8 @@ export class ClientesComponent {
     return {
       id: cliente.id,
       nombre: `${cliente.nombre} ${cliente.apellido ?? ''}`.trim(),
+      nombrePrincipal: cliente.nombre,
+      apellido: cliente.apellido ?? '',
       email: cliente.email,
       telefono: cliente.telefono,
       ciudad: '—',

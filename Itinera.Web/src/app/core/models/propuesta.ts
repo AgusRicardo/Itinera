@@ -9,5 +9,9 @@ export interface Propuesta {
   clienteNombre: string;
   empleadoId: number;
   empleadoNombre: string;
+  etiquetas: {
+    id: number;
+    nombre: string;
+  }[];
   itinerario?: Itinerario;
 }

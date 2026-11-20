@@ -29,7 +29,7 @@
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label class="mb-1.5 block text-sm font-medium" for="fechaInicio">
-                Fecha inicio
+                Fecha inicio <span class="text-red-600">*</span>
               </label>
               <input
                 id="fechaInicio"
@@ -40,7 +40,7 @@
             </div>
             <div>
               <label class="mb-1.5 block text-sm font-medium" for="fechaFin">
-                Fecha fin
+                Fecha fin <span class="text-red-600">*</span>
               </label>
               <input
                 id="fechaFin"
@@ -70,8 +70,8 @@
                       {{ destino.destinoDescripcion || destino.destinoNombre || 'Destino' }}
                     </p>
                     <p class="mt-1 text-xs text-itinera-muted">
-                      {{ destino.fechaLlegada || 'Sin fecha' }} →
-                      {{ destino.fechaPartida || 'Sin fecha' }}
+                      {{ destino.fechaLlegada ? (destino.fechaLlegada | date:'dd/MM/yyyy') : 'Sin fecha' }} →
+                      {{ destino.fechaPartida ? (destino.fechaPartida | date:'dd/MM/yyyy') : 'Sin fecha' }}
                     </p>
                   </div>
                   <span class="text-xs text-itinera-muted">Destino {{ destino.orden || $index + 1 }}</span>
@@ -124,7 +124,7 @@
         <div class="flex items-center gap-3">
           <button
             type="submit"
-            [disabled]="guardando()"
+            [disabled]="formulario.invalid || guardando()"
             class="rounded-lg bg-itinera-foreground px-5 py-2.5 text-sm font-medium text-itinera-background disabled:opacity-60"
           >
             {{ guardando() ? 'Guardando…' : guardado() ? 'Guardado' : 'Guardar cambios' }}

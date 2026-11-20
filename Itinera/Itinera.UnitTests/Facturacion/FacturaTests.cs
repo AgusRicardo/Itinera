@@ -38,4 +38,57 @@ public class FacturaTests
         Assert.Equal(0, factura.SaldoPendiente);
         Assert.Equal(EstadoFactura.Pagada, factura.Estado);
     }
+
+    [Fact]
+    public void No_debe_aceptar_pagos_con_fecha_futura()
+    {
+        var factura = CrearFactura();
+
+        Assert.Throws<ArgumentException>(() =>
+            factura.RegistrarPago(new Pago(100, DateTime.UtcNow.AddDays(1), "Transferencia")));
+    }
+
+    [Fact]
+    public void No_debe_anularse_una_factura_con_pagos()
+    {
+        var factura = CrearFactura();
+        factura.RegistrarPago(new Pago(100, DateTime.UtcNow, "Transferencia"));
+
+        Assert.Throws<InvalidOperationException>(() => factura.Anular());
+    }
+
+    [Fact]
+    public void No_debe_crearse_con_vencimiento_anterior_a_hoy()
+    {
+        var propuesta = CrearPropuestaAceptada();
+
+        Assert.Throws<ArgumentException>(() =>
+            new Factura("FAC-000001", DateTime.UtcNow.AddDays(-1), propuesta));
+    }
+
+    private static Factura CrearFactura()
+    {
+        var factura = new Factura(
+            "FAC-000001",
+            DateTime.UtcNow.AddDays(30),
+            CrearPropuestaAceptada());
+        factura.AgregarDetalle(new DetalleFactura("Servicio de viaje", 1, 1000));
+        return factura;
+    }
+
+    private static Propuesta CrearPropuestaAceptada()
+    {
+        var cliente = new Cliente("Ana", "Gomez", "ana@correo.com", "111");
+        var empleado = new Empleado(
+            "Juan",
+            "Perez",
+            "juan@correo.com",
+            "222",
+            new Cargo("Agente de viajes"),
+            new EmpresaEntidad("Viajes SA", "30-12345678-9", "1122334455"));
+        var propuesta = new Propuesta(cliente, empleado, 1000);
+        propuesta.Presentar();
+        propuesta.Aceptar();
+        return propuesta;
+    }
 }
