@@ -24,16 +24,26 @@
     @if (usuario) {
       <span class="hidden text-left leading-tight sm:block">
         <span class="block text-xs font-medium text-itinera-foreground">{{ usuario.nombre }}</span>
-        <span class="block text-[10px] text-itinera-muted">{{ usuario.roles[0] || 'Usuario' }}</span>
+        <span class="block text-[10px] text-itinera-muted">
+          {{ usuario.empresaRazonSocial || (usuario.permisos.includes('plataforma.empresas.gestionar') ? 'Administración de plataforma' : 'Sin empresa asignada') }}
+        </span>
       </span>
     }
   </button>
 
   @if (abierto()) {
     <div
-      class="absolute right-0 top-12 z-20 w-48 rounded-xl border bg-itinera-card p-1.5 shadow-lg"
+      class="absolute right-0 top-12 z-20 w-64 rounded-xl border bg-itinera-card p-1.5 shadow-lg"
       (click)="$event.stopPropagation()"
     >
+      @if (usuario) {
+        <div class="border-b px-3 py-2">
+          <p class="text-[10px] uppercase tracking-[0.12em] text-itinera-muted">Empresa</p>
+          <p class="mt-0.5 truncate text-sm font-medium text-itinera-foreground">
+            {{ usuario.empresaRazonSocial || (usuario.permisos.includes('plataforma.empresas.gestionar') ? 'Administración de plataforma' : 'Sin empresa asignada') }}
+          </p>
+        </div>
+      }
       <button
         type="button"
         class="w-full rounded-lg px-3 py-2 text-left text-sm text-itinera-muted hover:bg-itinera-secondary"

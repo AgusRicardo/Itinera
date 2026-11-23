@@ -12,4 +12,9 @@ public class CrearClienteRequest
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
     public string Telefono { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Si es <c>false</c> el cliente queda creado desactivado. Por defecto queda activo.
+    /// </summary>
+    public bool? Activo { get; set; }
 }

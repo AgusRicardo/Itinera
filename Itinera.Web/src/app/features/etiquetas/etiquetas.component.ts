@@ -23,7 +23,7 @@ export class EtiquetasComponent {
   protected readonly aviso = signal('');
 
   protected readonly formulario = this.formularioConstructor.nonNullable.group({
-    nombre: ['', Validators.required]
+    nombre: ['', [Validators.required, Validators.maxLength(80)]]
   });
 
   constructor() {

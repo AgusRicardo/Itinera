@@ -127,8 +127,51 @@ public class SeguridadTests
             .Select(claim => claim.Value)
             .ToList();
 
-        Assert.Contains(Permisos.SeguridadGestionar, permisos);
         Assert.Contains(Permisos.ClientesVer, permisos);
+        Assert.Contains(Permisos.ClientesGestionar, permisos);
+        Assert.Contains(Permisos.PropuestasCrear, permisos);
+        Assert.DoesNotContain(Permisos.SeguridadGestionar, permisos);
+    }
+
+    [Fact]
+    public async Task Login_IncluyePermisosDePlataformaDelAdministradorItinera()
+    {
+        await using var contexto = _fixture.CrearContexto();
+        var seeder = CrearSeeder(contexto);
+        await seeder.SembrarAsync();
+
+        var repositorio = new SecurityRepository(
+            contexto,
+            new TenantContextFake { EsAdministradorPlataforma = true });
+        var email = $"plataforma-{Guid.NewGuid():N}@test.com";
+        var usuario = new Usuario("Tester", email, PasswordHasher.Hash("Clave123!"));
+        contexto.Usuarios.Add(usuario);
+        await contexto.SaveChangesAsync();
+
+        var rol = await contexto.Roles
+            .FirstAsync(item => item.Nombre == Roles.AdministradorItinera);
+        await repositorio.AsignarRolAsync(usuario.Id, rol.Id);
+
+        var settings = Options.Create(new JwtSettings
+        {
+            Key = "clave-de-prueba-con-al-menos-32-caracteres-1234",
+            Issuer = "Itinera",
+            Audience = "ItineraApi",
+            ExpireMinutes = 60
+        });
+        var servicio = new AuthenticationService(repositorio, settings);
+
+        var login = await servicio.LoginAsync(new LoginRequest(email, "Clave123!"));
+
+        var token = new JwtSecurityTokenHandler().ReadJwtToken(login.Token);
+        var permisos = token.Claims
+            .Where(claim => claim.Type == Permisos.ClaimType)
+            .Select(claim => claim.Value)
+            .ToList();
+
+        Assert.Contains(Permisos.SeguridadGestionar, permisos);
+        Assert.Contains(Permisos.PlataformaGestionarEmpresas, permisos);
+        Assert.DoesNotContain(Permisos.PropuestasCrear, permisos);
     }
 
     private static SecuritySeeder CrearSeeder(

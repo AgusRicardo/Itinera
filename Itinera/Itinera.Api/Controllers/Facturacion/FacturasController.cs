@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Facturacion.Dtos;
 using Itinera.Application.Facturacion.Interfaces;
 using Itinera.Api.Services.Facturacion;
@@ -20,6 +21,12 @@ public sealed class FacturasController(
     [ProducesResponseType(typeof(List<FacturaResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<FacturaResponse>>> ObtenerTodas()
         => Ok(await _facturaService.ObtenerTodasAsync());
+
+    [HttpGet("paginado")]
+    [Authorize(Policy = Permisos.FacturacionVer)]
+    [ProducesResponseType(typeof(Pagina<FacturaResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<Pagina<FacturaResponse>>> ObtenerPagina([FromQuery] PaginacionRequest paginacion)
+        => Ok(await _facturaService.ObtenerPaginaAsync(paginacion));
 
     [HttpGet("{id:int}")]
     [Authorize(Policy = Permisos.FacturacionVer)]

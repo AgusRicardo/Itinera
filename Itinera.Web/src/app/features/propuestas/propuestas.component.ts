@@ -1,75 +1,66 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
-import { PropuestasService } from '../../core/services/propuestas.service';
+import { PropuestasService, ResumenPropuestas } from '../../core/services/propuestas.service';
 import { Propuesta } from '../../core/models/propuesta';
 import {
   EstadoPropuesta,
   EstadosPropuestasService
 } from '../../core/services/estados-propuestas.service';
+import { AutenticacionService } from '../../core/services/autenticacion.service';
 import { MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
+import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
+import { GrillaPaginada } from '../../core/utils/grilla-paginada';
+import { PaginadorComponent } from '../../shared/components/paginador/paginador.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
-import { CrearPropuestaComponent } from './crear-propuesta.component';
 
 @Component({
   selector: 'app-propuestas',
   imports: [
-    CurrencyPipe,
+    MonedaPipe,
     DatePipe,
     DecimalPipe,
     MenuAccionesComponent,
     MenuPrincipalComponent,
-    CrearPropuestaComponent
+    PaginadorComponent,
+    RouterLink
   ],
   templateUrl: './propuestas.component.html'
 })
 export class PropuestasComponent {
   private readonly propuestasService = inject(PropuestasService);
   private readonly estadosService = inject(EstadosPropuestasService);
-  protected readonly propuestas = signal<Propuesta[]>([]);
-  protected readonly cargando = signal(true);
+  private readonly autenticacion = inject(AutenticacionService);
+  protected readonly grilla = new GrillaPaginada<Propuesta>(
+    consulta => this.propuestasService.obtenerPagina(consulta),
+    'No se pudieron cargar las propuestas.');
+  protected readonly resumen = signal<ResumenPropuestas>({
+    total: 0,
+    borradores: 0,
+    presentadas: 0,
+    aceptadas: 0
+  });
   protected readonly error = signal<string | null>(null);
   protected readonly busqueda = signal('');
   protected readonly estado = signal('');
   protected readonly estados = signal<EstadoPropuesta[]>([]);
   protected readonly eliminando = signal<number | null>(null);
-  protected readonly nuevaPropuestaAbierta = signal(false);
 
-  protected readonly propuestasFiltradas = computed(() => {
-    const texto = this.busqueda().trim().toLowerCase();
-    const estado = this.estado();
-
-    return this.propuestas().filter(propuesta => {
-      const coincideCliente = propuesta.clienteNombre.toLowerCase().includes(texto);
-      const coincideEstado = !estado || propuesta.estado === estado;
-
-      return coincideCliente && coincideEstado;
-    });
-  });
-
-  protected readonly cantidadBorradores = computed(() =>
-    this.propuestas().filter(propuesta => propuesta.estado === 'Borrador').length
-  );
-
-  protected readonly cantidadPresentadas = computed(() =>
-    this.propuestas().filter(propuesta => propuesta.estado === 'Presentada').length
-  );
-
-  protected iniciales(nombre: string): string {
-    return nombre
-      .split(' ')
-      .map(parte => parte[0])
-      .slice(0, 2)
-      .join('');
+  protected rutaEditar(propuesta: Propuesta): string[] | null {
+    return this.autenticacion.tienePermiso('propuestas.editar')
+      && !['Aceptada', 'Eliminada'].includes(propuesta.estado)
+      ? ['/propuestas', propuesta.id.toString(), 'editar']
+      : null;
   }
 
   constructor() {
-    this.cargarPropuestas();
+    this.cargarResumen();
     this.cargarEstados();
   }
 
-  protected cantidadPorEstado(descripcion: string): number {
-    return this.propuestas().filter(propuesta => propuesta.estado === descripcion).length;
+  protected filtrar(): void {
+    this.grilla.filtrar({ texto: this.busqueda().trim(), estadoId: this.estado() });
   }
 
   protected eliminar(propuesta: Propuesta): void {
@@ -84,7 +75,8 @@ export class PropuestasComponent {
     this.eliminando.set(propuesta.id);
     this.propuestasService.eliminar(propuesta.id).subscribe({
       next: () => {
-        this.cargarPropuestas();
+        this.grilla.cargar();
+        this.cargarResumen();
         this.eliminando.set(null);
       },
       error: () => {
@@ -94,25 +86,16 @@ export class PropuestasComponent {
     });
   }
 
-  protected abrirNuevaPropuesta(): void {
-    this.nuevaPropuestaAbierta.set(true);
+  protected puedeCrear(): boolean {
+    return this.autenticacion.tienePermiso('propuestas.crear');
   }
 
-  protected cerrarNuevaPropuesta(): void {
-    this.nuevaPropuestaAbierta.set(false);
+  protected puedeEliminar(): boolean {
+    return this.autenticacion.tienePermiso('propuestas.eliminar');
   }
 
-  private cargarPropuestas(): void {
-    this.propuestasService.obtenerTodas().subscribe({
-      next: propuestas => {
-        this.propuestas.set(propuestas);
-        this.cargando.set(false);
-      },
-      error: () => {
-        this.error.set('No se pudieron cargar las propuestas.');
-        this.cargando.set(false);
-      }
-    });
+  private cargarResumen(): void {
+    this.propuestasService.obtenerResumen().subscribe(resumen => this.resumen.set(resumen));
   }
 
   private cargarEstados(): void {

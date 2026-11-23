@@ -71,7 +71,7 @@
                   />
                 </div>
               }
-              <button type="button" class="rounded-lg bg-itinera-foreground px-3 py-2 text-sm text-itinera-background" (click)="agregarMiembro()">
+              <button type="button" class="rounded-lg bg-itinera-foreground px-3 py-2 text-sm text-itinera-background disabled:opacity-50" [disabled]="!formulario.controls.miembroId.value" (click)="agregarMiembro()">
                 Agregar
               </button>
             </div>
@@ -107,7 +107,7 @@
                   <option [ngValue]="rol.id">{{ rol.nombre }}</option>
                 }
               </select>
-              <button type="button" class="rounded-lg bg-itinera-foreground px-3 py-2 text-sm text-itinera-background" (click)="asignarRol()">
+              <button type="button" class="rounded-lg bg-itinera-foreground px-3 py-2 text-sm text-itinera-background disabled:opacity-50" [disabled]="!formulario.controls.rolId.value" (click)="asignarRol()">
                 Asignar rol
               </button>
             </div>

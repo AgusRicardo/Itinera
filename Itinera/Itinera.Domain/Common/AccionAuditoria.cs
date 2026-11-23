@@ -3,6 +3,9 @@ namespace Itinera.Domain.Common;
 public enum AccionAuditoria
 {
     CrearPropuesta,
+    ModificarPropuesta,
+    CambiarDestinoPropuesta,
+    AplicarItinerarioIA,
     PresentarPropuesta,
     RegistrarRespuestaPropuesta,
     ModificarItinerario,

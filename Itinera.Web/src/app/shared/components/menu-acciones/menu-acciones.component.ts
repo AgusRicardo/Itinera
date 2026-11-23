@@ -8,6 +8,7 @@ import { RouterLink } from '@angular/router';
 })
 export class MenuAccionesComponent {
   @Input({ required: true }) rutaVer: string[] = [];
+  @Input() rutaEditar: string[] | null = null;
   @Input() puedeEliminar = true;
   @Output() eliminar = new EventEmitter<void>();
 

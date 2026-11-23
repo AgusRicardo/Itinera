@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Clientes.Dtos;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Clientes.Mappers;
@@ -28,6 +29,9 @@ public class ClienteService(
             request.Email,
             request.Telefono);
 
+        if (request.Activo == false)
+            cliente.Desactivar();
+
         await _clienteRepository.AddAsync(cliente);
         await _empresaClienteRepository.AddAsync(new EmpresaCliente(empresaId, cliente.Id));
 
@@ -40,6 +44,16 @@ public class ClienteService(
 
         return ClienteMapper.ToResponse(cliente);
     }
+
+    public async Task<Pagina<ClienteResponse>> ObtenerPaginaAsync(ListarClientesRequest request)
+    {
+        var pagina = await _clienteRepository.GetPaginaAsync(request);
+
+        return pagina.Convertir(ClienteMapper.ToResponse);
+    }
+
+    public Task<ResumenClientesResponse> ObtenerResumenAsync()
+        => _clienteRepository.GetResumenAsync();
 
     public async Task<List<ClienteResponse>> ObtenerTodosAsync()
     {
@@ -57,6 +71,11 @@ public class ClienteService(
             request.Apellido,
             request.Email,
             request.Telefono);
+
+        if (request.Activo == true)
+            cliente.Activar();
+        else if (request.Activo == false)
+            cliente.Desactivar();
 
         await _clienteRepository.UpdateAsync(cliente);
 

@@ -58,6 +58,10 @@ export class LoginComponent {
       return '/clientes';
     }
 
+    if (this.autenticacion.tienePermiso('catalogos.gestionar')) {
+      return '/administracion/cargos';
+    }
+
     return '/acceso-denegado';
   }
 }

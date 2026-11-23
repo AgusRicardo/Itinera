@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Ciudades.Interfaces;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Destinos.Dtos;
@@ -116,6 +117,7 @@ public class DestinoServiceTests
         public Task<Ciudad?> GetByIdAsync(int id)
             => Task.FromResult(Ciudades.FirstOrDefault(c => c.Id == id));
 
+        public Task<Pagina<Ciudad>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
         public Task<List<Ciudad>> GetAllAsync()
             => Task.FromResult(Ciudades.ToList());
 
@@ -141,6 +143,7 @@ public class DestinoServiceTests
         public Task<Destino?> GetByIdAsync(int id)
             => Task.FromResult(Destinos.FirstOrDefault(d => d.Id == id));
 
+        public Task<Pagina<Destino>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
         public Task<List<Destino>> GetAllAsync()
             => Task.FromResult(Destinos.ToList());
 

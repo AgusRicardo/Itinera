@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Factura } from '../models/factura';
+import { ConsultaPagina, Pagina } from '../models/pagina';
 import { RutasApiService } from './rutas-api.service';
 
 export interface CrearFacturaRequest {
@@ -25,6 +26,10 @@ export interface RegistrarPagoRequest {
 export class FacturasService {
   private readonly http = inject(HttpClient);
   private readonly rutasApi = inject(RutasApiService);
+
+  obtenerPagina(consulta: ConsultaPagina): Observable<Pagina<Factura>> {
+    return this.http.get<Pagina<Factura>>(this.rutasApi.paginado(this.rutasApi.facturas), { params: consulta });
+  }
 
   obtenerTodas(): Observable<Factura[]> {
     return this.http.get<Factura[]>(this.rutasApi.facturas);

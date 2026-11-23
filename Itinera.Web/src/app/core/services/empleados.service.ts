@@ -4,11 +4,17 @@ import { Observable } from 'rxjs';
 
 import { RutasApiService } from './rutas-api.service';
 
-interface EmpleadoApi {
+export interface EmpleadoApi {
   id: number;
   nombre: string;
   apellido: string;
   email: string;
+  telefono: string;
+  activo: boolean;
+  cargoId: number;
+  cargoDescripcion: string;
+  empresaId: number;
+  empresaRazonSocial: string;
 }
 
 @Injectable({ providedIn: 'root' })

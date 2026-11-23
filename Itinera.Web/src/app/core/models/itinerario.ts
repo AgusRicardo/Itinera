@@ -1,9 +1,8 @@
-import { DestinoItinerario } from './destino-itinerario';
+import { ActividadItinerario } from './actividad-itinerario';
 
 export interface Itinerario {
   id: number;
   nombre: string;
-  fechaInicio: string;
-  fechaFin: string;
-  destinos: DestinoItinerario[];
+  costo: number;
+  actividades: ActividadItinerario[];
 }

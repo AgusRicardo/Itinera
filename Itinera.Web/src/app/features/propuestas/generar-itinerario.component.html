@@ -1,0 +1,194 @@
+<app-menu-principal />
+
+<main class="min-h-screen bg-itinera-background lg:pl-64">
+  <section class="mx-auto flex w-full max-w-7xl flex-wrap items-start gap-6 p-6">
+    @if (error()) {
+      <p class="w-full rounded-2xl border border-red-200 bg-red-50 p-10 text-center text-sm text-red-700">{{ error() }}</p>
+    } @else if (propuesta(); as propuestaActual) {
+      @if (destino(); as destinoActual) {
+        <section class="min-w-0 flex-[1_1_290px] space-y-5 rounded-2xl border bg-itinera-card p-6 text-sm shadow-sm">
+          <h1 class="font-itinera-display text-2xl">Generar itinerario de {{ nombreDestino() }}</h1>
+          <div class="space-y-2.5 border-y py-4">
+            <div class="flex justify-between gap-3">
+              <span class="text-itinera-muted">Fechas</span>
+              <strong>{{ destinoActual.fechaLlegada | date:'dd/MM' }} al {{ destinoActual.fechaPartida | date:'dd/MM/yyyy' }}</strong>
+            </div>
+            <div class="flex justify-between gap-3">
+              <span class="text-itinera-muted">Presupuesto del viaje</span>
+              <strong>{{ propuestaActual.presupuesto | moneda }}</strong>
+            </div>
+            <div class="flex justify-between gap-3">
+              <span class="text-itinera-muted">Disponible</span>
+              <strong>{{ disponible() | moneda }}</strong>
+            </div>
+            <div class="flex justify-between gap-3">
+              <span class="text-itinera-muted">Intensidad</span>
+              <strong>{{ propuestaActual.intensidadViaje }}</strong>
+            </div>
+            <div class="flex justify-between gap-3">
+              <span class="text-itinera-muted">Viajeros</span>
+              <strong>{{ propuestaActual.cantidadViajeros }}</strong>
+            </div>
+            <p class="text-xs text-itinera-muted">Estos datos se cambian editando la propuesta.</p>
+          </div>
+          <div>
+            <label for="preferencias" class="mb-1.5 block font-medium">Preferencias</label>
+            <textarea
+              id="preferencias"
+              rows="4"
+              maxlength="2000"
+              [value]="preferencias()"
+              class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5"
+              (input)="preferencias.set($any($event.target).value)"
+            ></textarea>
+            <p class="mt-1 text-xs text-itinera-muted">Valen solo para esta generación.</p>
+          </div>
+          @if (pedidas().length) {
+            <div>
+              <p class="mb-2 text-xs text-itinera-muted">Siempre incluye</p>
+              <div class="flex flex-wrap gap-2">
+                @for (pedida of pedidas(); track pedida.id) {
+                  <span class="rounded-full bg-itinera-secondary px-3 py-1 text-xs">{{ pedida.nombre }}</span>
+                }
+              </div>
+            </div>
+          }
+          <button
+            type="button"
+            class="w-full rounded-lg bg-itinera-accent py-3 font-semibold disabled:opacity-60"
+            [disabled]="generando() || guardando()"
+            (click)="generar()"
+          >
+            {{ generando() ? 'Generando…' : alternativas().length ? 'Generar otras alternativas' : 'Generar alternativas' }}
+          </button>
+        </section>
+
+        <section class="min-w-0 flex-[999_1_480px] space-y-4">
+          <h2 class="font-semibold">Alternativas</h2>
+
+          @if (generando()) {
+            <div class="rounded-2xl border bg-itinera-card p-12 text-center">
+              <p class="font-semibold">Armando alternativas…</p>
+              <p class="mt-2 text-sm text-itinera-muted">Puede tardar hasta un minuto.</p>
+            </div>
+          } @else if (errorIa()) {
+            <div class="space-y-4 rounded-2xl border border-red-200 bg-red-50 p-6 text-sm">
+              <p class="font-semibold text-red-700">{{ errorIa() }}</p>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 font-semibold text-itinera-background" (click)="generar()">Reintentar</button>
+                @if (!nuevoDestinoId) {
+                  <a [routerLink]="['/propuestas', propuestaId, 'destinos', destinoId, 'armar']" class="rounded-lg bg-itinera-card px-4 py-2.5 font-semibold">Crear a mano</a>
+                }
+              </div>
+            </div>
+          } @else if (sinResultados()) {
+            <p class="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800">
+              La IA no encontró alternativas que respeten el presupuesto, las fechas y la intensidad. Probá de nuevo o ajustá las preferencias.
+            </p>
+          } @else if (!alternativas().length) {
+            <p class="rounded-2xl border bg-itinera-card p-12 text-center text-sm text-itinera-muted">
+              Revisá las preferencias y generá las alternativas para compararlas.
+            </p>
+          }
+
+          @for (alternativa of alternativas(); track $index) {
+            <article
+              class="rounded-2xl border-2 bg-itinera-card"
+              [class.border-itinera-accent]="elegida() === $index"
+            >
+              <div class="flex flex-wrap items-start justify-between gap-4 p-6">
+                <div class="min-w-0 flex-1 basis-64">
+                  <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">Alternativa {{ $index + 1 }}</p>
+                  <h3 class="mt-1.5 font-itinera-display text-2xl">{{ alternativa.nombre }}</h3>
+                  <p class="mt-1 text-sm text-itinera-muted">{{ alternativa.descripcion }}</p>
+                </div>
+                <button
+                  type="button"
+                  class="rounded-lg border border-itinera-foreground px-4 py-2.5 text-sm font-semibold"
+                  [class.bg-itinera-foreground]="elegida() === $index"
+                  [class.text-itinera-background]="elegida() === $index"
+                  [attr.aria-pressed]="elegida() === $index"
+                  (click)="elegida.set($index)"
+                >
+                  {{ elegida() === $index ? 'Elegida' : 'Elegir' }}
+                </button>
+              </div>
+
+              <dl class="grid grid-cols-2 gap-4 border-t px-6 py-4 sm:grid-cols-4">
+                <div>
+                  <dt class="text-xs text-itinera-muted">Costo total</dt>
+                  <dd class="mt-1 text-sm font-semibold">{{ alternativa.costoEstimado | moneda }}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-itinera-muted">Actividades</dt>
+                  <dd class="mt-1 text-sm font-semibold">{{ alternativa.actividades.length }}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-itinera-muted">Recomendadas por la IA</dt>
+                  <dd class="mt-1 text-sm font-semibold">{{ cantidadRecomendadas(alternativa) }}</dd>
+                </div>
+                <div>
+                  <dt class="text-xs text-itinera-muted">Días libres</dt>
+                  <dd class="mt-1 text-sm font-semibold">{{ cantidadDiasLibres(alternativa) }}</dd>
+                </div>
+              </dl>
+
+              <details class="group border-t" [open]="$first">
+                <summary class="flex list-none items-center justify-between px-6 py-4 text-sm font-medium [&::-webkit-details-marker]:hidden">
+                  Día por día
+                  <svg viewBox="0 0 24 24" class="h-4 w-4 text-itinera-muted transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </summary>
+                <ol class="grid gap-3 px-6 pb-6 xl:grid-cols-2">
+                  @for (dia of diasDe(alternativa); track dia.fecha) {
+                    <li class="overflow-hidden rounded-xl border">
+                      <div class="flex items-baseline justify-between gap-3 bg-itinera-secondary/50 px-4 py-2.5">
+                        <p class="text-sm font-semibold">{{ dia.nombre }} {{ dia.fecha | date:'dd/MM' }}</p>
+                        <p class="text-xs text-itinera-muted">Día {{ dia.numero }}</p>
+                      </div>
+                      <ul class="divide-y px-4">
+                        @for (actividad of dia.actividades; track $index) {
+                          <li class="flex items-start gap-3 py-3">
+                            <span class="rounded-md bg-itinera-accent/20 px-2 py-1 text-xs font-semibold tabular-nums">{{ horaDe(actividad.fechaHoraInicio) }}</span>
+                            <div class="min-w-0 flex-1">
+                              <p class="break-words text-sm font-medium">{{ actividad.nombre }}</p>
+                              <p class="mt-0.5 text-xs text-itinera-muted">
+                                {{ actividad.duracionEstimada }} min · {{ actividad.costoFinal ? (actividad.costoFinal | moneda) : 'Gratis' }}
+                              </p>
+                              @if (actividad.pedidaPorCliente) {
+                                <span class="mt-1.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Pedida por el cliente</span>
+                              }
+                            </div>
+                          </li>
+                        } @empty {
+                          <li class="py-3 text-sm text-itinera-muted">Día libre</li>
+                        }
+                      </ul>
+                    </li>
+                  }
+                </ol>
+              </details>
+            </article>
+          }
+
+          @if (alternativas().length) {
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <p class="text-sm text-itinera-muted">Después podés cambiarla a mano o con IA.</p>
+              <button
+                type="button"
+                class="rounded-lg bg-itinera-foreground px-5 py-3 text-sm font-semibold text-itinera-background disabled:opacity-60"
+                [disabled]="guardando()"
+                (click)="usar()"
+              >
+                {{ guardando() ? 'Guardando…' : 'Usar esta alternativa' }}
+              </button>
+            </div>
+          }
+        </section>
+      }
+    } @else {
+      <p class="w-full rounded-2xl border bg-itinera-card p-10 text-center text-sm text-itinera-muted">Cargando propuesta…</p>
+    }
+  </section>
+</main>

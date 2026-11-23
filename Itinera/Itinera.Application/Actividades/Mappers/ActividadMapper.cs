@@ -13,6 +13,7 @@ public static class ActividadMapper
         CostoBase = actividad.CostoBase,
         DuracionEstimada = actividad.DuracionEstimada,
         Activo = actividad.Activo,
+        GeneradoPorIA = actividad.GeneradoPorIA,
         DestinoId = actividad.DestinoId,
         CiudadId = actividad.Destino?.CiudadId ?? 0,
         CiudadNombre = actividad.Destino?.Ciudad?.Nombre ?? string.Empty,

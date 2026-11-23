@@ -23,7 +23,9 @@ using Itinera.Application.Etiquetas.Services;
 using Itinera.Application.Paises.Interfaces;
 using Itinera.Application.Paises.Services;
 using Itinera.Application.Propuestas.Interfaces;
+using Itinera.Application.Propuestas.Mappers;
 using Itinera.Application.Propuestas.Services;
+using Itinera.Application.Propuestas.Planificacion;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Itinera.Application;
@@ -33,6 +35,11 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<IPropuestaService, PropuestaService>();
+        services.AddScoped<ArmadorItinerario>();
+        services.AddSingleton<PropuestaMapper>();
+        services.AddScoped<IGeneradorItinerariosService, GeneradorItinerariosService>();
+        services.AddSingleton<ValidadorItinerarioGenerado>();
+        services.AddSingleton<AjustadorItinerarioGenerado>();
         services.AddScoped<IPaisService, PaisService>();
         services.AddScoped<ICiudadService, CiudadService>();
         services.AddScoped<IDestinoService, DestinoService>();

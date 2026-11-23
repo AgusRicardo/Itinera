@@ -7,6 +7,7 @@ public class Actividad
     public string Descripcion { get; private set; }
     public decimal CostoBase { get; private set; }
     public int DuracionEstimada { get; private set; }
+    public bool GeneradoPorIA { get; private set; }
     public int DestinoId { get; private set; }
     public bool Activo { get; private set; } = true;
     public Destino Destino { get; private set; }
@@ -20,7 +21,8 @@ public class Actividad
         string descripcion,
         decimal costoBase,
         int duracionEstimada,
-        Destino destino)
+        Destino destino,
+        bool generadoPorIA = false)
     {
         Validar(nombre, costoBase, duracionEstimada);
         ArgumentNullException.ThrowIfNull(destino);
@@ -29,6 +31,7 @@ public class Actividad
         Descripcion = descripcion;
         CostoBase = costoBase;
         DuracionEstimada = duracionEstimada;
+        GeneradoPorIA = generadoPorIA;
         Destino = destino;
         DestinoId = destino.Id;
     }

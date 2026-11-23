@@ -12,6 +12,9 @@ namespace Itinera.Infrastructure.Persistence;
 
 public class AppDbContext : DbContext
 {
+    public const string FiltroEmpresa = "Empresa";
+    public const string FiltroNoEliminada = "NoEliminada";
+
     private readonly ITenantContext _tenantContext;
 
     public AppDbContext(DbContextOptions<AppDbContext> options, ITenantContext tenantContext)
@@ -29,8 +32,7 @@ public class AppDbContext : DbContext
     public DbSet<Actividad> Actividades => Set<Actividad>();
     public DbSet<Itinerario> Itinerarios => Set<Itinerario>();
     public DbSet<Cargo> Cargos => Set<Cargo>();
-    public DbSet<DestinoItinerario> DestinoItinerarios => Set<DestinoItinerario>();
-    public DbSet<ActividadDestinoItinerario> ActividadesDestinoItinerario => Set<ActividadDestinoItinerario>();
+    public DbSet<ActividadItinerario> ActividadesItinerario => Set<ActividadItinerario>();
     public DbSet<Pais> Paises => Set<Pais>();
     public DbSet<Ciudad> Ciudades => Set<Ciudad>();
     public DbSet<EstadoPropuestaCatalogo> EstadosPropuesta => Set<EstadoPropuestaCatalogo>();
@@ -39,6 +41,8 @@ public class AppDbContext : DbContext
     public DbSet<DetalleFactura> DetallesFactura => Set<DetalleFactura>();
     public DbSet<Pago> Pagos => Set<Pago>();
     public DbSet<Etiqueta> Etiquetas => Set<Etiqueta>();
+    public DbSet<PropuestaDestino> PropuestasDestinos => Set<PropuestaDestino>();
+    public DbSet<PropuestaActividad> PropuestasActividades => Set<PropuestaActividad>();
     public DbSet<PropuestaEtiqueta> PropuestasEtiquetas => Set<PropuestaEtiqueta>();
     public DbSet<RegistroAuditoria> RegistrosAuditoria => Set<RegistroAuditoria>();
     public DbSet<EmpresaCliente> EmpresaClientes => Set<EmpresaCliente>();
@@ -63,7 +67,13 @@ public class AppDbContext : DbContext
     private void AplicarFiltrosDeTenant(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Propuesta>()
-            .HasQueryFilter(p => _tenantContext.EsAdministradorPlataforma || p.EmpresaId == _tenantContext.EmpresaId);
+            .HasQueryFilter(
+                FiltroEmpresa,
+                p => _tenantContext.EsAdministradorPlataforma || p.EmpresaId == _tenantContext.EmpresaId)
+            .HasQueryFilter(
+                FiltroNoEliminada,
+                p => _tenantContext.EsAdministradorPlataforma
+                    || p.EstadoPropuestaId != (int)EstadoPropuesta.Eliminada);
 
         modelBuilder.Entity<Factura>()
             .HasQueryFilter(f =>

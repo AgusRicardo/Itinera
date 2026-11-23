@@ -213,7 +213,8 @@
           </div>
           <button
             type="button"
-            class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background"
+            class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50"
+            [disabled]="!empresaSeleccionada() || !cargoSeleccionado()"
             (click)="asignarEmpresa()"
           >
             Asignar empresa
@@ -230,7 +231,7 @@
           </select>
           <div class="flex justify-end gap-2 border-t pt-4">
             <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrarAcciones()">Cerrar</button>
-            <button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background" (click)="asignarRol()">Asignar rol</button>
+            <button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50" [disabled]="!rolSeleccionado()" (click)="asignarRol()">Asignar rol</button>
           </div>
         </div>
       </section>

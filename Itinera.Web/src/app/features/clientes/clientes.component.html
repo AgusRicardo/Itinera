@@ -30,11 +30,11 @@
     <section class="mb-7 grid grid-cols-2 border-y bg-itinera-card/40 lg:grid-cols-4">
       <div class="px-4 py-4 sm:px-6">
         <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Total clientes</p>
-        <p class="mt-1 text-2xl font-semibold tracking-tight">{{ clientes().length }}</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight">{{ resumen().total }}</p>
       </div>
       <div class="border-l px-4 py-4 sm:px-6">
         <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Activos</p>
-        <p class="mt-1 text-2xl font-semibold tracking-tight">{{ cantidadActivos() }}</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight">{{ resumen().activos }}</p>
       </div>
       <div class="border-t px-4 py-4 sm:border-l sm:px-6 lg:border-t-0">
         <p class="text-[10px] uppercase tracking-[0.13em] text-itinera-muted">Con propuestas</p>
@@ -52,16 +52,16 @@
           <span class="absolute left-3 top-1/2 -translate-y-1/2 text-itinera-muted">⌕</span>
           <input
             type="search"
-            placeholder="Buscar por nombre, email o ciudad"
+            placeholder="Buscar por nombre, email o teléfono"
             [value]="busqueda()"
             class="w-full rounded-lg border bg-itinera-card py-2.5 pl-9 pr-3 text-sm placeholder:text-itinera-muted focus:border-itinera-accent focus:outline-none focus:ring-2 focus:ring-itinera-accent/30 sm:w-80"
-            (input)="busqueda.set($any($event.target).value)"
+            (input)="busqueda.set($any($event.target).value); filtrar()"
           />
         </div>
         <select
           [value]="estado()"
           class="cursor-pointer rounded-lg border bg-itinera-card px-3 py-2.5 text-sm focus:border-itinera-accent focus:outline-none focus:ring-2 focus:ring-itinera-accent/30"
-          (change)="estado.set($any($event.target).value)"
+          (change)="estado.set($any($event.target).value); filtrar()"
         >
           <option value="">Todos los estados</option>
           <option value="Activo">Activos</option>
@@ -70,20 +70,20 @@
       </div>
     </div>
 
-    @if (cargando()) {
+    @if (grilla.cargando()) {
       <div class="rounded-xl border bg-itinera-card p-12 text-center">
         <p class="text-sm text-itinera-muted">Cargando clientes…</p>
       </div>
-    } @else if (error()) {
+    } @else if (grilla.error() ?? error()) {
       <div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center">
-        <p class="text-sm text-red-700">{{ error() }}</p>
+        <p class="text-sm text-red-700">{{ grilla.error() ?? error() }}</p>
       </div>
     } @else {
       <div class="max-h-[65vh] overflow-auto rounded-xl border bg-itinera-card shadow-[0_12px_40px_rgba(45,37,27,0.04)]">
         <table class="w-full min-w-[850px]">
           <thead class="border-b bg-itinera-secondary/35">
             <tr>
-              @for (encabezado of ['Cliente', 'Contacto', 'Ubicación', 'Propuestas', 'Última gestión', 'Estado']; track encabezado) {
+              @for (encabezado of ['Cliente', 'Contacto', 'Propuestas', 'Última gestión', 'Estado']; track encabezado) {
                 <th class="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-itinera-muted">
                   {{ encabezado }}
                 </th>
@@ -94,18 +94,11 @@
             </tr>
           </thead>
           <tbody class="divide-y">
-            @for (cliente of clientesFiltrados(); track cliente.id) {
+            @for (cliente of grilla.elementos(); track cliente.id) {
               <tr class="group transition-colors hover:bg-itinera-secondary/25">
                 <td class="px-5 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-itinera-foreground text-xs font-semibold text-itinera-background">
-                      {{ iniciales(cliente.nombre) }}
-                    </div>
-                    <div>
-                      <p class="text-sm font-semibold">{{ cliente.nombre }}</p>
-                      <p class="font-mono text-[11px] text-itinera-muted">CL-{{ cliente.id }}</p>
-                    </div>
-                  </div>
+                  <p class="text-sm font-semibold">{{ cliente.nombre }}</p>
+                  <p class="font-mono text-[11px] text-itinera-muted">CL-{{ cliente.id }}</p>
                 </td>
                 <td class="px-5 py-4">
                   <a [href]="'mailto:' + cliente.email" class="block text-xs hover:text-itinera-accent">
@@ -113,7 +106,6 @@
                   </a>
                   <p class="mt-1 text-[11px] text-itinera-muted">{{ cliente.telefono }}</p>
                 </td>
-                <td class="px-5 py-4 text-xs">{{ cliente.ciudad }}</td>
                 <td class="px-5 py-4 text-xs font-semibold">{{ cliente.propuestas ?? '—' }}</td>
                 <td class="px-5 py-4 text-xs text-itinera-muted">{{ cliente.ultimaGestion ?? '—' }}</td>
                 <td class="px-5 py-4">
@@ -148,7 +140,7 @@
             }
           </tbody>
         </table>
-        @if (!clientesFiltrados().length) {
+        @if (!grilla.elementos().length) {
           <div class="py-14 text-center">
             <p class="text-sm font-medium">No encontramos clientes</p>
             <p class="mt-1 text-xs text-itinera-muted">Probá ajustando la búsqueda o los filtros.</p>
@@ -157,10 +149,7 @@
       </div>
     }
 
-    <p class="mt-3 text-right text-xs text-itinera-muted">
-      Mostrando <span class="font-semibold text-itinera-foreground">{{ clientesFiltrados().length }}</span>
-      de {{ clientes().length }}
-    </p>
+    <app-paginador [grilla]="grilla" />
   </section>
 
   @if (aviso()) {
@@ -195,8 +184,7 @@
             { id: 'nombre', label: 'Nombre', type: 'text', requerido: true },
             { id: 'apellido', label: 'Apellido', type: 'text', requerido: true },
             { id: 'email', label: 'Correo electrónico', type: 'email', requerido: true },
-            { id: 'telefono', label: 'Teléfono', type: 'tel', requerido: true },
-            { id: 'ciudad', label: 'Ciudad', type: 'text', requerido: false }
+            { id: 'telefono', label: 'Teléfono', type: 'tel', requerido: true }
           ]; track campo.id) {
             <div>
               <label class="mb-1.5 block text-xs font-semibold" [for]="campo.id">{{ campo.label }} @if (campo.requerido) {<span class="text-red-600">*</span>}</label>

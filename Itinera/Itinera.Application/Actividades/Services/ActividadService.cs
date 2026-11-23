@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Actividades.Dtos;
 using Itinera.Application.Actividades.Interfaces;
 using Itinera.Application.Actividades.Mappers;
@@ -35,6 +36,13 @@ public class ActividadService(
         var actividad = await ObtenerActividadById(id);
 
         return ActividadMapper.ToResponse(actividad);
+    }
+
+    public async Task<Pagina<ActividadResponse>> ObtenerPaginaAsync(PaginacionRequest paginacion)
+    {
+        var pagina = await _actividadRepository.GetPaginaAsync(paginacion);
+
+        return pagina.Convertir(ActividadMapper.ToResponse);
     }
 
     public async Task<List<ActividadResponse>> ObtenerTodosAsync()

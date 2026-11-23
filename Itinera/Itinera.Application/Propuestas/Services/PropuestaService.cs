@@ -1,4 +1,4 @@
-﻿using Itinera.Application.Actividades.Interfaces;
+﻿using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Common.Interfaces;
@@ -8,7 +8,7 @@ using Itinera.Application.Etiquetas.Interfaces;
 using Itinera.Application.Propuestas.Dtos;
 using Itinera.Application.Propuestas.Interfaces;
 using Itinera.Application.Propuestas.Mappers;
-using Itinera.Application.Propuestas.Models;
+using Itinera.Application.Propuestas.Planificacion;
 using Itinera.Domain.Common;
 using Itinera.Domain.Propuestas;
 using Itinera.Domain.Usuarios;
@@ -20,43 +20,39 @@ public class PropuestaService(
     IClienteRepository clienteRepository,
     IEmpleadoRepository empleadoRepository,
     IDestinoRepository destinoRepository,
-    IActividadRepository actividadRepository,
     IEtiquetaRepository etiquetaRepository,
-    IGeneradorItinerarioIA generadorItinerario,
+    ArmadorItinerario armador,
+    PropuestaMapper mapper,
     IAuditoriaService auditoriaService) : IPropuestaService
 {
     private readonly IPropuestaRepository _propuestaRepository = propuestaRepository;
     private readonly IClienteRepository _clienteRepository = clienteRepository;
     private readonly IEmpleadoRepository _empleadoRepository = empleadoRepository;
     private readonly IDestinoRepository _destinoRepository = destinoRepository;
-    private readonly IActividadRepository _actividadRepository = actividadRepository;
     private readonly IEtiquetaRepository _etiquetaRepository = etiquetaRepository;
-    private readonly IGeneradorItinerarioIA _generadorItinerario = generadorItinerario;
+    private readonly ArmadorItinerario _armador = armador;
+    private readonly PropuestaMapper _mapper = mapper;
     private readonly IAuditoriaService _auditoriaService = auditoriaService;
 
     public async Task<PropuestaResponse> CrearAsync(CrearPropuestaRequest request)
     {
+        ValidarFechas(request.FechaInicio, request.FechaFin);
+
         Cliente cliente = await ObtenerClienteById(request.ClienteId);
         Empleado empleado = await ObtenerEmpleadoById(request.EmpleadoId);
-        List<Destino> destinos = await ObtenerDestinosByIds(request.DestinoIds);
-        var etiquetas = await _etiquetaRepository.GetByIdsAsync(request.EtiquetaIds);
 
-        if (etiquetas.Count != request.EtiquetaIds.Distinct().Count())
-            throw new ArgumentException("Una o más etiquetas no están disponibles.", nameof(request));
-
-        var propuesta = new Propuesta(cliente, empleado, request.Presupuesto);
-        propuesta.ReemplazarEtiquetas(etiquetas);
+        var propuesta = new Propuesta(
+            cliente,
+            empleado,
+            request.Presupuesto,
+            request.CantidadViajeros,
+            request.Preferencias,
+            request.IntensidadViaje,
+            request.FechaInicio,
+            request.FechaFin);
+        await AplicarConfiguracion(propuesta, request);
         cliente.AsociarPropuesta(propuesta);
         empleado.AsociarPropuesta(propuesta);
-
-        var generado = await _generadorItinerario.GenerarAsync(new SolicitudItinerario(
-            request.FechaInicio,
-            request.FechaFin,
-            request.Presupuesto,
-            request.Preferencias,
-            destinos));
-
-        AplicarItinerario(propuesta.Itinerario, generado, request.FechaInicio, request.FechaFin);
 
         await _propuestaRepository.AddAsync(propuesta);
         await _auditoriaService.RegistrarAsync(
@@ -64,35 +60,106 @@ public class PropuestaService(
             nameof(Propuesta),
             propuesta.Id);
 
-        return PropuestaMapper.ToResponse(propuesta);
+        return _mapper.ToResponse(propuesta);
+    }
+
+    public async Task<PropuestaResponse> ActualizarAsync(int id, ActualizarPropuestaRequest request)
+    {
+        ValidarFechas(request.FechaInicio, request.FechaFin);
+        var propuesta = await ObtenerPropuestaById(id);
+
+        propuesta.Actualizar(
+            request.Presupuesto,
+            request.CantidadViajeros,
+            request.Preferencias,
+            request.IntensidadViaje,
+            request.FechaInicio,
+            request.FechaFin);
+        await AplicarConfiguracion(propuesta, request);
+
+        return await Guardar(propuesta, AccionAuditoria.ModificarPropuesta);
+    }
+
+    public async Task<PropuestaResponse> GuardarItinerarioAsync(
+        int id,
+        int destinoId,
+        GuardarItinerarioRequest request)
+    {
+        var propuesta = await ObtenerPropuestaById(id);
+        var actividades = await _armador.ConstruirAsync(propuesta, destinoId, request.Actividades);
+
+        propuesta.GuardarItinerario(destinoId, string.Empty, actividades);
+
+        return await Guardar(propuesta, AccionAuditoria.ModificarItinerario);
+    }
+
+    private async Task AplicarConfiguracion(Propuesta propuesta, ConfiguracionPropuestaRequest request)
+    {
+        var destinos = await ObtenerDestinosByIds(request.Destinos.Select(item => item.DestinoId));
+        var etiquetas = await _etiquetaRepository.GetByIdsAsync(request.EtiquetaIds);
+
+        if (etiquetas.Count != request.EtiquetaIds.Distinct().Count())
+            throw new ArgumentException("Una o más etiquetas no están disponibles.", nameof(request));
+
+        propuesta.DefinirDestinos(request.Destinos
+            .Select(item => new Estadia(
+                destinos.FirstOrDefault(destino => destino.Id == item.DestinoId)
+                    ?? throw new DestinoNoEncontradoException(item.DestinoId),
+                item.FechaLlegada,
+                item.FechaPartida))
+            .ToList());
+
+        var actividades = destinos
+            .SelectMany(destino => destino.Actividades)
+            .Where(actividad => request.ActividadIds.Contains(actividad.Id))
+            .ToList();
+
+        if (actividades.Count != request.ActividadIds.Distinct().Count())
+            throw new ArgumentException(
+                "Una o más actividades no pertenecen a los destinos seleccionados.",
+                nameof(request));
+
+        propuesta.DefinirActividades(actividades);
+        propuesta.ReemplazarEtiquetas(etiquetas);
+    }
+
+    private async Task<PropuestaResponse> Guardar(Propuesta propuesta, AccionAuditoria accion)
+    {
+        await _propuestaRepository.UpdateAsync(propuesta);
+        await _auditoriaService.RegistrarAsync(accion, nameof(Propuesta), propuesta.Id);
+
+        return _mapper.ToResponse(propuesta);
     }
 
     public async Task<PropuestaResponse> ObtenerPorIdAsync(int id)
     {
         var propuesta = await ObtenerPropuestaById(id);
 
-        return PropuestaMapper.ToResponse(propuesta);
+        return _mapper.ToResponse(propuesta);
     }
 
     public async Task<List<PropuestaResponse>> ObtenerPorClienteAsync(int clienteId)
     {
         var propuestas = await _propuestaRepository.GetByClienteAsync(clienteId);
 
-        return PropuestaMapper.ToResponse(propuestas);
+        return _mapper.ToResponse(propuestas);
     }
+
+    public async Task<Pagina<PropuestaResponse>> ObtenerPaginaAsync(ListarPropuestasRequest request)
+    {
+        var pagina = await _propuestaRepository.GetPaginaAsync(request);
+
+        return pagina.Convertir(_mapper.ToResponse);
+    }
+
+    public Task<ResumenPropuestasResponse> ObtenerResumenAsync()
+        => _propuestaRepository.GetResumenAsync();
 
     public async Task<List<PropuestaResponse>> ObtenerTodasAsync()
     {
         var propuestas = await _propuestaRepository.GetAllAsync();
 
-        return PropuestaMapper.ToResponse(propuestas);
-    }
-
-    public async Task<ItinerarioResponse> ObtenerItinerarioAsync(int propuestaId)
-    {
-        var propuesta = await ObtenerPropuestaById(propuestaId);
-
-        return ItinerarioMapper.ToResponse(propuesta.Itinerario);
+        return _mapper.ToResponse(propuestas);
     }
 
     public async Task<PropuestaResponse> PresentarAsync(int id)
@@ -107,7 +174,7 @@ public class PropuestaService(
             nameof(Propuesta),
             propuesta.Id);
 
-        return PropuestaMapper.ToResponse(propuesta);
+        return _mapper.ToResponse(propuesta);
     }
 
     public async Task<PropuestaResponse> RegistrarRespuestaAsync(int id, RegistrarRespuestaRequest request)
@@ -136,29 +203,7 @@ public class PropuestaService(
             propuesta.Id,
             request.Respuesta.ToString());
 
-        return PropuestaMapper.ToResponse(propuesta);
-    }
-
-    public async Task<PropuestaResponse> ModificarItinerarioAsync(int id, ModificarItinerarioRequest request)
-    {
-        var propuesta = await ObtenerPropuestaById(id);
-
-        if (propuesta.Estado != EstadoPropuesta.Borrador)
-            throw new InvalidOperationException(
-                "Solo se puede modificar el itinerario de una propuesta en estado Borrador.");
-
-        var destinos = await ConstruirDestinosItinerario(request.Destinos);
-
-        propuesta.Itinerario.DefinirFechas(request.FechaInicio, request.FechaFin);
-        propuesta.Itinerario.ReemplazarDestinos(destinos);
-
-        await _propuestaRepository.UpdateAsync(propuesta);
-        await _auditoriaService.RegistrarAsync(
-            AccionAuditoria.ModificarItinerario,
-            nameof(Propuesta),
-            propuesta.Id);
-
-        return PropuestaMapper.ToResponse(propuesta);
+        return _mapper.ToResponse(propuesta);
     }
 
     public async Task EliminarAsync(int id)
@@ -174,73 +219,17 @@ public class PropuestaService(
             propuesta.Id);
     }
 
-    private static void AplicarItinerario(
-        Itinerario itinerario,
-        ItinerarioGenerado generado,
-        DateOnly fechaInicio,
-        DateOnly fechaFin)
+    private static void ValidarFechas(DateOnly fechaInicio, DateOnly fechaFin)
     {
-        itinerario.DefinirNombre(generado.Nombre);
-        itinerario.DefinirFechas(fechaInicio, fechaFin);
-        itinerario.ReemplazarDestinos(generado.Destinos.Select(ConstruirDestinoItinerario));
-    }
+        if (fechaInicio == default)
+            throw new ArgumentException("La fecha de inicio es obligatoria.", nameof(fechaInicio));
 
-    private static DestinoItinerario ConstruirDestinoItinerario(DestinoPlanificado plan)
-    {
-        var destinoItinerario = new DestinoItinerario(
-            plan.Orden,
-            plan.FechaLlegada,
-            plan.FechaPartida,
-            plan.Destino,
-            new List<ActividadDestinoItinerario>());
+        if (fechaFin == default)
+            throw new ArgumentException("La fecha de fin es obligatoria.", nameof(fechaFin));
 
-        foreach (var actividad in plan.Actividades)
-        {
-            destinoItinerario.AgregarActividad(new ActividadDestinoItinerario(
-                actividad.FechaHoraInicio,
-                actividad.CostoFinal,
-                actividad.Observaciones,
-                actividad.Orden,
-                destinoItinerario,
-                actividad.Actividad));
-        }
-
-        return destinoItinerario;
-    }
-
-    private async Task<List<DestinoItinerario>> ConstruirDestinosItinerario(
-        IEnumerable<DestinoItinerarioRequest> destinos)
-    {
-        var resultado = new List<DestinoItinerario>();
-
-        foreach (var destinoRequest in destinos)
-        {
-            Destino destino = await ObtenerDestinoById(destinoRequest.DestinoId);
-
-            var destinoItinerario = new DestinoItinerario(
-                destinoRequest.Orden,
-                destinoRequest.FechaLlegada,
-                destinoRequest.FechaPartida,
-                destino,
-                new List<ActividadDestinoItinerario>());
-
-            foreach (var actividadRequest in destinoRequest.Actividades)
-            {
-                Actividad actividad = await ObtenerActividadById(actividadRequest.ActividadId);
-
-                destinoItinerario.AgregarActividad(new ActividadDestinoItinerario(
-                    actividadRequest.FechaHoraInicio,
-                    actividadRequest.CostoFinal,
-                    actividadRequest.Observaciones,
-                    actividadRequest.Orden,
-                    destinoItinerario,
-                    actividad));
-            }
-
-            resultado.Add(destinoItinerario);
-        }
-
-        return resultado;
+        if (fechaFin < fechaInicio)
+            throw new ArgumentException(
+                "La fecha de fin no puede ser anterior a la fecha de inicio.", nameof(fechaFin));
     }
 
     private async Task<Propuesta> ObtenerPropuestaById(int id)
@@ -266,18 +255,4 @@ public class PropuestaService(
 
     private Task<List<Destino>> ObtenerDestinosByIds(IEnumerable<int> destinoIds)
         => _destinoRepository.ObtenerPorIdsConActividadesAsync(destinoIds);
-
-    private async Task<Destino> ObtenerDestinoById(int destinoId)
-    {
-        var destino = await _destinoRepository.GetByIdAsync(destinoId);
-
-        return destino ?? throw new DestinoNoEncontradoException(destinoId);
-    }
-
-    private async Task<Actividad> ObtenerActividadById(int actividadId)
-    {
-        var actividad = await _actividadRepository.GetByIdAsync(actividadId);
-
-        return actividad ?? throw new ActividadNoEncontradaException(actividadId);
-    }
 }

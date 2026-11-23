@@ -5,4 +5,5 @@ export interface RespuestaLogin {
   email: string;
   roles: string[];
   permisos: string[];
+  empresaRazonSocial?: string | null;
 }

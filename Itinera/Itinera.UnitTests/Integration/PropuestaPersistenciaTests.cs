@@ -1,10 +1,13 @@
 using Itinera.Application.Propuestas.Dtos;
+using Itinera.Application.Propuestas.Mappers;
+using Itinera.Application.Propuestas.Planificacion;
 using Itinera.Application.Propuestas.Services;
 using Itinera.Application.Common.Interfaces;
 using Itinera.Domain.Common;
 using Itinera.Domain.Empresa;
 using Itinera.Domain.Propuestas;
 using Itinera.Domain.Usuarios;
+using Itinera.Infrastructure.Persistence;
 using Itinera.Infrastructure.Persistence.Repositories.Dominio;
 using Itinera.Infrastructure.Servicios;
 using Itinera.UnitTests.Common;
@@ -50,11 +53,13 @@ public class PropuestaPersistenciaTests
     }
 
     [Fact]
-    public async Task CrearPropuesta_PersisteItinerarioGenerado()
+    public async Task CrearPropuesta_PersisteConfiguracionSinItinerarios()
     {
-        await using var contexto = _fixture.CrearContexto();
-        var escenario = await CrearEscenarioAsync(contexto);
-        var servicio = CrearServicio(contexto);
+        await using var contextoInicial = _fixture.CrearContexto();
+        var escenario = await CrearEscenarioAsync(contextoInicial);
+        var empresaId = escenario.Empleado.EmpresaId;
+        await using var contexto = _fixture.CrearContextoConEmpresa(empresaId);
+        var servicio = CrearServicio(contexto, empresaId);
 
         var fechaInicio = new DateOnly(2026, 7, 1);
         var fechaFin = new DateOnly(2026, 7, 5);
@@ -67,24 +72,25 @@ public class PropuestaPersistenciaTests
             FechaInicio = fechaInicio,
             FechaFin = fechaFin,
             Preferencias = "Playa y gastronomía",
-            DestinoIds = new List<int> { escenario.Destino.Id }
+            Destinos = [NuevaEstadia(escenario.Destino.Id)],
+            ActividadIds = new List<int> { escenario.Actividad.Id }
         });
 
         Assert.True(respuesta.Id > 0);
         Assert.Equal("Borrador", respuesta.Estado);
-        Assert.NotNull(respuesta.Itinerario);
-        Assert.NotEmpty(respuesta.Itinerario!.Destinos);
-        Assert.NotEmpty(respuesta.Itinerario.Destinos[0].Actividades);
+        Assert.Null(Assert.Single(respuesta.Destinos).Itinerario);
+        Assert.Single(respuesta.Actividades);
 
         var propuesta = await new PropuestaRepository(contexto).GetByIdAsync(respuesta.Id);
 
         Assert.NotNull(propuesta);
         Assert.Equal(EstadoPropuesta.Borrador, propuesta!.Estado);
         Assert.Equal(1500m, propuesta.Presupuesto);
-        Assert.NotNull(propuesta.Itinerario);
-        Assert.Equal(fechaInicio, propuesta.Itinerario.FechaInicio);
-        Assert.Equal(fechaFin, propuesta.Itinerario.FechaFin);
-        Assert.NotEmpty(propuesta.Itinerario.Destinos);
+        Assert.Empty(propuesta.Itinerarios);
+        Assert.Single(propuesta.Destinos);
+        Assert.Single(propuesta.Actividades);
+        Assert.Equal(fechaInicio, propuesta.FechaInicio);
+        Assert.Equal(fechaFin, propuesta.FechaFin);
         Assert.NotEqual(Guid.Empty, propuesta.UsuarioRegistracionId);
 
         var auditoria = await contexto.RegistrosAuditoria
@@ -99,11 +105,14 @@ public class PropuestaPersistenciaTests
     [Fact]
     public async Task PresentarYResponder_CambiaEstados()
     {
-        await using var contexto = _fixture.CrearContexto();
-        var escenario = await CrearEscenarioAsync(contexto);
-        var servicio = CrearServicio(contexto);
+        await using var contextoInicial = _fixture.CrearContexto();
+        var escenario = await CrearEscenarioAsync(contextoInicial);
+        var empresaId = escenario.Empleado.EmpresaId;
+        await using var contexto = _fixture.CrearContextoConEmpresa(empresaId);
+        var servicio = CrearServicio(contexto, empresaId);
 
         var creada = await servicio.CrearAsync(NuevaPropuesta(escenario));
+        await AgregarActividadAsync(servicio, creada.Id, escenario);
 
         var presentada = await servicio.PresentarAsync(creada.Id);
         Assert.Equal("Presentada", presentada.Estado);
@@ -115,48 +124,94 @@ public class PropuestaPersistenciaTests
     }
 
     [Fact]
-    public async Task ModificarItinerario_ReemplazaDestinos()
+    public async Task GuardarItinerario_CreaUnoPorDestinoYLoReemplaza()
     {
-        await using var contexto = _fixture.CrearContexto();
-        var escenario = await CrearEscenarioAsync(contexto);
-        var servicio = CrearServicio(contexto);
+        await using var contextoInicial = _fixture.CrearContexto();
+        var escenario = await CrearEscenarioAsync(contextoInicial);
+        var empresaId = escenario.Empleado.EmpresaId;
+        await using var contexto = _fixture.CrearContextoConEmpresa(empresaId);
+        var servicio = CrearServicio(contexto, empresaId);
 
         var creada = await servicio.CrearAsync(NuevaPropuesta(escenario));
+        var primera = await AgregarActividadAsync(servicio, creada.Id, escenario);
+        var segunda = await AgregarActividadAsync(servicio, creada.Id, escenario, 15);
 
-        var modificada = await servicio.ModificarItinerarioAsync(
-            creada.Id,
-            new ModificarItinerarioRequest
-            {
-                FechaInicio = new DateOnly(2026, 8, 1),
-                FechaFin = new DateOnly(2026, 8, 3),
-                Destinos = new List<DestinoItinerarioRequest>
-                {
-                    new()
-                    {
-                        DestinoId = escenario.Destino.Id,
-                        Orden = 1,
-                        FechaLlegada = new DateOnly(2026, 8, 1),
-                        FechaPartida = new DateOnly(2026, 8, 3),
-                        Actividades = new List<ActividadDestinoItinerarioRequest>
-                        {
-                            new()
-                            {
-                                ActividadId = escenario.Actividad.Id,
-                                FechaHoraInicio = new DateTime(2026, 8, 1, 9, 0, 0, DateTimeKind.Utc),
-                                CostoFinal = 120m,
-                                Observaciones = "Cambio solicitado",
-                                Orden = 1
-                            }
-                        }
-                    }
-                }
-            });
+        await using var verificacion = _fixture.CrearContextoConEmpresa(empresaId);
+        var guardada = await new PropuestaRepository(verificacion).GetByIdAsync(creada.Id);
+        var itinerario = Assert.Single(guardada!.Itinerarios);
 
-        Assert.NotNull(modificada.Itinerario);
-        Assert.Single(modificada.Itinerario!.Destinos);
-        Assert.Equal(new DateOnly(2026, 8, 1), modificada.Itinerario.FechaInicio);
-        Assert.Equal(120m, modificada.Itinerario.Destinos[0].Actividades[0].CostoFinal);
+        Assert.Equal(primera.Destinos[0].Itinerario!.Id, segunda.Destinos[0].Itinerario!.Id);
+        Assert.Equal(15, Assert.Single(itinerario.Actividades).FechaHoraInicio.Hour);
     }
+
+    [Fact]
+    public async Task Actualizar_ModificaConfiguracionYConservaItinerarios()
+    {
+        await using var contextoInicial = _fixture.CrearContexto();
+        var escenario = await CrearEscenarioAsync(contextoInicial);
+        var empresaId = escenario.Empleado.EmpresaId;
+        await using var contexto = _fixture.CrearContextoConEmpresa(empresaId);
+        var servicio = CrearServicio(contexto, empresaId);
+        var creada = await servicio.CrearAsync(NuevaPropuesta(escenario));
+        await AgregarActividadAsync(servicio, creada.Id, escenario);
+
+        var actualizada = await servicio.ActualizarAsync(creada.Id, new ActualizarPropuestaRequest
+        {
+            Presupuesto = 2000,
+            CantidadViajeros = 3,
+            FechaInicio = new DateOnly(2026, 7, 1),
+            FechaFin = new DateOnly(2026, 7, 9),
+            Destinos = [NuevaEstadia(escenario.Destino.Id, 3)],
+            ActividadIds = [escenario.Actividad.Id]
+        });
+
+        await using var verificacion = _fixture.CrearContextoConEmpresa(empresaId);
+        var guardada = await new PropuestaRepository(verificacion).GetByIdAsync(creada.Id);
+
+        Assert.Equal(300, guardada!.CostoItinerarios);
+        Assert.Equal(2000, guardada.Presupuesto);
+        Assert.Equal("Hay actividades fuera de las fechas del destino.", Assert.Single(actualizada.Destinos[0].Faltantes));
+    }
+
+    [Fact]
+    public async Task CambiarDestino_ReemplazaDestinoItinerarioYPedidas()
+    {
+        await using var contextoInicial = _fixture.CrearContexto();
+        var escenario = await CrearEscenarioAsync(contextoInicial);
+        var otro = await CrearEscenarioAsync(contextoInicial);
+        var empresaId = escenario.Empleado.EmpresaId;
+        await using var contexto = _fixture.CrearContextoConEmpresa(empresaId);
+        var creada = await CrearServicio(contexto, empresaId).CrearAsync(NuevaPropuesta(escenario));
+        await AgregarActividadAsync(CrearServicio(contexto, empresaId), creada.Id, escenario);
+        var generador = CrearGenerador(contexto, empresaId);
+
+        var alternativa = Assert.Single(await generador.GenerarCambioDestinoAsync(
+            creada.Id,
+            escenario.Destino.Id,
+            new GenerarCambioDestinoRequest { NuevoDestinoId = otro.Destino.Id }));
+        await generador.CambiarDestinoAsync(
+            creada.Id,
+            escenario.Destino.Id,
+            new CambiarDestinoRequest { NuevoDestinoId = otro.Destino.Id, Alternativa = alternativa });
+
+        await using var verificacion = _fixture.CrearContextoConEmpresa(empresaId);
+        var guardada = await new PropuestaRepository(verificacion).GetByIdAsync(creada.Id);
+
+        Assert.Equal(otro.Destino.Id, Assert.Single(guardada!.Destinos).DestinoId);
+        Assert.Equal(otro.Destino.Id, Assert.Single(guardada.Itinerarios).DestinoId);
+        Assert.Empty(guardada.Actividades);
+        Assert.True(guardada.TieneItinerariosCompletos());
+        Assert.True(await verificacion.Actividades.AnyAsync(item =>
+            item.DestinoId == otro.Destino.Id && item.GeneradoPorIA));
+    }
+
+    private static EstadiaRequest NuevaEstadia(int destinoId, int dia = 1)
+        => new()
+        {
+            DestinoId = destinoId,
+            FechaLlegada = new DateOnly(2026, 7, dia),
+            FechaPartida = new DateOnly(2026, 7, 5)
+        };
 
     private static CrearPropuestaRequest NuevaPropuesta(Escenario escenario)
         => new()
@@ -167,22 +222,67 @@ public class PropuestaPersistenciaTests
             FechaInicio = new DateOnly(2026, 7, 1),
             FechaFin = new DateOnly(2026, 7, 5),
             Preferencias = "Playa",
-            DestinoIds = new List<int> { escenario.Destino.Id }
+            Destinos = [NuevaEstadia(escenario.Destino.Id)],
+            ActividadIds = new List<int> { escenario.Actividad.Id }
         };
 
-    private static PropuestaService CrearServicio(Itinera.Infrastructure.Persistence.AppDbContext contexto)
+    private static Task<PropuestaResponse> AgregarActividadAsync(
+        PropuestaService servicio,
+        int propuestaId,
+        Escenario escenario,
+        int hora = 9)
+        => servicio.GuardarItinerarioAsync(
+            propuestaId,
+            escenario.Destino.Id,
+            new GuardarItinerarioRequest
+            {
+                Actividades =
+                [
+                    new ActividadItinerarioRequest
+                    {
+                        ActividadId = escenario.Actividad.Id,
+                        FechaHoraInicio = new DateTime(2026, 7, 1, hora, 0, 0, DateTimeKind.Utc)
+                    }
+                ]
+            });
+
+    private static PropuestaService CrearServicio(AppDbContext contexto, int empresaId)
         => new(
             new PropuestaRepository(contexto),
-            new ClienteRepository(contexto, new TenantContextFake()),
-            new EmpleadoRepository(contexto, new TenantContextFake()),
+            new ClienteRepository(contexto, new TenantContextFake { EmpresaId = empresaId }),
+            new EmpleadoRepository(contexto, new TenantContextFake { EmpresaId = empresaId }),
             new DestinoRepository(contexto),
+            new EtiquetaRepository(contexto, new TenantContextFake { EmpresaId = empresaId }),
+            new ArmadorItinerario(new ActividadRepository(contexto)),
+            CrearMapper(),
+            CrearAuditoria(contexto, empresaId));
+
+    private static GeneradorItinerariosService CrearGenerador(AppDbContext contexto, int empresaId)
+    {
+        var opciones = new PlanificacionItinerarioOptions();
+
+        return new GeneradorItinerariosService(
+            new PropuestaRepository(contexto),
+            new GeneradorItinerarioIAFake(),
+            new PerfilIntensidadResolver(opciones),
             new ActividadRepository(contexto),
-            new EtiquetaRepository(contexto, new TenantContextFake()),
-            new MockGeneradorItinerarioIA(),
-            new AuditoriaService(
-                contexto,
-                new UsuarioDePrueba(),
-                new TenantContextFake()));
+            new DestinoRepository(contexto),
+            new AjustadorItinerarioGenerado(opciones),
+            new ValidadorItinerarioGenerado(opciones),
+            new ArmadorItinerario(new ActividadRepository(contexto)),
+            CrearMapper(),
+            CrearAuditoria(contexto, empresaId));
+    }
+
+    private static PropuestaMapper CrearMapper()
+    {
+        var opciones = new PlanificacionItinerarioOptions();
+
+        return new PropuestaMapper(new PerfilIntensidadResolver(opciones), opciones);
+    }
+
+    private static AuditoriaService CrearAuditoria(AppDbContext contexto, int empresaId)
+        => new(contexto, new UsuarioDePrueba(), new TenantContextFake { EmpresaId = empresaId });
 
     private sealed class UsuarioDePrueba : ICurrentUserService
     {
@@ -193,7 +293,7 @@ public class PropuestaPersistenciaTests
     }
 
     private static async Task<Escenario> CrearEscenarioAsync(
-        Itinera.Infrastructure.Persistence.AppDbContext contexto)
+        AppDbContext contexto)
     {
         var sufijo = Guid.NewGuid().ToString("N");
 
@@ -207,6 +307,9 @@ public class PropuestaPersistenciaTests
         var empleado = new Empleado("Ana", "Gomez", $"empleado-{sufijo}@test.com", "555-0002", cargo, empresa);
         contexto.Clientes.Add(cliente);
         contexto.Empleados.Add(empleado);
+        await contexto.SaveChangesAsync();
+
+        contexto.EmpresaClientes.Add(new EmpresaCliente(empresa.Id, cliente.Id));
         await contexto.SaveChangesAsync();
 
         var pais = new Pais($"Pais {sufijo}");

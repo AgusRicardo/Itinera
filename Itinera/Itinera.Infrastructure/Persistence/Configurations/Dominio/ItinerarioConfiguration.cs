@@ -15,9 +15,7 @@ public class ItinerarioConfiguration : IEntityTypeConfiguration<Itinerario>
         builder.Property(x => x.Nombre)
                .HasMaxLength(150);
 
-        builder.Property(x => x.FechaInicio);
-
-        builder.Property(x => x.FechaFin);
+        builder.Ignore(x => x.Costo);
 
         builder.Property(x => x.FechaRegistracion)
                .IsRequired();
@@ -29,10 +27,17 @@ public class ItinerarioConfiguration : IEntityTypeConfiguration<Itinerario>
 
         builder.Property(x => x.UsuarioModificacionId);
 
-        builder.HasMany(x => x.Destinos)
-               .WithOne()
-               .HasForeignKey("ItinerarioId")
-               .IsRequired()
+        builder.HasIndex(x => new { x.PropuestaId, x.DestinoId })
+               .IsUnique();
+
+        builder.HasOne(x => x.Destino)
+               .WithMany()
+               .HasForeignKey(x => x.DestinoId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(x => x.Actividades)
+               .WithOne(x => x.Itinerario)
+               .HasForeignKey(x => x.ItinerarioId)
                .OnDelete(DeleteBehavior.Cascade);
     }
 }

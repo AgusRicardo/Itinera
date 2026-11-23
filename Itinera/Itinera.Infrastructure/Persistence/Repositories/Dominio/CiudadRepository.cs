@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Ciudades.Interfaces;
 using Itinera.Domain.Propuestas;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,13 @@ public class CiudadRepository(AppDbContext context) : ICiudadRepository
 
     public Task<Ciudad?> GetByIdAsync(int id)
         => ConRelaciones().FirstOrDefaultAsync(ciudad => ciudad.Id == id);
+
+    public Task<Pagina<Ciudad>> GetPaginaAsync(PaginacionRequest paginacion)
+        => ConRelaciones()
+            .OrderBy(ciudad => ciudad.Pais.Nombre)
+            .ThenBy(ciudad => ciudad.Nombre)
+            .ThenBy(ciudad => ciudad.Id)
+            .PaginarAsync(paginacion);
 
     public Task<List<Ciudad>> GetAllAsync()
         => ConRelaciones().ToListAsync();

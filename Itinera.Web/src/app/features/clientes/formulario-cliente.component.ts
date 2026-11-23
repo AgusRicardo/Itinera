@@ -45,7 +45,9 @@ export class FormularioClienteComponent {
 
     this.guardando.set(true);
     this.error.set(null);
-    const datos = { ...this.formulario.getRawValue(), activo: true };
+    const datos = this.editando
+      ? { ...this.formulario.getRawValue() }
+      : { ...this.formulario.getRawValue(), activo: true };
     const peticion = this.editando
       ? this.clientesService.actualizar(this.id, datos)
       : this.clientesService.crear(datos);

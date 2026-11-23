@@ -1,4 +1,5 @@
 using Itinera.Domain.Common;
+using Itinera.Domain.Facturacion;
 using Itinera.Domain.Propuestas;
 using Itinera.Domain.Usuarios;
 using Itinera.Infrastructure.Persistence.Repositories.Dominio;
@@ -115,5 +116,53 @@ public class AislamientoTenantTests
         var visible = await contextoEmpresa.Propuestas.ToListAsync();
 
         Assert.Empty(visible);
+    }
+
+    [Fact]
+    public async Task Factura_de_propuesta_eliminada_sigue_visible_para_su_empresa()
+    {
+        await using var contexto = _fixture.CrearContexto();
+
+        var empresa = new EmpresaEntidad("Agencia", "30-44444444-4", "555-0004");
+        var empleado = new Empleado(
+            "Juan", "Alonso", "juan@factura.com", "111", new Cargo("Agente"), empresa);
+        contexto.Empleados.Add(empleado);
+        await contexto.SaveChangesAsync();
+
+        var fecha = new DateOnly(2027, 4, 10);
+        var propuesta = new Propuesta(
+            new Cliente("Ana", "Alonso", "ana@factura.com", "111"),
+            empleado,
+            1000,
+            fechaInicio: fecha,
+            fechaFin: fecha);
+        var destino = new Destino(new Ciudad("Roma", new Pais("Italia")));
+        var actividad = new Actividad("Coliseo", string.Empty, 50, 60, destino);
+        contexto.Actividades.Add(actividad);
+        await contexto.SaveChangesAsync();
+        propuesta.DefinirDestinos([new Estadia(destino, fecha, fecha)]);
+        propuesta.GuardarItinerario(
+            destino.Id,
+            string.Empty,
+            [new ActividadItinerario(
+                actividad,
+                fecha.ToDateTime(new TimeOnly(9, 0), DateTimeKind.Utc),
+                1,
+                string.Empty,
+                1)]);
+        propuesta.Presentar();
+        propuesta.Aceptar();
+
+        var factura = new Factura("F-ELIM-1", DateTime.UtcNow.AddDays(30), propuesta);
+        contexto.Facturas.Add(factura);
+        await contexto.SaveChangesAsync();
+        propuesta.Eliminar();
+        await contexto.SaveChangesAsync();
+
+        await using var contextoEmpresa = _fixture.CrearContextoConEmpresa(empresa.Id);
+        var visible = Assert.Single(await new FacturaRepository(contextoEmpresa).GetAllAsync());
+
+        Assert.Equal(factura.Id, visible.Id);
+        Assert.NotNull(visible.Propuesta);
     }
 }
