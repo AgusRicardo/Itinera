@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Facturacion.Interfaces;
 using Itinera.Domain.Facturacion;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,13 @@ public sealed class FacturaRepository(AppDbContext context) : IFacturaRepository
     public Task<Factura?> GetByIdAsync(int id)
         => ConRelaciones()
             .FirstOrDefaultAsync(factura => factura.Id == id);
+
+    public Task<Pagina<Factura>> GetPaginaAsync(PaginacionRequest paginacion)
+        => ConRelaciones()
+            .AsNoTracking()
+            .OrderByDescending(factura => factura.FechaEmision)
+            .ThenByDescending(factura => factura.Id)
+            .PaginarAsync(paginacion);
 
     public Task<List<Factura>> GetAllAsync()
         => ConRelaciones()
@@ -66,5 +74,6 @@ public sealed class FacturaRepository(AppDbContext context) : IFacturaRepository
                 .ThenInclude(propuesta => propuesta.Empleado)
                     .ThenInclude(empleado => empleado.Empresa)
             .Include(factura => factura.Detalles)
-            .Include(factura => factura.Pagos);
+            .Include(factura => factura.Pagos)
+            .IgnoreQueryFilters([AppDbContext.FiltroNoEliminada]);
 }

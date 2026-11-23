@@ -8,6 +8,7 @@ public class ActividadResponse
     public decimal CostoBase { get; set; }
     public int DuracionEstimada { get; set; }
     public bool Activo { get; set; }
+    public bool GeneradoPorIA { get; set; }
     public int DestinoId { get; set; }
     public int CiudadId { get; set; }
     public string CiudadNombre { get; set; } = string.Empty;

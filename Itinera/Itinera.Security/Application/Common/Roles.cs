@@ -27,9 +27,11 @@ public static class Roles
         Permisos.EmpleadosVer,
         Permisos.PropuestasVer,
         Permisos.PropuestasCrear,
+        Permisos.PropuestasEditar,
         Permisos.PropuestasPresentar,
         Permisos.PropuestasRegistrarRespuesta,
         Permisos.ItinerariosEditar,
+        Permisos.ItinerariosGenerarIa,
         Permisos.FacturacionVer,
         Permisos.FacturacionCrear,
         Permisos.FacturacionRegistrarPago

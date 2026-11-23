@@ -1,10 +1,7 @@
 <app-menu-principal />
 
 <main class="min-h-screen bg-itinera-background lg:pl-64">
-  <header class="flex h-14 items-center justify-between border-b bg-itinera-card px-6">
-    <a routerLink="/facturacion" class="text-sm text-itinera-muted hover:text-itinera-foreground">
-      ← Facturación
-    </a>
+  <header class="flex h-14 items-center justify-end border-b bg-itinera-card px-6">
     <button
       type="button"
       class="rounded-lg border px-3 py-2 text-xs font-medium hover:bg-itinera-secondary"
@@ -76,8 +73,8 @@
                 <tr>
                   <td class="px-6 py-4">{{ detalle.descripcion }}</td>
                   <td class="px-6 py-4 text-right">{{ detalle.cantidad }}</td>
-                  <td class="px-6 py-4 text-right">{{ detalle.precioUnitario | currency:'USD':'symbol':'1.2-2' }}</td>
-                  <td class="px-6 py-4 text-right font-medium">{{ detalle.subTotal | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td class="px-6 py-4 text-right">{{ detalle.precioUnitario | moneda:2 }}</td>
+                  <td class="px-6 py-4 text-right font-medium">{{ detalle.subTotal | moneda:2 }}</td>
                 </tr>
               }
             </tbody>
@@ -87,11 +84,11 @@
           <dl class="w-full max-w-xs space-y-2 text-sm">
             <div class="flex justify-between">
               <dt class="text-itinera-muted">Total</dt>
-              <dd class="font-semibold">{{ facturaActual.importeTotal | currency:'USD':'symbol':'1.2-2' }}</dd>
+              <dd class="font-semibold">{{ facturaActual.importeTotal | moneda:2 }}</dd>
             </div>
             <div class="flex justify-between">
               <dt class="text-itinera-muted">Saldo pendiente</dt>
-              <dd class="font-semibold">{{ facturaActual.saldoPendiente | currency:'USD':'symbol':'1.2-2' }}</dd>
+              <dd class="font-semibold">{{ facturaActual.saldoPendiente | moneda:2 }}</dd>
             </div>
           </dl>
         </div>
@@ -116,7 +113,7 @@
                   <p class="font-medium">{{ pago.medioPago }}</p>
                   <p class="text-xs text-itinera-muted">{{ pago.fecha | date:'dd/MM/yyyy' }}</p>
                 </div>
-                <span class="font-semibold">{{ pago.importe | currency:'USD':'symbol':'1.2-2' }}</span>
+                <span class="font-semibold">{{ pago.importe | moneda:2 }}</span>
               </div>
             }
           </div>
@@ -153,7 +150,7 @@
         <form class="space-y-5 p-6" [formGroup]="formularioPago" (ngSubmit)="registrarPago()">
           <div>
             <label for="importe" class="mb-1.5 block text-sm font-medium">Importe <span class="text-red-600">*</span></label>
-            <input id="importe" type="number" min="0.01" step="0.01" formControlName="importe" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+            <app-input-moneda idCampo="importe" formControlName="importe" />
           </div>
           <div>
             <label for="fechaPago" class="mb-1.5 block text-sm font-medium">Fecha <span class="text-red-600">*</span></label>

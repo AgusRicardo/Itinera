@@ -1,14 +1,6 @@
 <app-menu-principal />
 
 <main class="min-h-screen bg-itinera-background lg:pl-64">
-  <header class="flex h-14 items-center border-b bg-itinera-card px-6">
-    <a routerLink="/clientes" class="text-sm text-itinera-muted hover:text-itinera-foreground">
-      ← Clientes
-    </a>
-    <span class="mx-3 text-itinera-border">|</span>
-    <span class="text-sm font-medium">{{ editando ? 'Editar cliente' : 'Nuevo cliente' }}</span>
-  </header>
-
   <section class="mx-auto w-full max-w-2xl p-6">
     <form
       class="space-y-5 rounded-2xl border bg-itinera-card p-6 shadow-sm"

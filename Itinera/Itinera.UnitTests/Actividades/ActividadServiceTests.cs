@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Actividades.Dtos;
 using Itinera.Application.Actividades.Interfaces;
 using Itinera.Application.Actividades.Services;
@@ -147,6 +148,7 @@ public class ActividadServiceTests
         public Task<Destino?> GetByIdAsync(int id)
             => Task.FromResult(Destinos.FirstOrDefault(d => d.Id == id));
 
+        public Task<Pagina<Destino>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
         public Task<List<Destino>> GetAllAsync()
             => Task.FromResult(Destinos.ToList());
 
@@ -178,6 +180,7 @@ public class ActividadServiceTests
         public Task<Actividad?> GetByIdAsync(int id)
             => Task.FromResult(Actividades.FirstOrDefault(a => a.Id == id));
 
+        public Task<Pagina<Actividad>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
         public Task<List<Actividad>> GetAllAsync()
             => Task.FromResult(Actividades.ToList());
 

@@ -1,4 +1,5 @@
-﻿using Itinera.Application.Propuestas.Dtos;
+﻿using Itinera.Application.Common.Paginacion;
+using Itinera.Application.Propuestas.Dtos;
 using Itinera.Application.Propuestas.Interfaces;
 using Itinera.Security.Application.Common;
 using Microsoft.AspNetCore.Authorization;
@@ -7,9 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace Itinera.Api.Controllers.Propuestas;
 
 [Authorize]
-public class PropuestasController(IPropuestaService propuestaService) : ApiController
+public class PropuestasController(
+    IPropuestaService propuestaService,
+    IGeneradorItinerariosService generadorItinerariosService) : ApiController
 {
     private readonly IPropuestaService _propuestaService = propuestaService;
+    private readonly IGeneradorItinerariosService _generadorItinerariosService = generadorItinerariosService;
 
     [HttpPost]
     [Authorize(Policy = Permisos.PropuestasCrear)]
@@ -25,6 +29,18 @@ public class PropuestasController(IPropuestaService propuestaService) : ApiContr
             new { id = response.Id },
             response);
     }
+
+    [HttpGet("paginado")]
+    [Authorize(Policy = Permisos.PropuestasVer)]
+    [ProducesResponseType(typeof(Pagina<PropuestaResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<Pagina<PropuestaResponse>>> ObtenerPagina([FromQuery] ListarPropuestasRequest request)
+        => Ok(await _propuestaService.ObtenerPaginaAsync(request));
+
+    [HttpGet("resumen")]
+    [Authorize(Policy = Permisos.PropuestasVer)]
+    [ProducesResponseType(typeof(ResumenPropuestasResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ResumenPropuestasResponse>> ObtenerResumen()
+        => Ok(await _propuestaService.ObtenerResumenAsync());
 
     [HttpGet("{id:int}")]
     [Authorize(Policy = Permisos.PropuestasVer)]
@@ -50,16 +66,132 @@ public class PropuestasController(IPropuestaService propuestaService) : ApiContr
         return Ok(response);
     }
 
-    [HttpGet("{id:int}/itinerario")]
-    [Authorize(Policy = Permisos.PropuestasVer)]
-    [ProducesResponseType(typeof(ItinerarioResponse), StatusCodes.Status200OK)]
+    [HttpPut("{id:int}")]
+    [Authorize(Policy = Permisos.PropuestasEditar)]
+    [ProducesResponseType(typeof(PropuestaResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ItinerarioResponse>> ObtenerItinerario(int id)
-    {
-        var response = await _propuestaService.ObtenerItinerarioAsync(id);
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<PropuestaResponse>> Actualizar(int id, ActualizarPropuestaRequest request)
+        => Ok(await _propuestaService.ActualizarAsync(id, request));
 
-        return Ok(response);
-    }
+    [HttpPut("{id:int}/destinos/{destinoId:int}/itinerario")]
+    [Authorize(Policy = Permisos.ItinerariosEditar)]
+    [ProducesResponseType(typeof(PropuestaResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<PropuestaResponse>> GuardarItinerario(
+        int id,
+        int destinoId,
+        GuardarItinerarioRequest request)
+        => Ok(await _propuestaService.GuardarItinerarioAsync(
+            id,
+            destinoId,
+            request));
+
+    [HttpPost("{id:int}/destinos/{destinoId:int}/itinerario/alternativas")]
+    [Authorize(Policy = Permisos.ItinerariosGenerarIa)]
+    [ProducesResponseType(typeof(List<AlternativaItinerarioResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<List<AlternativaItinerarioResponse>>> GenerarAlternativas(
+        int id,
+        int destinoId,
+        GenerarAlternativasRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _generadorItinerariosService.GenerarAlternativasAsync(
+            id,
+            destinoId,
+            request,
+            cancellationToken));
+
+    [HttpPost("{id:int}/destinos/{destinoId:int}/itinerario/aplicar-alternativa")]
+    [Authorize(Policy = Permisos.ItinerariosGenerarIa)]
+    [ProducesResponseType(typeof(PropuestaResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<PropuestaResponse>> AplicarAlternativa(
+        int id,
+        int destinoId,
+        AplicarAlternativaRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _generadorItinerariosService.AplicarAlternativaAsync(
+            id,
+            destinoId,
+            request,
+            cancellationToken));
+
+    [HttpPost("{id:int}/destinos/{destinoId:int}/itinerario/dia/alternativas")]
+    [Authorize(Policy = Permisos.ItinerariosGenerarIa)]
+    [ProducesResponseType(typeof(List<AlternativaDiaResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<List<AlternativaDiaResponse>>> GenerarAlternativasDia(
+        int id,
+        int destinoId,
+        ModificarDiaRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _generadorItinerariosService.GenerarAlternativasDiaAsync(
+            id,
+            destinoId,
+            request,
+            cancellationToken));
+
+    [HttpPost("{id:int}/destinos/{destinoId:int}/itinerario/dia/aplicar-alternativa")]
+    [Authorize(Policy = Permisos.ItinerariosGenerarIa)]
+    [ProducesResponseType(typeof(PropuestaResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<PropuestaResponse>> AplicarAlternativaDia(
+        int id,
+        int destinoId,
+        AplicarModificacionDiaRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _generadorItinerariosService.AplicarAlternativaDiaAsync(
+            id,
+            destinoId,
+            request,
+            cancellationToken));
+
+    [HttpPost("{id:int}/destinos/{destinoId:int}/cambiar-destino/alternativas")]
+    [Authorize(Policy = Permisos.ItinerariosGenerarIa)]
+    [ProducesResponseType(typeof(List<AlternativaItinerarioResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<List<AlternativaItinerarioResponse>>> GenerarCambioDestino(
+        int id,
+        int destinoId,
+        GenerarCambioDestinoRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _generadorItinerariosService.GenerarCambioDestinoAsync(
+            id,
+            destinoId,
+            request,
+            cancellationToken));
+
+    [HttpPost("{id:int}/destinos/{destinoId:int}/cambiar-destino")]
+    [Authorize(Policy = Permisos.ItinerariosGenerarIa)]
+    [Authorize(Policy = Permisos.PropuestasEditar)]
+    [ProducesResponseType(typeof(PropuestaResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<PropuestaResponse>> CambiarDestino(
+        int id,
+        int destinoId,
+        CambiarDestinoRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _generadorItinerariosService.CambiarDestinoAsync(
+            id,
+            destinoId,
+            request,
+            cancellationToken));
 
     [HttpPost("{id:int}/presentar")]
     [Authorize(Policy = Permisos.PropuestasPresentar)]
@@ -83,20 +215,6 @@ public class PropuestasController(IPropuestaService propuestaService) : ApiContr
         RegistrarRespuestaRequest request)
     {
         var response = await _propuestaService.RegistrarRespuestaAsync(id, request);
-
-        return Ok(response);
-    }
-
-    [HttpPut("{id:int}/itinerario")]
-    [Authorize(Policy = Permisos.ItinerariosEditar)]
-    [ProducesResponseType(typeof(PropuestaResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<PropuestaResponse>> ModificarItinerario(
-        int id,
-        ModificarItinerarioRequest request)
-    {
-        var response = await _propuestaService.ModificarItinerarioAsync(id, request);
 
         return Ok(response);
     }

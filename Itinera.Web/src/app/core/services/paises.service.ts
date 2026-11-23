@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { ConsultaPagina, Pagina } from '../models/pagina';
 import { RutasApiService } from './rutas-api.service';
 
 export interface Pais {
@@ -14,6 +15,10 @@ export interface Pais {
 export class PaisesService {
   private readonly http = inject(HttpClient);
   private readonly rutasApi = inject(RutasApiService);
+
+  obtenerPagina(consulta: ConsultaPagina): Observable<Pagina<Pais>> {
+    return this.http.get<Pagina<Pais>>(this.rutasApi.paginado(this.rutasApi.paises), { params: consulta });
+  }
 
   obtenerTodos(): Observable<Pais[]> {
     return this.http.get<Pais[]>(this.rutasApi.paises);

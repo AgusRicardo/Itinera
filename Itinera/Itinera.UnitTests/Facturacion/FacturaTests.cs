@@ -22,6 +22,7 @@ public class FacturaTests
             new Cargo("Agente de viajes"),
             new EmpresaEntidad("Viajes SA", "30-12345678-9", "1122334455"));
         var propuesta = new Propuesta(cliente, empleado, 1000);
+        AgregarActividadAlItinerario(propuesta);
         propuesta.Presentar();
         propuesta.Aceptar();
 
@@ -87,8 +88,28 @@ public class FacturaTests
             new Cargo("Agente de viajes"),
             new EmpresaEntidad("Viajes SA", "30-12345678-9", "1122334455"));
         var propuesta = new Propuesta(cliente, empleado, 1000);
+        AgregarActividadAlItinerario(propuesta);
         propuesta.Presentar();
         propuesta.Aceptar();
         return propuesta;
+    }
+
+    private static void AgregarActividadAlItinerario(Propuesta propuesta)
+    {
+        var pais = new Pais("Italia");
+        var ciudad = new Ciudad("Roma", pais);
+        var destino = new Destino(ciudad);
+        var actividad = new Actividad("Visita", "Visita", 0, 60, destino);
+
+        propuesta.DefinirDestinos([new Estadia(destino, propuesta.FechaInicio, propuesta.FechaFin)]);
+        propuesta.GuardarItinerario(
+            destino.Id,
+            string.Empty,
+            [new ActividadItinerario(
+                actividad,
+                propuesta.FechaInicio.ToDateTime(new TimeOnly(9, 0), DateTimeKind.Utc),
+                1,
+                string.Empty,
+                1)]);
     }
 }

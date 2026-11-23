@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Common.Interfaces;
 using Itinera.Application.Facturacion.Dtos;
@@ -83,6 +84,13 @@ public sealed class FacturaService(
     {
         var factura = await ObtenerFacturaAsync(id);
         return FacturaMapper.ToResponse(factura);
+    }
+
+    public async Task<Pagina<FacturaResponse>> ObtenerPaginaAsync(PaginacionRequest paginacion)
+    {
+        var pagina = await _facturaRepository.GetPaginaAsync(paginacion);
+
+        return pagina.Convertir(FacturaMapper.ToResponse);
     }
 
     public async Task<List<FacturaResponse>> ObtenerTodasAsync()

@@ -4,13 +4,15 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Itinera.Infrastructure.Persistence.Configurations.Dominio;
 
-public class ActividadDestinoItinerarioConfiguration : IEntityTypeConfiguration<ActividadDestinoItinerario>
+public class ActividadItinerarioConfiguration : IEntityTypeConfiguration<ActividadItinerario>
 {
-    public void Configure(EntityTypeBuilder<ActividadDestinoItinerario> builder)
+    public void Configure(EntityTypeBuilder<ActividadItinerario> builder)
     {
         builder.ToTable("ActividadesDestinoItinerario");
 
         builder.HasKey(x => x.Id);
+
+        builder.Ignore(x => x.Fecha);
 
         builder.Property(x => x.FechaHoraInicio);
 

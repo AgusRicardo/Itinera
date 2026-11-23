@@ -23,15 +23,15 @@
       }
     </div>
 
-    @if (cargando()) {
+    @if (grilla.cargando()) {
       <div class="rounded-xl border bg-itinera-card p-12 text-center">
         <p class="text-sm text-itinera-muted">Cargando facturas…</p>
       </div>
-    } @else if (error() && !modalAbierto()) {
+    } @else if (grilla.error()) {
       <div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center">
-        <p class="text-sm text-red-700">{{ error() }}</p>
+        <p class="text-sm text-red-700">{{ grilla.error() }}</p>
       </div>
-    } @else if (!facturas().length) {
+    } @else if (!grilla.elementos().length) {
       <div class="rounded-xl border bg-itinera-card p-12 text-center shadow-sm">
         <p class="text-sm font-medium">No hay facturas registradas</p>
         <p class="mt-1 text-xs text-itinera-muted">
@@ -54,7 +54,7 @@
               </tr>
             </thead>
             <tbody class="divide-y">
-              @for (factura of facturas(); track factura.id) {
+              @for (factura of grilla.elementos(); track factura.id) {
                 <tr class="text-sm">
                   <td class="px-5 py-4">
                     <p class="font-semibold">{{ factura.numero }}</p>
@@ -62,8 +62,8 @@
                   </td>
                   <td class="px-5 py-4">{{ factura.clienteNombre }}</td>
                   <td class="px-5 py-4">{{ factura.fechaVencimiento | date:'dd/MM/yyyy' }}</td>
-                  <td class="px-5 py-4 text-right">{{ factura.importeTotal | currency:'USD':'symbol':'1.2-2' }}</td>
-                  <td class="px-5 py-4 text-right">{{ factura.saldoPendiente | currency:'USD':'symbol':'1.2-2' }}</td>
+                  <td class="px-5 py-4 text-right">{{ factura.importeTotal | moneda:2 }}</td>
+                  <td class="px-5 py-4 text-right">{{ factura.saldoPendiente | moneda:2 }}</td>
                   <td class="px-5 py-4">
                     <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold" [class]="claseEstado(factura.estado)">
                       {{ factura.estado }}
@@ -83,6 +83,7 @@
           </table>
         </div>
       </div>
+      <app-paginador [grilla]="grilla" />
     }
   </section>
 
@@ -137,7 +138,7 @@
                 </div>
                 <div>
                   <label class="mb-1 block text-xs font-medium" [for]="'precio-' + indice">Precio unitario <span class="text-red-600">*</span></label>
-                  <input [id]="'precio-' + indice" type="number" min="0" step="0.01" formControlName="precioUnitario" placeholder="Precio" class="w-full rounded-lg border bg-itinera-card px-3 py-2 text-sm" />
+                  <app-input-moneda [idCampo]="'precio-' + indice" formControlName="precioUnitario" />
                 </div>
                 <button type="button" class="rounded-lg px-2 text-sm text-red-700 hover:bg-red-50" [disabled]="obtenerDetalles().length === 1" (click)="quitarDetalle(indice)">✕</button>
               </div>

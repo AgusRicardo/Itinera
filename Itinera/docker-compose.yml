@@ -30,6 +30,9 @@ services:
       PlatformAdmin__Nombre: ${PLATFORM_ADMIN_NOMBRE:-}
       PlatformAdmin__Email: ${PLATFORM_ADMIN_EMAIL:-}
       PlatformAdmin__Password: ${PLATFORM_ADMIN_PASSWORD:-}
+      InteligenciaArtificial__UrlBase: ${IA_URL_BASE:-}
+      InteligenciaArtificial__Modelo: ${IA_MODELO:-}
+      InteligenciaArtificial__ApiKey: ${IA_API_KEY:-}
     ports:
       - "8080:8080"
     depends_on:

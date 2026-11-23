@@ -70,6 +70,14 @@ export class RutasApiService {
     return `${this.apiUrl}/ciudades`;
   }
 
+  paginado(ruta: string): string {
+    return `${ruta}/paginado`;
+  }
+
+  resumen(ruta: string): string {
+    return `${ruta}/resumen`;
+  }
+
   etiquetaPorId(id: number): string {
     return `${this.etiquetas}/${id}`;
   }
@@ -154,12 +162,16 @@ export class RutasApiService {
     return `${this.propuestaPorId(id)}/respuesta`;
   }
 
-  itinerarioDePropuesta(id: number): string {
-    return `${this.propuestaPorId(id)}/itinerario`;
+  destinoDePropuesta(id: number, destinoId: number): string {
+    return `${this.propuestaPorId(id)}/destinos/${destinoId}`;
   }
 
-  modificarItinerario(id: number): string {
-    return this.itinerarioDePropuesta(id);
+  itinerarioDeDestino(id: number, destinoId: number): string {
+    return `${this.destinoDePropuesta(id, destinoId)}/itinerario`;
+  }
+
+  cambiarDestino(id: number, destinoId: number): string {
+    return `${this.destinoDePropuesta(id, destinoId)}/cambiar-destino`;
   }
 
   eliminarPropuesta(id: number): string {

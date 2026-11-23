@@ -13,6 +13,7 @@ using Itinera.Application.Onboarding.Interfaces;
 using Itinera.Application.Plataforma.Interfaces;
 using Itinera.Application.Paises.Interfaces;
 using Itinera.Application.Propuestas.Interfaces;
+using Itinera.Application.Propuestas.Planificacion;
 using Itinera.Security.Application.Interfaces;
 using Itinera.Application.Common.Interfaces;
 using Itinera.Infrastructure.Persistence;
@@ -21,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Itinera.Infrastructure.Persistence.Repositories.Dominio;
 using Itinera.Infrastructure.Persistence.Repositories.Seguridad;
 using Itinera.Infrastructure.Servicios;
+using Itinera.Infrastructure.Servicios.IA;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,7 +54,26 @@ public static class DependencyInjection
         services.AddScoped<ITenantContext, TenantContext>();
         services.AddScoped<TenantResolver>();
 
-        services.AddScoped<IGeneradorItinerarioIA, MockGeneradorItinerarioIA>();
+        var generadorIaOptions = new GeneradorIaOptions();
+        configuration.GetSection(GeneradorIaOptions.SectionName).Bind(generadorIaOptions);
+        services.AddSingleton(generadorIaOptions);
+
+        if (string.IsNullOrWhiteSpace(generadorIaOptions.UrlBase)
+            || string.IsNullOrWhiteSpace(generadorIaOptions.Modelo)
+            || string.IsNullOrWhiteSpace(generadorIaOptions.ApiKey))
+            throw new InvalidOperationException(
+                "Deben configurarse 'UrlBase', 'Modelo' y 'ApiKey' de 'InteligenciaArtificial'.");
+
+        services.AddSingleton(new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(generadorIaOptions.TimeoutSegundos)
+        });
+        services.AddScoped<IGeneradorItinerarioIA, GroqGeneradorItinerarioIA>();
+
+        var planificacion = new PlanificacionItinerarioOptions();
+        configuration.GetSection(PlanificacionItinerarioOptions.SectionName).Bind(planificacion);
+        services.AddSingleton(planificacion);
+        services.AddSingleton<PerfilIntensidadResolver>();
         services.AddScoped<IAuditoriaService, AuditoriaService>();
 
         services.AddScoped<IOnboardingService, OnboardingService>();

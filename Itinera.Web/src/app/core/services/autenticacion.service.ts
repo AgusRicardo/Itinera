@@ -19,7 +19,14 @@ export class AutenticacionService {
   }
 
   obtenerToken(): string | null {
-    return localStorage.getItem(this.claveToken);
+    const token = localStorage.getItem(this.claveToken);
+
+    if (token && this.estaVencido(token)) {
+      this.cerrarSesion();
+      return null;
+    }
+
+    return token;
   }
 
   obtenerUsuario(): RespuestaLogin | null {
@@ -38,6 +45,17 @@ export class AutenticacionService {
   cerrarSesion(): void {
     localStorage.removeItem(this.claveToken);
     localStorage.removeItem(this.claveUsuario);
+  }
+
+  private estaVencido(token: string): boolean {
+    try {
+      const contenido = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const { exp } = JSON.parse(atob(contenido)) as { exp?: number };
+
+      return typeof exp !== 'number' || exp * 1000 <= Date.now();
+    } catch {
+      return true;
+    }
   }
 
   private guardarSesion(respuesta: RespuestaLogin): void {

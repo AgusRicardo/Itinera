@@ -1,22 +1,27 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
+import { MigasComponent } from '../migas/migas.component';
 import { AutenticacionService } from '../../../core/services/autenticacion.service';
+import { MenuService } from '../../../core/services/menu.service';
 
 @Component({
   selector: 'app-menu-principal',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, MigasComponent],
   templateUrl: './menu-principal.component.html'
 })
 export class MenuPrincipalComponent {
   protected readonly autenticacion = inject(AutenticacionService);
+  private readonly menu = inject(MenuService);
   private readonly router = inject(Router);
 
-  protected readonly contraido = signal(false);
+  protected readonly contraido = this.menu.contraido;
   protected readonly usuario = this.autenticacion.obtenerUsuario();
+  protected readonly empresa = this.usuario?.empresaRazonSocial
+    || (this.autenticacion.tienePermiso('plataforma.empresas.gestionar') ? 'Plataforma' : '');
 
   protected alternar(): void {
-    this.contraido.update(valor => !valor);
+    this.menu.alternar();
   }
 
   protected cerrarSesion(): void {

@@ -21,11 +21,13 @@ public static class Permisos
 
     public const string PropuestasVer = "propuestas.ver";
     public const string PropuestasCrear = "propuestas.crear";
+    public const string PropuestasEditar = "propuestas.editar";
     public const string PropuestasPresentar = "propuestas.presentar";
     public const string PropuestasRegistrarRespuesta = "propuestas.registrar-respuesta";
     public const string PropuestasEliminar = "propuestas.eliminar";
 
     public const string ItinerariosEditar = "itinerarios.editar";
+    public const string ItinerariosGenerarIa = "itinerarios.generar-ia";
 
     public const string FacturacionVer = "facturacion.ver";
     public const string FacturacionCrear = "facturacion.crear";
@@ -55,10 +57,12 @@ public static class Permisos
         new(EmpleadosGestionar, "Gestionar empleados"),
         new(PropuestasVer, "Ver propuestas"),
         new(PropuestasCrear, "Crear propuestas"),
+        new(PropuestasEditar, "Editar propuestas"),
         new(PropuestasPresentar, "Presentar propuestas"),
         new(PropuestasRegistrarRespuesta, "Registrar respuesta del cliente"),
         new(PropuestasEliminar, "Eliminar propuestas"),
         new(ItinerariosEditar, "Editar itinerarios"),
+        new(ItinerariosGenerarIa, "Generar itinerarios con IA"),
         new(FacturacionVer, "Ver facturación"),
         new(FacturacionCrear, "Generar facturas"),
         new(FacturacionRegistrarPago, "Registrar pagos"),

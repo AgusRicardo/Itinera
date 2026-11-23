@@ -4,7 +4,11 @@ namespace Itinera.Application.Propuestas.Interfaces;
 
 public interface IGeneradorItinerarioIA
 {
-    Task<ItinerarioGenerado> GenerarAsync(
+    Task<IReadOnlyList<ItinerarioGenerado>> GenerarAsync(
         SolicitudItinerario solicitud,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ModificacionDiaGenerada>> GenerarModificacionDiaAsync(
+        SolicitudModificacionDia solicitud,
         CancellationToken cancellationToken = default);
 }

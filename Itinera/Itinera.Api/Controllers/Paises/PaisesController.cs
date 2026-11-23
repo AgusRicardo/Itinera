@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Paises.Dtos;
 using Itinera.Application.Paises.Interfaces;
 using Itinera.Security.Application.Common;
@@ -34,6 +35,12 @@ public class PaisesController(IPaisService paisService) : ApiController
 
         return Ok(response);
     }
+
+    [HttpGet("paginado")]
+    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
+    [ProducesResponseType(typeof(Pagina<PaisResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<Pagina<PaisResponse>>> ObtenerPagina([FromQuery] PaginacionRequest paginacion)
+        => Ok(await _paisService.ObtenerPaginaAsync(paginacion));
 
     [HttpGet("{id:int}")]
     [Authorize(Policy = Permisos.CatalogosOperativosVer)]

@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Ciudades.Interfaces;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Destinos.Dtos;
@@ -30,6 +31,13 @@ public class DestinoService(
         var destino = await ObtenerDestinoById(id);
 
         return DestinoMapper.ToResponse(destino);
+    }
+
+    public async Task<Pagina<DestinoResponse>> ObtenerPaginaAsync(PaginacionRequest paginacion)
+    {
+        var pagina = await _destinoRepository.GetPaginaAsync(paginacion);
+
+        return pagina.Convertir(DestinoMapper.ToResponse);
     }
 
     public async Task<List<DestinoResponse>> ObtenerTodosAsync()

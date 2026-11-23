@@ -3,6 +3,18 @@
   [class.w-20]="contraido()"
   [class.w-64]="!contraido()"
 >
+  <button
+    type="button"
+    class="absolute -right-3 top-[4.25rem] flex h-6 w-6 items-center justify-center rounded-full border bg-itinera-card text-itinera-muted shadow-sm transition-colors hover:text-itinera-foreground"
+    [title]="contraido() ? 'Expandir menú' : 'Contraer menú'"
+    [attr.aria-label]="contraido() ? 'Expandir menú' : 'Contraer menú'"
+    (click)="alternar()"
+  >
+    <svg viewBox="0 0 24 24" class="h-3 w-3" [class.rotate-180]="contraido()" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="m15 6-6 6 6 6" />
+    </svg>
+  </button>
+
   <div class="flex h-20 items-center border-b px-3" [class.justify-center]="contraido()" [class.justify-between]="!contraido()">
     <button type="button" class="flex items-center gap-3" (click)="irInicio()">
       <span class="flex h-9 w-9 items-center justify-center rounded-lg p-1">
@@ -176,6 +188,9 @@
   <div class="border-t p-3">
     @if (!contraido()) {
       <div class="rounded-xl bg-itinera-secondary/55 p-3">
+        @if (empresa) {
+          <p class="mb-2 truncate border-b pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-itinera-accent" [title]="empresa">{{ empresa }}</p>
+        }
         <p class="truncate text-xs font-semibold">{{ usuario?.nombre || 'Usuario' }}</p>
         <p class="mt-0.5 truncate text-[10px]  ">
           {{ usuario?.roles?.[0] || 'Usuario' }}
@@ -192,21 +207,13 @@
       <button
         type="button"
         class="flex h-9 w-9 items-center justify-center rounded-full bg-itinera-accent/30 text-xs font-semibold"
-        [title]="usuario?.nombre || 'Usuario'"
+        [title]="(usuario?.nombre || 'Usuario') + (empresa ? ' · ' + empresa : '')"
         (click)="cerrarSesion()"
       >
         {{ usuario?.nombre?.charAt(0) || 'U' }}
       </button>
     }
-
-    <button
-      type="button"
-      class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs   hover:bg-itinera-secondary hover:text-itinera-foreground"
-      [title]="contraido() ? 'Expandir menú' : 'Contraer menú'"
-      (click)="alternar()"
-    >
-      <span [class.rotate-180]="contraido()">‹</span>
-      @if (!contraido()) { <span>Contraer menú</span> }
-    </button>
   </div>
 </aside>
+
+<app-migas class="block lg:pl-64" />

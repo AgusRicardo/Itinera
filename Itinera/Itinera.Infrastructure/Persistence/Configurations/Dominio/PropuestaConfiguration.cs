@@ -17,12 +17,30 @@ public class PropuestaConfiguration : IEntityTypeConfiguration<Propuesta>
         builder.Property(x => x.Presupuesto)
                .HasPrecision(18, 2);
 
+        builder.Property(x => x.FechaInicio)
+               .IsRequired();
+
+        builder.Property(x => x.FechaFin)
+               .IsRequired();
+
+        builder.Property(x => x.CantidadViajeros)
+               .IsRequired();
+
+        builder.Property(x => x.Preferencias)
+               .HasMaxLength(2000)
+               .IsRequired();
+
+        builder.Property(x => x.IntensidadViajeId)
+               .IsRequired();
+
         builder.Property(x => x.EmpresaId)
                .IsRequired();
 
         builder.HasIndex(x => x.EmpresaId);
 
         builder.Ignore(x => x.Estado);
+
+        builder.Ignore(x => x.CostoItinerarios);
 
         builder.Property(x => x.EstadoPropuestaId)
                .IsRequired();
@@ -48,9 +66,9 @@ public class PropuestaConfiguration : IEntityTypeConfiguration<Propuesta>
 
         builder.Property(x => x.UsuarioModificacionId);
 
-        builder.HasOne(x => x.Itinerario)
+        builder.HasMany(x => x.Itinerarios)
                .WithOne(x => x.Propuesta)
-               .HasForeignKey<Itinerario>(x => x.PropuestaId);
+               .HasForeignKey(x => x.PropuestaId);
 
         builder.HasMany(x => x.Facturas)
                .WithOne(x => x.Propuesta)

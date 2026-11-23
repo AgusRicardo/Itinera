@@ -140,7 +140,9 @@ public class SeguridadTests
         var seeder = CrearSeeder(contexto);
         await seeder.SembrarAsync();
 
-        var repositorio = new SecurityRepository(contexto, new TenantContextFake());
+        var repositorio = new SecurityRepository(
+            contexto,
+            new TenantContextFake { EsAdministradorPlataforma = true });
         var email = $"plataforma-{Guid.NewGuid():N}@test.com";
         var usuario = new Usuario("Tester", email, PasswordHasher.Hash("Clave123!"));
         contexto.Usuarios.Add(usuario);

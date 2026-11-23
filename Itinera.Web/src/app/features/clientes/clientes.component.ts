@@ -1,8 +1,11 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { map } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { ClientesService } from '../../core/services/clientes.service';
+import { ClienteApi, ClientesService, ResumenClientes } from '../../core/services/clientes.service';
+import { GrillaPaginada } from '../../core/utils/grilla-paginada';
+import { PaginadorComponent } from '../../shared/components/paginador/paginador.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
 
@@ -22,7 +25,8 @@ interface ClienteVista {
   selector: 'app-clientes',
   imports: [
     ReactiveFormsModule,
-    MenuPrincipalComponent
+    MenuPrincipalComponent,
+    PaginadorComponent
   ],
   templateUrl: './clientes.component.html'
 })
@@ -31,8 +35,13 @@ export class ClientesComponent {
   private readonly constructorFormulario = inject(FormBuilder);
   private readonly autenticacion = inject(AutenticacionService);
 
-  protected readonly clientes = signal<ClienteVista[]>([]);
-  protected readonly cargando = signal(true);
+  protected readonly grilla = new GrillaPaginada<ClienteVista>(
+    consulta => this.clientesService.obtenerPagina(consulta).pipe(map(pagina => ({
+      ...pagina,
+      elementos: pagina.elementos.map(cliente => this.convertirCliente(cliente))
+    }))),
+    'No se pudieron cargar los clientes.');
+  protected readonly resumen = signal<ResumenClientes>({ total: 0, activos: 0 });
   protected readonly error = signal<string | null>(null);
   protected readonly busqueda = signal('');
   protected readonly estado = signal('');
@@ -49,19 +58,10 @@ export class ClientesComponent {
     estado: ['Activo' as 'Activo' | 'Inactivo']
   });
 
-  protected readonly clientesFiltrados = computed(() => {
-    const texto = this.busqueda().toLowerCase().trim();
-    const estado = this.estado();
-
-    return this.clientes().filter(cliente => {
-      const contenido = `${cliente.nombre} ${cliente.email} ${cliente.telefono}`.toLowerCase();
-      return contenido.includes(texto) && (!estado || cliente.estado === estado);
-    });
-  });
-
-  protected readonly cantidadActivos = computed(() =>
-    this.clientes().filter(cliente => cliente.estado === 'Activo').length
-  );
+  protected filtrar(): void {
+    const activo = this.estado() && String(this.estado() === 'Activo');
+    this.grilla.filtrar({ texto: this.busqueda().trim(), activo });
+  }
 
   protected puedeGestionarClientes(): boolean {
     return this.autenticacion.tienePermiso('clientes.gestionar');
@@ -73,7 +73,7 @@ export class ClientesComponent {
   }
 
   constructor() {
-    this.cargarClientes();
+    this.cargarResumen();
   }
 
   protected abrirNuevo(): void {
@@ -130,7 +130,7 @@ export class ClientesComponent {
       next: () => {
         this.guardando.set(false);
         this.cerrarEditor();
-        this.cargarClientes();
+        this.recargar();
         this.mostrarAviso(actual === 'nuevo' ? 'Cliente creado correctamente' : 'Cliente actualizado');
       },
       error: (error: HttpErrorResponse) => {
@@ -160,7 +160,7 @@ export class ClientesComponent {
 
     this.clientesService.desactivar(cliente.id).subscribe({
       next: () => {
-        this.cargarClientes();
+        this.recargar();
         this.clienteAEliminar.set(null);
         this.mostrarAviso('Cliente desactivado');
       },
@@ -168,35 +168,16 @@ export class ClientesComponent {
     });
   }
 
-  protected iniciales(nombre: string): string {
-    return nombre
-      .split(' ')
-      .map(parte => parte[0])
-      .slice(0, 2)
-      .join('');
+  private recargar(): void {
+    this.grilla.cargar();
+    this.cargarResumen();
   }
 
-  private cargarClientes(): void {
-    this.clientesService.obtenerTodos().subscribe({
-      next: clientes => {
-        this.clientes.set(clientes.map(cliente => this.convertirCliente(cliente)));
-        this.cargando.set(false);
-      },
-      error: () => {
-        this.error.set('No se pudieron cargar los clientes.');
-        this.cargando.set(false);
-      }
-    });
+  private cargarResumen(): void {
+    this.clientesService.obtenerResumen().subscribe(resumen => this.resumen.set(resumen));
   }
 
-  private convertirCliente(cliente: {
-    id: number;
-    nombre: string;
-    apellido?: string;
-    email: string;
-    telefono: string;
-    activo?: boolean;
-  }): ClienteVista {
+  private convertirCliente(cliente: ClienteApi): ClienteVista {
     return {
       id: cliente.id,
       nombre: `${cliente.nombre} ${cliente.apellido ?? ''}`.trim(),

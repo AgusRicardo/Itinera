@@ -24,17 +24,44 @@ export const routes: Routes = [
     canActivate: [guardAutenticacion, guardPermiso],
     data: { permisos: ['propuestas.crear'] },
     loadComponent: () =>
-      import('./features/propuestas/crear-propuesta.component').then(
-        componente => componente.CrearPropuestaComponent
+      import('./features/propuestas/pagina-propuesta.component').then(
+        componente => componente.PaginaPropuestaComponent
       )
   },
   {
     path: 'propuestas/:id/editar',
     canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['propuestas.editar'] },
+    loadComponent: () =>
+      import('./features/propuestas/pagina-propuesta.component').then(
+        componente => componente.PaginaPropuestaComponent
+      )
+  },
+  {
+    path: 'propuestas/:id/destinos/:destinoId',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['propuestas.ver'] },
+    loadComponent: () =>
+      import('./features/propuestas/itinerario.component').then(
+        componente => componente.ItinerarioComponent
+      )
+  },
+  {
+    path: 'propuestas/:id/destinos/:destinoId/armar',
+    canActivate: [guardAutenticacion, guardPermiso],
     data: { permisos: ['itinerarios.editar'] },
     loadComponent: () =>
-      import('./features/propuestas/editar-itinerario.component').then(
-        componente => componente.EditarItinerarioComponent
+      import('./features/propuestas/armar-itinerario.component').then(
+        componente => componente.ArmarItinerarioComponent
+      )
+  },
+  {
+    path: 'propuestas/:id/destinos/:destinoId/generar',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['itinerarios.generar-ia'] },
+    loadComponent: () =>
+      import('./features/propuestas/generar-itinerario.component').then(
+        componente => componente.GenerarItinerarioComponent
       )
   },
   {
