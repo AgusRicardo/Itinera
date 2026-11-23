@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0](https://github.com/AgusRicardo/Itinera/compare/v1.4.0...v1.5.0) (2026-11-23)
+
+
+### Features
+
+* implementacion de itinerarios generados de manera manual y por IA ([4501343](https://github.com/AgusRicardo/Itinera/commit/4501343de898ccfa865c7c68d2c4c324dbd64e23))
+* implementacion de itinerarios generados de manera manual y por IA =&gt; dev ([47c48e0](https://github.com/AgusRicardo/Itinera/commit/47c48e0f1084f0e2f0a288d5f93f6229c3c720e2))
+
+
+### Bug Fixes
+
+* inconsistencias ([dc304f1](https://github.com/AgusRicardo/Itinera/commit/dc304f1606f54d06534cda0e38586d244f018291))
+* inconsistencias =&gt; dev ([874ca51](https://github.com/AgusRicardo/Itinera/commit/874ca51f86ac659343892f1c010994c1265206b1))
+
 ## [1.4.0](https://github.com/AgusRicardo/Itinera/compare/v1.3.0...v1.4.0) (2026-11-20)
 
 
