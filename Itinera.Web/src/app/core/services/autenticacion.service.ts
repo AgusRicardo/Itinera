@@ -31,10 +31,6 @@ export class AutenticacionService {
     return Boolean(this.obtenerToken());
   }
 
-  esAdministradorPlataforma(): boolean {
-    return this.obtenerUsuario()?.roles.includes('AdministradorItinera') ?? false;
-  }
-
   tienePermiso(codigo: string): boolean {
     return this.obtenerUsuario()?.permisos?.includes(codigo) ?? false;
   }

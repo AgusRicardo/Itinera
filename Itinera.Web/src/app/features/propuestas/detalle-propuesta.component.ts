@@ -30,6 +30,18 @@ export class DetallePropuestaComponent {
     return this.autenticacion.tienePermiso('facturacion.crear');
   }
 
+  protected puedeRegistrarRespuesta(): boolean {
+    return this.autenticacion.tienePermiso('propuestas.registrar-respuesta');
+  }
+
+  protected puedeEditarItinerario(): boolean {
+    return this.autenticacion.tienePermiso('itinerarios.editar');
+  }
+
+  protected puedePresentar(): boolean {
+    return this.autenticacion.tienePermiso('propuestas.presentar');
+  }
+
   constructor() {
     const id = Number(this.ruta.snapshot.paramMap.get('id'));
 

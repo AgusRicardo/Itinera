@@ -36,6 +36,12 @@ public class PropuestaService(
 
     public async Task<PropuestaResponse> CrearAsync(CrearPropuestaRequest request)
     {
+        ValidarFechas(request.FechaInicio, request.FechaFin);
+
+        if (request.DestinoIds.Count == 0)
+            throw new ArgumentException(
+                "La propuesta debe tener al menos un destino.", nameof(request));
+
         Cliente cliente = await ObtenerClienteById(request.ClienteId);
         Empleado empleado = await ObtenerEmpleadoById(request.EmpleadoId);
         List<Destino> destinos = await ObtenerDestinosByIds(request.DestinoIds);
@@ -141,6 +147,8 @@ public class PropuestaService(
 
     public async Task<PropuestaResponse> ModificarItinerarioAsync(int id, ModificarItinerarioRequest request)
     {
+        ValidarFechas(request.FechaInicio, request.FechaFin);
+
         var propuesta = await ObtenerPropuestaById(id);
 
         if (propuesta.Estado != EstadoPropuesta.Borrador)
@@ -172,6 +180,19 @@ public class PropuestaService(
             AccionAuditoria.EliminarPropuesta,
             nameof(Propuesta),
             propuesta.Id);
+    }
+
+    private static void ValidarFechas(DateOnly fechaInicio, DateOnly fechaFin)
+    {
+        if (fechaInicio == default)
+            throw new ArgumentException("La fecha de inicio es obligatoria.", nameof(fechaInicio));
+
+        if (fechaFin == default)
+            throw new ArgumentException("La fecha de fin es obligatoria.", nameof(fechaFin));
+
+        if (fechaFin < fechaInicio)
+            throw new ArgumentException(
+                "La fecha de fin no puede ser anterior a la fecha de inicio.", nameof(fechaFin));
     }
 
     private static void AplicarItinerario(

@@ -8,6 +8,7 @@ import { Factura } from '../../core/models/factura';
 import { FacturasService } from '../../core/services/facturas.service';
 import { PropuestasService } from '../../core/services/propuestas.service';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
+import { fechaLocalIso } from '../../core/utilidades/fechas';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 
 @Component({
@@ -120,7 +121,7 @@ export class FacturasComponent {
 
   private crearDetalle() {
     return this.formularioConstructor.nonNullable.group({
-      descripcion: ['', Validators.required],
+      descripcion: ['', [Validators.required, Validators.maxLength(300)]],
       cantidad: [1, [Validators.required, Validators.min(0.01)]],
       precioUnitario: [0, [Validators.required, Validators.min(0)]]
     });
@@ -153,7 +154,7 @@ export class FacturasComponent {
   }
 
   protected fechaMinima(): string {
-    return new Date().toISOString().slice(0, 10);
+    return fechaLocalIso(new Date());
   }
 
   private mostrarAviso(mensaje: string): void {

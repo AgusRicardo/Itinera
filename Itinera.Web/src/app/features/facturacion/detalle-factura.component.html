@@ -125,9 +125,9 @@
 
       @if (puedeAnular() && facturaActual.estado !== 'Anulada' && facturaActual.estado !== 'Pagada') {
         <div class="flex justify-end">
-          <button type="button" class="rounded-lg px-4 py-2.5 text-sm text-red-700 hover:bg-red-50" [disabled]="procesando()" (click)="anular()">
-            Anular factura
-          </button>
+           <button type="button" class="rounded-lg px-4 py-2.5 text-sm text-red-700 hover:bg-red-50" [disabled]="procesando()" (click)="abrirModalAnulacion()">
+             Anular factura
+           </button>
         </div>
       }
 
@@ -173,6 +173,49 @@
             </button>
           </div>
         </form>
+      </section>
+    </div>
+  }
+
+  @if (modalAnulacionAbierto()) {
+    <div
+      class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4 backdrop-blur-[2px]"
+      (click)="cerrarModalAnulacion()"
+    >
+      <section
+        class="w-full max-w-md rounded-2xl border bg-itinera-card shadow-xl"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="border-b px-6 py-5">
+          <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-600">Facturación</p>
+          <h2 class="mt-1 font-itinera-display text-xl">Anular factura</h2>
+        </header>
+        <div class="space-y-4 p-6">
+          <p class="text-sm text-itinera-muted">
+            ¿Querés anular la factura <strong class="text-itinera-foreground">{{ factura()?.numero }}</strong>?
+          </p>
+          <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            Esta acción cambiará el estado de la factura y no se puede deshacer.
+          </p>
+          <div class="flex justify-end gap-2 border-t pt-5">
+            <button
+              type="button"
+              class="rounded-lg border px-4 py-2.5 text-sm"
+              [disabled]="procesando()"
+              (click)="cerrarModalAnulacion()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="rounded-lg bg-red-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              [disabled]="procesando()"
+              (click)="confirmarAnulacion()"
+            >
+              {{ procesando() ? 'Anulando…' : 'Confirmar anulación' }}
+            </button>
+          </div>
+        </div>
       </section>
     </div>
   }

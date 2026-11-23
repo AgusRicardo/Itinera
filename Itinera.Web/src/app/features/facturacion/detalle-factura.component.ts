@@ -6,6 +6,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Factura } from '../../core/models/factura';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
 import { FacturasService } from '../../core/services/facturas.service';
+import { ToastrService } from '../../core/services/toastr.service';
+import { fechaLocalIso } from '../../core/utilidades/fechas';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 
 @Component({
@@ -24,10 +26,12 @@ export class DetalleFacturaComponent {
   private readonly facturasService = inject(FacturasService);
   private readonly autenticacion = inject(AutenticacionService);
   private readonly formularioConstructor = inject(FormBuilder);
+  private readonly toastr = inject(ToastrService);
 
   protected readonly factura = signal<Factura | null>(null);
   protected readonly cargando = signal(true);
   protected readonly modalPagoAbierto = signal(false);
+  protected readonly modalAnulacionAbierto = signal(false);
   protected readonly procesando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly aviso = signal('');
@@ -94,9 +98,21 @@ export class DetalleFacturaComponent {
     });
   }
 
-  protected anular(): void {
+  protected abrirModalAnulacion(): void {
+    if (!this.procesando()) {
+      this.modalAnulacionAbierto.set(true);
+    }
+  }
+
+  protected cerrarModalAnulacion(): void {
+    if (!this.procesando()) {
+      this.modalAnulacionAbierto.set(false);
+    }
+  }
+
+  protected confirmarAnulacion(): void {
     const actual = this.factura();
-    if (!actual || !window.confirm(`¿Querés anular la factura ${actual.numero}?`)) {
+    if (!actual) {
       return;
     }
 
@@ -108,11 +124,14 @@ export class DetalleFacturaComponent {
           ? { ...factura, estado: 'Anulada' }
           : factura);
         this.procesando.set(false);
-        this.mostrarAviso('Factura anulada correctamente');
+        this.modalAnulacionAbierto.set(false);
+        this.toastr.exito('Factura anulada correctamente.');
       },
       error: respuesta => {
         this.procesando.set(false);
-        this.error.set(respuesta.error?.detail ?? 'No se pudo anular la factura.');
+        this.toastr.error(
+          respuesta.error?.detail ?? 'No se pudo anular la factura.'
+        );
       }
     });
   }
@@ -160,7 +179,7 @@ export class DetalleFacturaComponent {
   }
 
   protected fechaHoy(): string {
-    return new Date().toISOString().slice(0, 10);
+    return fechaLocalIso(new Date());
   }
 
   private mostrarAviso(mensaje: string): void {

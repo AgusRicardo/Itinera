@@ -12,4 +12,9 @@ public class ActualizarClienteRequest
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
     public string Telefono { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Si es <c>null</c> no se modifica el estado actual del cliente.
+    /// </summary>
+    public bool? Activo { get; set; }
 }

@@ -6,6 +6,8 @@ public static class Permisos
 {
     public const string CatalogosVer = "catalogos.ver";
     public const string CatalogosGestionar = "catalogos.gestionar";
+
+    // TODO: decisión pendiente sobre quién escribe los catálogos operativos (ver Roles.PermisosDelAgente).
     public const string CatalogosOperativosVer = "catalogos.operativos.ver";
     public const string CatalogosOperativosGestionar = "catalogos.operativos.gestionar";
     public const string EtiquetasVer = "etiquetas.ver";
@@ -13,8 +15,6 @@ public static class Permisos
 
     public const string ClientesVer = "clientes.ver";
     public const string ClientesGestionar = "clientes.gestionar";
-
-    public const string EmpresasGestionar = "empresas.gestionar";
 
     public const string EmpleadosVer = "empleados.ver";
     public const string EmpleadosGestionar = "empleados.gestionar";
@@ -43,15 +43,14 @@ public static class Permisos
 
     public static readonly IReadOnlyList<PermisoDefinicion> Catalogo = new List<PermisoDefinicion>
     {
-        new(CatalogosVer, "Ver catálogos (países, ciudades, destinos, actividades, cargos)"),
-        new(CatalogosGestionar, "Gestionar catálogos"),
+        new(CatalogosVer, "Ver catálogos base (cargos y estados)"),
+        new(CatalogosGestionar, "Gestionar catálogos base (cargos)"),
         new(CatalogosOperativosVer, "Ver catálogos operativos"),
         new(CatalogosOperativosGestionar, "Gestionar catálogos operativos"),
         new(EtiquetasVer, "Ver etiquetas"),
         new(EtiquetasGestionar, "Gestionar etiquetas"),
         new(ClientesVer, "Ver clientes"),
         new(ClientesGestionar, "Gestionar clientes"),
-        new(EmpresasGestionar, "Gestionar empresas"),
         new(EmpleadosVer, "Ver empleados"),
         new(EmpleadosGestionar, "Gestionar empleados"),
         new(PropuestasVer, "Ver propuestas"),

@@ -15,14 +15,16 @@
           Diseñá, seguí y convertí cada viaje desde un único lugar.
         </p>
       </div>
-      <button
-        type="button"
-        class="flex items-center justify-center gap-2 rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background shadow-sm transition-opacity hover:opacity-90"
-        (click)="abrirNuevaPropuesta()"
-      >
-        <span class="text-lg leading-none">+</span>
-        Nueva propuesta
-      </button>
+      @if (puedeCrear()) {
+        <button
+          type="button"
+          class="flex items-center justify-center gap-2 rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background shadow-sm transition-opacity hover:opacity-90"
+          (click)="abrirNuevaPropuesta()"
+        >
+          <span class="text-lg leading-none">+</span>
+          Nueva propuesta
+        </button>
+      }
     </div>
 
     <section class="mb-7 grid grid-cols-2 border-y bg-itinera-card/40 lg:grid-cols-4">
@@ -118,9 +120,7 @@
                 <td class="px-5 py-4 text-xs font-medium">
                   <span class="flex items-center gap-1.5">
                     <span class="text-itinera-accent">⌖</span>
-                    {{ propuesta.itinerario?.destinos?.[0]?.destinoDescripcion
-                      || propuesta.itinerario?.destinos?.[0]?.destinoNombre
-                      || 'Sin destino' }}
+                    {{ propuesta.itinerario?.destinos?.[0]?.destinoDescripcion || 'Sin destino' }}
                   </span>
                 </td>
                 <td class="whitespace-nowrap px-5 py-4 text-xs text-itinera-muted">
@@ -152,7 +152,7 @@
                 <td class="px-5 py-4 text-right">
                   <app-menu-acciones
                     [rutaVer]="['/propuestas', propuesta.id.toString()]"
-                    [puedeEliminar]="eliminando() !== propuesta.id"
+                    [puedeEliminar]="puedeEliminar() && eliminando() !== propuesta.id"
                     (eliminar)="eliminar(propuesta)"
                   />
                 </td>

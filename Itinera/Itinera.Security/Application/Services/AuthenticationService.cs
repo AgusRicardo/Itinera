@@ -36,6 +36,7 @@ public class AuthenticationService : IAuthenticationService
         var rolesNombres = roles.Select(r => r.Nombre).ToList();
         var permisos = await _repository.GetPermisosDeUsuarioAsync(usuario.Id);
         var permisosCodigos = permisos.Select(p => p.Codigo).ToList();
+        var empresa = await _repository.ObtenerEmpresaUsuarioAsync(usuario.Id);
         var token = GenerarToken(usuario, rolesNombres, permisosCodigos);
 
         return new LoginResponse(
@@ -44,7 +45,8 @@ public class AuthenticationService : IAuthenticationService
             usuario.Nombre,
             usuario.Email,
             rolesNombres,
-            permisosCodigos);
+            permisosCodigos,
+            empresa.EmpresaRazonSocial ?? string.Empty);
     }
 
     public async Task<Guid> RegistrarAsync(RegistroRequest request)

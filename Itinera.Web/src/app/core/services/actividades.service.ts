@@ -12,7 +12,16 @@ export interface ActividadDisponible {
   duracionEstimada: number;
   destinoId: number;
   activo: boolean;
+  ciudadId: number;
+  ciudadNombre: string;
+  paisId: number;
+  paisNombre: string;
 }
+
+export type ActividadRequest = Pick<
+  ActividadDisponible,
+  'nombre' | 'descripcion' | 'costoBase' | 'duracionEstimada' | 'destinoId'
+>;
 
 @Injectable({ providedIn: 'root' })
 export class ActividadesService {
@@ -23,11 +32,11 @@ export class ActividadesService {
     return this.http.get<ActividadDisponible[]>(this.rutasApi.actividades);
   }
 
-  crear(request: Omit<ActividadDisponible, 'id' | 'activo'>): Observable<ActividadDisponible> {
+  crear(request: ActividadRequest): Observable<ActividadDisponible> {
     return this.http.post<ActividadDisponible>(this.rutasApi.actividades, request);
   }
 
-  actualizar(id: number, request: Omit<ActividadDisponible, 'id' | 'activo'>): Observable<ActividadDisponible> {
+  actualizar(id: number, request: ActividadRequest): Observable<ActividadDisponible> {
     return this.http.put<ActividadDisponible>(this.rutasApi.actividadPorId(id), request);
   }
 
