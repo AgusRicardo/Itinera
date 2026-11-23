@@ -36,6 +36,8 @@ public class GlobalExceptionMiddleware
                 (HttpStatusCode.Unauthorized, ex.Message),
             NotFoundException ex =>
                 (HttpStatusCode.NotFound, ex.Message),
+            ServicioIANoDisponibleException ex =>
+                (HttpStatusCode.ServiceUnavailable, ex.Message),
             InvalidOperationException ex =>
                 (HttpStatusCode.Conflict, ex.Message),
             KeyNotFoundException ex =>
@@ -58,6 +60,7 @@ public class GlobalExceptionMiddleware
                 HttpStatusCode.Conflict => "Conflicto",
                 HttpStatusCode.NotFound => "No encontrado",
                 HttpStatusCode.BadRequest => "Solicitud inválida",
+                HttpStatusCode.ServiceUnavailable => "Servicio no disponible",
                 _ => "Error interno del servidor"
             },
             Detail = detail,

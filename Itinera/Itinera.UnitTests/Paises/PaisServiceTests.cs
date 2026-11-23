@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Paises.Dtos;
 using Itinera.Application.Paises.Interfaces;
@@ -96,6 +97,7 @@ public class PaisServiceTests
         public Task<Pais?> GetByIdAsync(int id)
             => Task.FromResult(Paises.FirstOrDefault(p => p.Id == id));
 
+        public Task<Pagina<Pais>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
         public Task<List<Pais>> GetAllAsync()
             => Task.FromResult(Paises.ToList());
 

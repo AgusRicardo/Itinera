@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Clientes.Dtos;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Security.Application.Common;
@@ -34,6 +35,18 @@ public class ClientesController(IClienteService clienteService) : ApiController
 
         return Ok(response);
     }
+
+    [HttpGet("paginado")]
+    [Authorize(Policy = Permisos.ClientesVer)]
+    [ProducesResponseType(typeof(Pagina<ClienteResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<Pagina<ClienteResponse>>> ObtenerPagina([FromQuery] ListarClientesRequest request)
+        => Ok(await _clienteService.ObtenerPaginaAsync(request));
+
+    [HttpGet("resumen")]
+    [Authorize(Policy = Permisos.ClientesVer)]
+    [ProducesResponseType(typeof(ResumenClientesResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ResumenClientesResponse>> ObtenerResumen()
+        => Ok(await _clienteService.ObtenerResumenAsync());
 
     [HttpGet("{id:int}")]
     [Authorize(Policy = Permisos.ClientesVer)]

@@ -1,21 +1,23 @@
 import { Component, inject, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { Factura } from '../../core/models/factura';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
 import { FacturasService } from '../../core/services/facturas.service';
 import { ToastrService } from '../../core/services/toastr.service';
 import { fechaLocalIso } from '../../core/utilidades/fechas';
+import { InputMonedaComponent } from '../../shared/components/input-moneda/input-moneda.component';
+import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 
 @Component({
   selector: 'app-detalle-factura',
   imports: [
     ReactiveFormsModule,
-    RouterLink,
-    CurrencyPipe,
+    InputMonedaComponent,
+    MonedaPipe,
     DatePipe,
     MenuPrincipalComponent
   ],

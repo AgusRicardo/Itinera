@@ -2,9 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { ConsultaPagina, Pagina } from '../models/pagina';
 import { RutasApiService } from './rutas-api.service';
 
-interface ClienteApi {
+export interface ClienteApi {
   id: number;
   nombre: string;
   apellido: string;
@@ -13,10 +14,23 @@ interface ClienteApi {
   activo?: boolean;
 }
 
+export interface ResumenClientes {
+  total: number;
+  activos: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
   private readonly http = inject(HttpClient);
   private readonly rutasApi = inject(RutasApiService);
+  obtenerPagina(consulta: ConsultaPagina): Observable<Pagina<ClienteApi>> {
+    return this.http.get<Pagina<ClienteApi>>(this.rutasApi.paginado(this.rutasApi.clientes), { params: consulta });
+  }
+
+  obtenerResumen(): Observable<ResumenClientes> {
+    return this.http.get<ResumenClientes>(this.rutasApi.resumen(this.rutasApi.clientes));
+  }
+
   obtenerTodos(): Observable<ClienteApi[]> {
     return this.http.get<ClienteApi[]>(this.rutasApi.clientes);
   }

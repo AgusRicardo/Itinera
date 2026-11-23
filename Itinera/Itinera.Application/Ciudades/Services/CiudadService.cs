@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Ciudades.Dtos;
 using Itinera.Application.Ciudades.Interfaces;
 using Itinera.Application.Ciudades.Mappers;
@@ -30,6 +31,13 @@ public class CiudadService(
         var ciudad = await ObtenerCiudadById(id);
 
         return CiudadMapper.ToResponse(ciudad);
+    }
+
+    public async Task<Pagina<CiudadResponse>> ObtenerPaginaAsync(PaginacionRequest paginacion)
+    {
+        var pagina = await _ciudadRepository.GetPaginaAsync(paginacion);
+
+        return pagina.Convertir(CiudadMapper.ToResponse);
     }
 
     public async Task<List<CiudadResponse>> ObtenerTodosAsync()

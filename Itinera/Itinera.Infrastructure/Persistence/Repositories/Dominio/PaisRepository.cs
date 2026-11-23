@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Paises.Interfaces;
 using Itinera.Domain.Propuestas;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,12 @@ public class PaisRepository(AppDbContext context) : IPaisRepository
 
     public Task<Pais?> GetByIdAsync(int id)
         => _context.Paises.FindAsync(id).AsTask();
+
+    public Task<Pagina<Pais>> GetPaginaAsync(PaginacionRequest paginacion)
+        => _context.Paises
+            .OrderBy(pais => pais.Nombre)
+            .ThenBy(pais => pais.Id)
+            .PaginarAsync(paginacion);
 
     public Task<List<Pais>> GetAllAsync()
         => _context.Paises.ToListAsync();

@@ -1,0 +1,31 @@
+@if (migas().length) {
+  <div class="flex min-h-14 flex-wrap items-center gap-x-4 gap-y-1 border-b bg-itinera-card px-6 py-2">
+    @if (rutaPadre()) {
+      <button
+        type="button"
+        class="rounded-lg border px-3 py-1.5 text-sm hover:bg-itinera-secondary"
+        (click)="volver()"
+      >
+        ← Volver
+      </button>
+    }
+    <nav aria-label="Ubicación">
+      <ol class="flex flex-wrap items-center gap-2 text-sm">
+        @for (miga of migas(); track $index; let ultima = $last) {
+          <li class="flex items-center gap-2">
+            @if (ultima) {
+              <span class="font-medium" aria-current="page">{{ miga.texto }}</span>
+            } @else {
+              @if (miga.ruta) {
+                <a [routerLink]="miga.ruta" class="text-itinera-muted hover:text-itinera-foreground">{{ miga.texto }}</a>
+              } @else {
+                <span class="text-itinera-muted">{{ miga.texto }}</span>
+              }
+              <span class="text-itinera-muted" aria-hidden="true">›</span>
+            }
+          </li>
+        }
+      </ol>
+    </nav>
+  </div>
+}

@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -9,6 +9,10 @@ import { FacturasService } from '../../core/services/facturas.service';
 import { PropuestasService } from '../../core/services/propuestas.service';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
 import { fechaLocalIso } from '../../core/utilidades/fechas';
+import { InputMonedaComponent } from '../../shared/components/input-moneda/input-moneda.component';
+import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
+import { GrillaPaginada } from '../../core/utils/grilla-paginada';
+import { PaginadorComponent } from '../../shared/components/paginador/paginador.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 
 @Component({
@@ -16,9 +20,11 @@ import { MenuPrincipalComponent } from '../../shared/components/menu-principal/m
   imports: [
     ReactiveFormsModule,
     RouterLink,
-    CurrencyPipe,
+    InputMonedaComponent,
+    MonedaPipe,
     DatePipe,
-    MenuPrincipalComponent
+    MenuPrincipalComponent,
+    PaginadorComponent
   ],
   templateUrl: './facturas.component.html'
 })
@@ -29,9 +35,10 @@ export class FacturasComponent {
   private readonly formularioConstructor = inject(FormBuilder);
   private readonly ruta = inject(ActivatedRoute);
 
-  protected readonly facturas = signal<Factura[]>([]);
+  protected readonly grilla = new GrillaPaginada<Factura>(
+    consulta => this.facturasService.obtenerPagina(consulta),
+    'No se pudieron cargar las facturas.');
   protected readonly propuestasAceptadas = signal<Propuesta[]>([]);
-  protected readonly cargando = signal(true);
   protected readonly modalAbierto = signal(false);
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -44,7 +51,6 @@ export class FacturasComponent {
   });
 
   constructor() {
-    this.cargarFacturas();
     this.cargarPropuestasAceptadas();
   }
 
@@ -98,7 +104,7 @@ export class FacturasComponent {
       next: () => {
         this.guardando.set(false);
         this.modalAbierto.set(false);
-        this.cargarFacturas();
+        this.grilla.cargar();
         this.mostrarAviso('Factura creada correctamente');
       },
       error: respuesta => {
@@ -124,19 +130,6 @@ export class FacturasComponent {
       descripcion: ['', [Validators.required, Validators.maxLength(300)]],
       cantidad: [1, [Validators.required, Validators.min(0.01)]],
       precioUnitario: [0, [Validators.required, Validators.min(0)]]
-    });
-  }
-
-  private cargarFacturas(): void {
-    this.facturasService.obtenerTodas().subscribe({
-      next: facturas => {
-        this.facturas.set(facturas);
-        this.cargando.set(false);
-      },
-      error: () => {
-        this.error.set('No se pudieron cargar las facturas.');
-        this.cargando.set(false);
-      }
     });
   }
 

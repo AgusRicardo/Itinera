@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Actividades.Interfaces;
 using Itinera.Domain.Propuestas;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,14 @@ public class ActividadRepository(AppDbContext context) : IActividadRepository
 
     public Task<Actividad?> GetByIdAsync(int id)
         => ConRelaciones().FirstOrDefaultAsync(actividad => actividad.Id == id);
+
+    public Task<Pagina<Actividad>> GetPaginaAsync(PaginacionRequest paginacion)
+        => ConRelaciones()
+            .OrderBy(actividad => actividad.Destino.Ciudad.Pais.Nombre)
+            .ThenBy(actividad => actividad.Destino.Ciudad.Nombre)
+            .ThenBy(actividad => actividad.Nombre)
+            .ThenBy(actividad => actividad.Id)
+            .PaginarAsync(paginacion);
 
     public Task<List<Actividad>> GetAllAsync()
         => ConRelaciones().ToListAsync();

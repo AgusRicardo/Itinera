@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Ciudades.Dtos;
 using Itinera.Application.Ciudades.Interfaces;
 using Itinera.Security.Application.Common;
@@ -35,6 +36,12 @@ public class CiudadesController(ICiudadService ciudadService) : ApiController
 
         return Ok(response);
     }
+
+    [HttpGet("paginado")]
+    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
+    [ProducesResponseType(typeof(Pagina<CiudadResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<Pagina<CiudadResponse>>> ObtenerPagina([FromQuery] PaginacionRequest paginacion)
+        => Ok(await _ciudadService.ObtenerPaginaAsync(paginacion));
 
     [HttpGet("{id:int}")]
     [Authorize(Policy = Permisos.CatalogosOperativosVer)]

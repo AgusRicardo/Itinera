@@ -1,0 +1,207 @@
+<app-menu-principal />
+
+<main class="min-h-screen bg-itinera-background lg:pl-64">
+  <section class="mx-auto w-full max-w-5xl space-y-5 p-6">
+    @if (error()) {
+      <p class="rounded-2xl border border-red-200 bg-red-50 p-10 text-center text-sm text-red-700">{{ error() }}</p>
+    } @else if (propuesta(); as propuestaActual) {
+      @if (destino(); as destinoActual) {
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 class="font-itinera-display text-3xl">Itinerario de {{ destinoActual.descripcion }}</h1>
+            <p class="mt-1.5 text-sm text-itinera-muted">
+              {{ destinoActual.fechaLlegada | date:'dd/MM/yyyy' }} – {{ destinoActual.fechaPartida | date:'dd/MM/yyyy' }}
+              · {{ propuestaActual.cantidadViajeros }} viajeros
+              · Intensidad {{ propuestaActual.intensidadViaje.toLowerCase() }}
+              @if (destinoActual.itinerario; as itinerario) {
+                · {{ itinerario.actividades.length }} {{ itinerario.actividades.length === 1 ? 'actividad' : 'actividades' }} · {{ itinerario.costo | moneda }}
+              }
+            </p>
+            @if (puedeCambiarDestino()) {
+              <button
+                type="button"
+                class="mt-2 text-sm text-itinera-muted underline underline-offset-4 hover:text-itinera-foreground"
+                (click)="alternarDestino()"
+              >
+                Cambiar destino
+              </button>
+            }
+          </div>
+          <div class="flex flex-wrap gap-2">
+            @if (puedeEditar()) {
+              <a
+                [routerLink]="['/propuestas', propuestaId, 'destinos', destinoId, 'armar']"
+                class="rounded-lg border bg-itinera-card px-4 py-2.5 text-sm font-semibold"
+              >
+                {{ destinoActual.itinerario ? 'Editar a mano' : 'Crear a mano' }}
+              </a>
+            }
+            @if (puedeUsarIa()) {
+              <a
+                [routerLink]="['/propuestas', propuestaId, 'destinos', destinoId, 'generar']"
+                class="rounded-lg border border-itinera-accent bg-itinera-card px-4 py-2.5 text-sm font-semibold"
+              >
+                {{ destinoActual.itinerario ? 'Generar de nuevo con IA' : 'Generar con IA' }}
+              </a>
+            }
+            <button
+              type="button"
+              class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background"
+              (click)="volverAlDetalle()"
+            >
+              Volver al detalle
+            </button>
+          </div>
+        </div>
+
+        @for (faltante of destinoActual.faltantes; track faltante) {
+          <p class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{{ faltante }}</p>
+        }
+
+        @if (cambiandoDestino()) {
+          <section class="space-y-4 rounded-2xl border border-itinera-accent bg-itinera-card p-6 text-sm">
+            <h2 class="font-semibold">Cambiar {{ destinoActual.descripcion }} por otro destino</h2>
+            <p class="text-itinera-muted">
+              Se mantienen las fechas y el presupuesto. El itinerario actual se reemplaza recién cuando confirmes.
+              Lo que el cliente pidió en {{ destinoActual.descripcion }} deja de ser obligatorio.
+            </p>
+            @if (destinos().length) {
+              <div class="flex flex-wrap items-end gap-3">
+                <div class="min-w-0 flex-1 basis-60">
+                  <label for="nuevoDestino" class="mb-1.5 block font-medium">Nuevo destino</label>
+                  <select
+                    id="nuevoDestino"
+                    class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5"
+                    (change)="nuevoDestinoId.set(+$any($event.target).value)"
+                  >
+                    @for (opcion of destinos(); track opcion.id) {
+                      <option [value]="opcion.id" [selected]="opcion.id === nuevoDestinoId()">
+                        {{ opcion.ciudadNombre }}, {{ opcion.paisNombre }}
+                      </option>
+                    }
+                  </select>
+                </div>
+                <button type="button" class="rounded-lg bg-itinera-secondary px-4 py-2.5 font-medium" (click)="alternarDestino()">Cancelar</button>
+                <a
+                  [routerLink]="['/propuestas', propuestaId, 'destinos', destinoId, 'generar']"
+                  [queryParams]="{ nuevoDestino: nuevoDestinoId() }"
+                  class="rounded-lg bg-itinera-accent px-4 py-2.5 font-semibold"
+                >
+                  Generar para el nuevo destino
+                </a>
+              </div>
+            } @else {
+              <p class="text-itinera-muted">No hay otros destinos disponibles.</p>
+            }
+          </section>
+        }
+
+        @for (dia of dias(); track dia.fecha) {
+          <section
+            class="space-y-3 rounded-2xl border bg-itinera-card p-5 shadow-sm"
+            [class.border-itinera-accent]="diaAbierto() === dia.fecha"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h2 class="font-semibold">{{ dia.titulo }}</h2>
+              <div class="flex flex-wrap gap-2">
+                @if (puedeEditar()) {
+                  <a
+                    [routerLink]="['/propuestas', propuestaId, 'destinos', destinoId, 'armar']"
+                    [queryParams]="{ dia: dia.fecha }"
+                    class="rounded-lg bg-itinera-secondary px-4 py-2 text-sm font-medium"
+                  >
+                    Editar día
+                  </a>
+                }
+                @if (puedeUsarIa() && destinoActual.itinerario) {
+                  <button
+                    type="button"
+                    class="rounded-lg border border-itinera-accent px-4 py-2 text-sm font-medium"
+                    (click)="alternarDia(dia.fecha)"
+                  >
+                    Cambiar con IA
+                  </button>
+                }
+              </div>
+            </div>
+
+            @for (actividad of dia.actividades; track actividad.id) {
+              <div class="flex flex-wrap items-center gap-4 border-t pt-3">
+                <span class="w-12 text-sm font-semibold">{{ horaDe(actividad.fechaHoraInicio) }}</span>
+                <div class="min-w-0 flex-1 basis-48">
+                  <p class="text-sm font-semibold">{{ actividad.nombre }}</p>
+                  <p class="mt-1 text-xs text-itinera-muted">
+                    {{ actividad.duracionEstimada }} min · {{ actividad.costoFinal | moneda }}
+                  </p>
+                </div>
+                @if (actividad.pedidaPorCliente) {
+                  <span class="text-xs text-itinera-muted">Pedida por el cliente</span>
+                } @else if (actividad.generadaPorIA) {
+                  <span class="text-xs text-itinera-muted">Recomendada por la IA</span>
+                }
+              </div>
+            } @empty {
+              <p class="border-t pt-3 text-sm text-itinera-muted">Día libre.</p>
+            }
+
+            @if (diaAbierto() === dia.fecha) {
+              <div class="space-y-3 rounded-xl bg-itinera-background p-4 text-sm">
+                <label for="pedido" class="block font-medium">¿Qué querés cambiar de este día?</label>
+                <textarea
+                  id="pedido"
+                  rows="2"
+                  placeholder="Ej.: sumar algo al aire libre por la tarde"
+                  [value]="pedido()"
+                  class="w-full rounded-lg border bg-itinera-card px-3 py-2.5"
+                  (input)="pedido.set($any($event.target).value)"
+                ></textarea>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    class="rounded-lg bg-itinera-accent px-4 py-2.5 font-semibold disabled:opacity-60"
+                    [disabled]="procesando()"
+                    (click)="pedirCambio(dia.fecha)"
+                  >
+                    {{ procesando() ? 'Procesando…' : 'Pedir cambio a la IA' }}
+                  </button>
+                  <button type="button" class="rounded-lg bg-itinera-secondary px-4 py-2.5" (click)="cerrarDia()">Cancelar</button>
+                </div>
+                @if (sinCambios()) {
+                  <p class="text-amber-800">La IA no encontró un cambio que respete el presupuesto y la intensidad.</p>
+                }
+                @for (cambio of cambios(); track $index) {
+                  <div class="space-y-2 rounded-xl border border-itinera-accent bg-itinera-card p-4">
+                    <p class="font-semibold">Así quedaría el día</p>
+                    <p class="text-itinera-muted">{{ cambio.descripcion }}</p>
+                    @for (actividad of cambio.actividades; track $index) {
+                      <p>
+                        {{ horaDe(actividad.fechaHoraInicio) }} · {{ actividad.nombre }} · {{ actividad.duracionEstimada }} min
+                        · {{ actividad.costoFinal | moneda }}
+                      </p>
+                    } @empty {
+                      <p>Día libre</p>
+                    }
+                    <p class="text-xs text-itinera-muted">Los demás días no cambian.</p>
+                    <div class="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        class="rounded-lg bg-itinera-foreground px-4 py-2.5 font-semibold text-itinera-background disabled:opacity-60"
+                        [disabled]="procesando()"
+                        (click)="aplicar(cambio)"
+                      >
+                        Aplicar cambio
+                      </button>
+                      <button type="button" class="rounded-lg bg-itinera-secondary px-4 py-2.5" (click)="descartarCambios()">Descartar</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        }
+      }
+    } @else {
+      <p class="rounded-2xl border bg-itinera-card p-10 text-center text-sm text-itinera-muted">Cargando itinerario…</p>
+    }
+  </section>
+</main>

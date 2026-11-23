@@ -1,4 +1,6 @@
-﻿using Itinera.Domain.Propuestas;
+﻿using Itinera.Application.Propuestas.Dtos;
+using Itinera.Application.Common.Paginacion;
+using Itinera.Domain.Propuestas;
 
 namespace Itinera.Application.Propuestas.Interfaces;
 
@@ -7,6 +9,8 @@ public interface IPropuestaRepository
     Task AddAsync(Propuesta propuesta);
     Task<Propuesta?> GetByIdAsync(int id);
     Task<List<Propuesta>> GetAllAsync();
+    Task<Pagina<Propuesta>> GetPaginaAsync(ListarPropuestasRequest request);
+    Task<ResumenPropuestasResponse> GetResumenAsync();
     Task<List<Propuesta>> GetByClienteAsync(int clienteId);
     Task UpdateAsync(Propuesta propuesta);
 }

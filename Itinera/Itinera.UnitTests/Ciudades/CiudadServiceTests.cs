@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Ciudades.Dtos;
 using Itinera.Application.Ciudades.Interfaces;
 using Itinera.Application.Ciudades.Services;
@@ -131,6 +132,7 @@ public class CiudadServiceTests
         public Task<Pais?> GetByIdAsync(int id)
             => Task.FromResult(Paises.FirstOrDefault(p => p.Id == id));
 
+        public Task<Pagina<Pais>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
         public Task<List<Pais>> GetAllAsync()
             => Task.FromResult(Paises.ToList());
 
@@ -156,6 +158,7 @@ public class CiudadServiceTests
         public Task<Ciudad?> GetByIdAsync(int id)
             => Task.FromResult(Ciudades.FirstOrDefault(c => c.Id == id));
 
+        public Task<Pagina<Ciudad>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
         public Task<List<Ciudad>> GetAllAsync()
             => Task.FromResult(Ciudades.ToList());
 

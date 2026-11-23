@@ -1,0 +1,190 @@
+<app-menu-principal />
+
+<main class="min-h-screen bg-itinera-background lg:pl-64">
+  <header class="flex min-h-14 flex-wrap items-center justify-end gap-3 border-b bg-itinera-card px-6 py-2">
+    <div class="flex gap-2">
+      <button type="button" class="rounded-lg bg-itinera-secondary px-4 py-2.5 text-sm font-medium" (click)="cancelar()">Cancelar</button>
+      <button
+        type="button"
+        class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="guardando() || !actividades().length || fueraDeFecha().length > 0"
+        (click)="guardar()"
+      >
+        {{ guardando() ? 'Guardando…' : 'Guardar itinerario' }}
+      </button>
+    </div>
+  </header>
+
+  <section class="mx-auto flex w-full max-w-7xl flex-wrap items-start gap-6 p-6">
+    @if (error()) {
+      <p class="w-full rounded-2xl border border-red-200 bg-red-50 p-10 text-center text-sm text-red-700">{{ error() }}</p>
+    } @else if (propuesta(); as propuestaActual) {
+      @if (destino(); as destinoActual) {
+        <div class="min-w-0 flex-[999_1_480px] space-y-4">
+          <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1 class="font-itinera-display text-3xl">Itinerario de {{ destinoActual.descripcion }}</h1>
+              <p class="mt-1.5 text-sm text-itinera-muted">
+                {{ propuestaActual.cantidadViajeros }} viajeros · Intensidad {{ propuestaActual.intensidadViaje.toLowerCase() }}
+              </p>
+            </div>
+            <div class="flex gap-7">
+              <div>
+                <p class="text-xs text-itinera-muted">Llegada</p>
+                <p class="mt-1 text-sm font-semibold">{{ destinoActual.fechaLlegada | date:'dd/MM/yyyy' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-itinera-muted">Partida</p>
+                <p class="mt-1 text-sm font-semibold">{{ destinoActual.fechaPartida | date:'dd/MM/yyyy' }}</p>
+              </div>
+            </div>
+          </div>
+
+          @if (fueraDeFecha().length) {
+            <section class="space-y-2 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+              <p class="font-semibold">Actividades fuera de las fechas del destino. Quitalas y volvé a agregarlas en otro día.</p>
+              @for (actividad of fueraDeFecha(); track actividad.actividadId) {
+                <div class="flex items-center justify-between gap-3">
+                  <span>{{ actividad.fecha | date:'dd/MM/yyyy' }} · {{ actividad.nombre }}</span>
+                  <button type="button" class="px-3 py-2 text-red-700" (click)="quitar(actividad.actividadId)">Quitar</button>
+                </div>
+              }
+            </section>
+          }
+
+          @for (dia of dias(); track dia.fecha) {
+            <section class="space-y-3 rounded-2xl border bg-itinera-card p-5 shadow-sm">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 class="font-semibold">{{ dia.titulo }}</h2>
+                  <p class="mt-1 text-xs" [class]="dia.sobrecargado ? 'text-red-700' : 'text-itinera-muted'">
+                    @if (dia.actividades.length) {
+                      {{ dia.sobrecargado ? 'Día sobrecargado: ' : '' }}{{ dia.minutos }} de {{ propuestaActual.limites.minutosDisponibles }} min
+                    } @else {
+                      Sin actividades
+                    }
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="rounded-lg border border-itinera-foreground px-4 py-2.5 text-sm font-semibold"
+                  (click)="alternarDia(dia.fecha)"
+                >
+                  {{ diaAbierto() === dia.fecha ? 'Cerrar' : '+ Agregar actividad' }}
+                </button>
+              </div>
+
+              @for (actividad of dia.actividades; track actividad.actividadId) {
+                <div class="flex flex-wrap items-center gap-4 border-t pt-3">
+                  <input
+                    type="time"
+                    [attr.aria-label]="'Hora de ' + actividad.nombre"
+                    [value]="actividad.hora"
+                    class="rounded-lg border bg-itinera-secondary px-3 py-2 text-sm"
+                    (change)="cambiarHora(actividad.actividadId, $any($event.target).value)"
+                  />
+                  <div class="min-w-0 flex-1 basis-44">
+                    <p class="text-sm font-semibold">{{ actividad.nombre }}</p>
+                    <p class="mt-1 text-xs text-itinera-muted">
+                      {{ actividad.duracion }} min · {{ actividad.costo | moneda }}
+                      @if (esPedida(actividad.actividadId)) { · Pedida por el cliente }
+                    </p>
+                  </div>
+                  <button type="button" class="px-3 py-2 text-sm text-red-700" (click)="quitar(actividad.actividadId)">Quitar</button>
+                </div>
+              }
+
+              @if (diaAbierto() === dia.fecha) {
+                <div class="space-y-3 rounded-xl border border-itinera-accent bg-itinera-background p-4">
+                  <div class="flex flex-wrap gap-3">
+                    <input
+                      type="search"
+                      placeholder="Buscar actividad"
+                      aria-label="Buscar actividad"
+                      [value]="busqueda()"
+                      class="min-w-0 flex-1 basis-48 rounded-lg border bg-itinera-card px-3 py-2.5 text-sm"
+                      (input)="busqueda.set($any($event.target).value)"
+                    />
+                    <input
+                      type="time"
+                      aria-label="Hora de inicio"
+                      [value]="horaNueva()"
+                      class="rounded-lg border bg-itinera-card px-3 py-2.5 text-sm"
+                      (change)="horaNueva.set($any($event.target).value)"
+                    />
+                  </div>
+                  @for (opcion of opciones(); track opcion.id) {
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-itinera-card px-3 py-2.5">
+                      <div>
+                        <p class="text-sm font-semibold">{{ opcion.nombre }}</p>
+                        <p class="mt-1 text-xs text-itinera-muted">
+                          {{ opcion.duracionEstimada }} min · {{ opcion.costoBase * propuestaActual.cantidadViajeros | moneda }}
+                          @if (esPedida(opcion.id)) { · Pedida por el cliente }
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background"
+                        (click)="agregar(opcion, dia.fecha)"
+                      >
+                        Agregar al día
+                      </button>
+                    </div>
+                  } @empty {
+                    <p class="text-sm text-itinera-muted">No quedan actividades que coincidan en el catálogo de este destino.</p>
+                  }
+                </div>
+              }
+            </section>
+          }
+        </div>
+
+        <aside class="min-w-0 flex-[1_1_280px] space-y-4">
+          <section class="space-y-3 rounded-2xl border bg-itinera-card p-5 text-sm shadow-sm">
+            <h2 class="font-semibold">Presupuesto del viaje</h2>
+            <div class="h-2 overflow-hidden rounded-full bg-itinera-secondary">
+              <div
+                class="h-full"
+                [class]="disponible() < 0 ? 'bg-red-700' : 'bg-itinera-accent'"
+                [style.width.%]="porcentajeUsado()"
+              ></div>
+            </div>
+            <div class="flex justify-between gap-3">
+              <span class="text-itinera-muted">Este itinerario</span>
+              <strong>{{ costoItinerario() | moneda }}</strong>
+            </div>
+            @for (otro of otrosDestinos(); track otro.id) {
+              <div class="flex justify-between gap-3">
+                <span class="text-itinera-muted">{{ otro.descripcion }}</span>
+                <strong>{{ otro.itinerario?.costo | moneda }}</strong>
+              </div>
+            }
+            <div class="flex justify-between gap-3 border-t pt-3" [class.text-red-700]="disponible() < 0">
+              <span>{{ disponible() < 0 ? 'Te pasás por' : 'Disponible' }}</span>
+              <strong>{{ (disponible() < 0 ? -disponible() : disponible()) | moneda }}</strong>
+            </div>
+          </section>
+
+          @if (pedidas().length) {
+            <section class="space-y-3 rounded-2xl border border-itinera-accent bg-itinera-card p-5 text-sm">
+              <h2 class="font-semibold">Pedido por el cliente</h2>
+              @for (pedida of pedidas(); track pedida.id) {
+                <div class="flex items-center justify-between gap-3">
+                  <span>{{ pedida.nombre }}</span>
+                  <span
+                    class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold"
+                    [class]="pedida.incluida ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'"
+                  >
+                    {{ pedida.incluida ? 'Incluida' : 'Falta ubicar' }}
+                  </span>
+                </div>
+              }
+            </section>
+          }
+        </aside>
+      }
+    } @else {
+      <p class="w-full rounded-2xl border bg-itinera-card p-10 text-center text-sm text-itinera-muted">Cargando itinerario…</p>
+    }
+  </section>
+</main>

@@ -26,6 +26,15 @@
       >
         Ver
       </a>
+      @if (rutaEditar) {
+        <a
+          [routerLink]="rutaEditar"
+          class="block rounded-lg px-3 py-2 text-sm hover:bg-itinera-secondary"
+          (click)="abierto.set(false)"
+        >
+          Editar
+        </a>
+      }
       @if (puedeEliminar) {
         <button
           type="button"

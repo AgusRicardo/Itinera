@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Clientes.Dtos;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Clientes.Services;
@@ -124,6 +125,8 @@ public class ClienteServiceTests
         public Task<Cliente?> GetByIdAsync(int id)
             => Task.FromResult(Clientes.FirstOrDefault(c => c.Id == id));
 
+        public Task<Pagina<Cliente>> GetPaginaAsync(ListarClientesRequest request) => throw new NotSupportedException();
+        public Task<ResumenClientesResponse> GetResumenAsync() => throw new NotSupportedException();
         public Task<List<Cliente>> GetAllAsync()
             => Task.FromResult(Clientes.ToList());
 

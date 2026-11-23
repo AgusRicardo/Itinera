@@ -451,6 +451,9 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Property<int>("DuracionEstimada")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("GeneradoPorIA")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -463,7 +466,7 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.ToTable("Actividades", (string)null);
                 });
 
-            modelBuilder.Entity("Itinera.Domain.Propuestas.ActividadDestinoItinerario", b =>
+            modelBuilder.Entity("Itinera.Domain.Propuestas.ActividadItinerario", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -478,11 +481,11 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<int>("DestinoItinerarioId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("FechaHoraInicio")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ItinerarioId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Observaciones")
                         .HasMaxLength(500)
@@ -495,7 +498,7 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ActividadId");
 
-                    b.HasIndex("DestinoItinerarioId");
+                    b.HasIndex("ItinerarioId");
 
                     b.ToTable("ActividadesDestinoItinerario", (string)null);
                 });
@@ -547,7 +550,7 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.ToTable("Destinos", (string)null);
                 });
 
-            modelBuilder.Entity("Itinera.Domain.Propuestas.DestinoItinerario", b =>
+            modelBuilder.Entity("Itinera.Domain.Propuestas.Itinerario", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -557,41 +560,6 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("DestinoId")
                         .HasColumnType("integer");
-
-                    b.Property<DateOnly>("FechaLlegada")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly>("FechaPartida")
-                        .HasColumnType("date");
-
-                    b.Property<int>("ItinerarioId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Orden")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DestinoId");
-
-                    b.HasIndex("ItinerarioId");
-
-                    b.ToTable("DestinosItinerario", (string)null);
-                });
-
-            modelBuilder.Entity("Itinera.Domain.Propuestas.Itinerario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly>("FechaFin")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly>("FechaInicio")
-                        .HasColumnType("date");
 
                     b.Property<DateTime?>("FechaModificacion")
                         .HasColumnType("timestamp with time zone");
@@ -614,7 +582,9 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PropuestaId")
+                    b.HasIndex("DestinoId");
+
+                    b.HasIndex("PropuestaId", "DestinoId")
                         .IsUnique();
 
                     b.ToTable("Itinerarios", (string)null);
@@ -649,6 +619,9 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CantidadViajeros")
+                        .HasColumnType("integer");
+
                     b.Property<int>("ClienteId")
                         .HasColumnType("integer");
 
@@ -664,11 +637,25 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateOnly>("FechaFin")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("FechaInicio")
+                        .HasColumnType("date");
+
                     b.Property<DateTime?>("FechaModificacion")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("FechaRegistracion")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IntensidadViajeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Preferencias")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<decimal>("Presupuesto")
                         .HasPrecision(18, 2)
@@ -691,6 +678,45 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.HasIndex("EstadoPropuestaId");
 
                     b.ToTable("Propuestas", (string)null);
+                });
+
+            modelBuilder.Entity("Itinera.Domain.Propuestas.PropuestaActividad", b =>
+                {
+                    b.Property<int>("PropuestaId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ActividadId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PropuestaId", "ActividadId");
+
+                    b.HasIndex("ActividadId");
+
+                    b.ToTable("PropuestasActividades", (string)null);
+                });
+
+            modelBuilder.Entity("Itinera.Domain.Propuestas.PropuestaDestino", b =>
+                {
+                    b.Property<int>("PropuestaId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DestinoId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("FechaLlegada")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("FechaPartida")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PropuestaId", "DestinoId");
+
+                    b.HasIndex("DestinoId");
+
+                    b.ToTable("PropuestasDestinos", (string)null);
                 });
 
             modelBuilder.Entity("Itinera.Domain.Propuestas.PropuestaEtiqueta", b =>
@@ -977,7 +1003,7 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Navigation("Destino");
                 });
 
-            modelBuilder.Entity("Itinera.Domain.Propuestas.ActividadDestinoItinerario", b =>
+            modelBuilder.Entity("Itinera.Domain.Propuestas.ActividadItinerario", b =>
                 {
                     b.HasOne("Itinera.Domain.Propuestas.Actividad", "Actividad")
                         .WithMany()
@@ -985,15 +1011,15 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Itinera.Domain.Propuestas.DestinoItinerario", "DestinoItinerario")
-                        .WithMany("ActividadDestinoItinerarios")
-                        .HasForeignKey("DestinoItinerarioId")
+                    b.HasOne("Itinera.Domain.Propuestas.Itinerario", "Itinerario")
+                        .WithMany("Actividades")
+                        .HasForeignKey("ItinerarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Actividad");
 
-                    b.Navigation("DestinoItinerario");
+                    b.Navigation("Itinerario");
                 });
 
             modelBuilder.Entity("Itinera.Domain.Propuestas.Ciudad", b =>
@@ -1018,30 +1044,21 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Navigation("Ciudad");
                 });
 
-            modelBuilder.Entity("Itinera.Domain.Propuestas.DestinoItinerario", b =>
+            modelBuilder.Entity("Itinera.Domain.Propuestas.Itinerario", b =>
                 {
                     b.HasOne("Itinera.Domain.Propuestas.Destino", "Destino")
                         .WithMany()
                         .HasForeignKey("DestinoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Itinera.Domain.Propuestas.Itinerario", null)
-                        .WithMany("Destinos")
-                        .HasForeignKey("ItinerarioId")
+                    b.HasOne("Itinera.Domain.Propuestas.Propuesta", "Propuesta")
+                        .WithMany("Itinerarios")
+                        .HasForeignKey("PropuestaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Destino");
-                });
-
-            modelBuilder.Entity("Itinera.Domain.Propuestas.Itinerario", b =>
-                {
-                    b.HasOne("Itinera.Domain.Propuestas.Propuesta", "Propuesta")
-                        .WithOne("Itinerario")
-                        .HasForeignKey("Itinera.Domain.Propuestas.Itinerario", "PropuestaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Propuesta");
                 });
@@ -1071,6 +1088,44 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Navigation("Empleado");
 
                     b.Navigation("EstadoPropuestaCatalogo");
+                });
+
+            modelBuilder.Entity("Itinera.Domain.Propuestas.PropuestaActividad", b =>
+                {
+                    b.HasOne("Itinera.Domain.Propuestas.Actividad", "Actividad")
+                        .WithMany()
+                        .HasForeignKey("ActividadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Itinera.Domain.Propuestas.Propuesta", "Propuesta")
+                        .WithMany("Actividades")
+                        .HasForeignKey("PropuestaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Actividad");
+
+                    b.Navigation("Propuesta");
+                });
+
+            modelBuilder.Entity("Itinera.Domain.Propuestas.PropuestaDestino", b =>
+                {
+                    b.HasOne("Itinera.Domain.Propuestas.Destino", "Destino")
+                        .WithMany()
+                        .HasForeignKey("DestinoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Itinera.Domain.Propuestas.Propuesta", "Propuesta")
+                        .WithMany("Destinos")
+                        .HasForeignKey("PropuestaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Destino");
+
+                    b.Navigation("Propuesta");
                 });
 
             modelBuilder.Entity("Itinera.Domain.Propuestas.PropuestaEtiqueta", b =>
@@ -1222,14 +1277,9 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Navigation("Actividades");
                 });
 
-            modelBuilder.Entity("Itinera.Domain.Propuestas.DestinoItinerario", b =>
-                {
-                    b.Navigation("ActividadDestinoItinerarios");
-                });
-
             modelBuilder.Entity("Itinera.Domain.Propuestas.Itinerario", b =>
                 {
-                    b.Navigation("Destinos");
+                    b.Navigation("Actividades");
                 });
 
             modelBuilder.Entity("Itinera.Domain.Propuestas.Pais", b =>
@@ -1239,11 +1289,15 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Itinera.Domain.Propuestas.Propuesta", b =>
                 {
+                    b.Navigation("Actividades");
+
+                    b.Navigation("Destinos");
+
                     b.Navigation("Etiquetas");
 
                     b.Navigation("Facturas");
 
-                    b.Navigation("Itinerario");
+                    b.Navigation("Itinerarios");
                 });
 
             modelBuilder.Entity("Itinera.Domain.Usuarios.Cliente", b =>

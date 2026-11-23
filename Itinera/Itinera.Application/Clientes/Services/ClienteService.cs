@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Clientes.Dtos;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Clientes.Mappers;
@@ -43,6 +44,16 @@ public class ClienteService(
 
         return ClienteMapper.ToResponse(cliente);
     }
+
+    public async Task<Pagina<ClienteResponse>> ObtenerPaginaAsync(ListarClientesRequest request)
+    {
+        var pagina = await _clienteRepository.GetPaginaAsync(request);
+
+        return pagina.Convertir(ClienteMapper.ToResponse);
+    }
+
+    public Task<ResumenClientesResponse> ObtenerResumenAsync()
+        => _clienteRepository.GetResumenAsync();
 
     public async Task<List<ClienteResponse>> ObtenerTodosAsync()
     {

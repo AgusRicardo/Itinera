@@ -1,143 +1,219 @@
-<section
-  class="max-h-[90vh] w-full overflow-y-auto rounded-2xl border bg-itinera-card shadow-xl"
-  (click)="$event.stopPropagation()"
->
-  <header class="flex items-start justify-between border-b px-6 py-5">
-    <div>
-      <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">
-        Operación comercial
-      </p>
-      <h1 class="mt-1 font-itinera-display text-xl">Nueva propuesta</h1>
-    </div>
-    <button
-      type="button"
-      aria-label="Cerrar nueva propuesta"
-      class="rounded-md p-2 text-itinera-muted transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
-      (click)="salir()"
-    >
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M6 6l12 12M18 6 6 18" />
-      </svg>
-    </button>
-  </header>
-
-  <section class="p-6">
-    <p class="mb-5 text-sm text-itinera-muted">
-      Completá los datos para generar un itinerario personalizado.
+<section class="space-y-6">
+  <div>
+    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">Operación comercial</p>
+    <h1 class="mt-2 font-itinera-display text-3xl">{{ propuesta ? 'Editar propuesta #' + propuesta.id : 'Nueva propuesta' }}</h1>
+    <p class="mt-1.5 text-sm text-itinera-muted">
+      {{ propuesta
+        ? 'Los itinerarios se conservan; si dejan de cumplir los datos nuevos quedan incompletos.'
+        : 'Completá los datos del viaje. Después vas a armar el itinerario de cada destino.' }}
     </p>
+  </div>
 
-    <form
-      class="space-y-5 rounded-2xl border bg-itinera-card p-6 shadow-sm"
-      [formGroup]="formulario"
-      (ngSubmit)="crear()"
-    >
-      <div class="relative">
-        <label class="mb-1.5 block text-sm font-medium" for="cliente">Cliente <span class="text-red-600">*</span></label>
-        <input
-          id="cliente"
-          type="search"
-          autocomplete="off"
-          placeholder="Buscar por nombre y apellido..."
-          [value]="busquedaCliente()"
-          class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
-          (input)="buscarCliente($any($event.target).value)"
-          (focus)="abrirClientes()"
-          (blur)="cerrarClientes()"
-        />
+  <form
+    class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]"
+    [formGroup]="formulario"
+    (ngSubmit)="crear()"
+  >
+    <div class="min-w-0 space-y-6">
+      <article class="space-y-5 rounded-2xl border bg-itinera-card p-6">
+        <div>
+          <h2 class="font-itinera-display text-xl">Cliente</h2>
+          <p class="mt-1 text-sm text-itinera-muted">Para quién es el viaje y quién lo gestiona.</p>
+        </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="relative">
+            <label class="mb-1.5 block text-sm font-medium" for="cliente">Cliente <span class="text-red-600">*</span></label>
+            <input
+              id="cliente"
+              type="search"
+              autocomplete="off"
+              placeholder="Buscar por nombre y apellido..."
+              [value]="busquedaCliente()"
+              [disabled]="propuesta !== null"
+              class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+              (input)="buscarCliente($any($event.target).value)"
+              (focus)="abrirClientes()"
+              (blur)="cerrarClientes()"
+            />
 
-        @if (clientesAbiertos()) {
-          <div class="absolute left-0 right-0 top-full z-10 mt-1 max-h-56 overflow-y-auto rounded-xl border bg-itinera-card p-1.5 shadow-lg">
-            @if (clientesFiltrados().length) {
-              @for (cliente of clientesFiltrados(); track cliente.id) {
-                <button
-                  type="button"
-                  class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-itinera-secondary"
-                  (click)="seleccionarCliente(cliente)"
-                  (mousedown)="seleccionarCliente(cliente)"
-                >
-                  {{ cliente.nombre }}
-                </button>
-              }
-            } @else {
-              <p class="px-3 py-2 text-sm text-itinera-muted">
-                No se encontraron clientes.
-              </p>
+            @if (clientesAbiertos()) {
+              <div class="absolute left-0 right-0 top-full z-10 mt-1 max-h-56 overflow-y-auto rounded-xl border bg-itinera-card p-1.5 shadow-lg">
+                @if (clientesFiltrados().length) {
+                  @for (cliente of clientesFiltrados(); track cliente.id) {
+                    <button
+                      type="button"
+                      class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-itinera-secondary"
+                      (click)="seleccionarCliente(cliente)"
+                      (mousedown)="seleccionarCliente(cliente)"
+                    >
+                      {{ cliente.nombre }}
+                    </button>
+                  }
+                } @else {
+                  <p class="px-3 py-2 text-sm text-itinera-muted">
+                    No se encontraron clientes.
+                  </p>
+                }
+              </div>
             }
           </div>
-        }
-      </div>
 
-      <div>
-        <label class="mb-1.5 block text-sm font-medium" for="empleado">Empleado responsable <span class="text-red-600">*</span></label>
-        <select
-          id="empleado"
-          formControlName="empleadoId"
-          class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
-        >
-          @for (empleado of empleados(); track empleado.id) {
-            <option [ngValue]="empleado.id">{{ empleado.nombre }}</option>
-          }
-        </select>
-      </div>
-
-      <div>
-        <label class="mb-1.5 block text-sm font-medium" for="presupuesto">
-          Presupuesto máximo (USD) <span class="text-red-600">*</span>
-        </label>
-        <input
-          id="presupuesto"
-          type="number"
-          formControlName="presupuesto"
-          class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
-        />
-      </div>
-
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label class="mb-1.5 block text-sm font-medium" for="fechaInicio">Fecha inicio <span class="text-red-600">*</span></label>
-          <input
-            id="fechaInicio"
-            type="date"
-            formControlName="fechaInicio"
-            class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
-          />
-        </div>
-        <div>
-          <label class="mb-1.5 block text-sm font-medium" for="fechaFin">Fecha fin <span class="text-red-600">*</span></label>
-          <input
-            id="fechaFin"
-            type="date"
-            formControlName="fechaFin"
-            class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
-          />
-        </div>
-      </div>
-
-        <fieldset>
-          <legend class="mb-3 text-sm font-medium">Destinos <span class="text-red-600">*</span></legend>
-          @if (destinos().length) {
-            <div class="flex flex-wrap gap-2">
-              @for (destino of destinos(); track destino.id) {
-                <button
-                  type="button"
-                  class="rounded-full border px-3.5 py-1.5 text-sm transition-colors"
-                  [class]="estaSeleccionado(destino.id)
-                    ? 'border-itinera-accent bg-itinera-accent text-itinera-foreground'
-                    : 'bg-itinera-secondary hover:border-itinera-accent'"
-                  (click)="alternarDestino(destino.id)"
-                >
-                  {{ destino.nombre }}
-                </button>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="empleado">Empleado responsable <span class="text-red-600">*</span></label>
+            <select
+              id="empleado"
+              formControlName="empleadoId"
+              class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+            >
+              @for (empleado of empleados(); track empleado.id) {
+                <option [ngValue]="empleado.id">{{ empleado.nombre }}</option>
               }
+            </select>
+          </div>
+        </div>
+      </article>
+
+      <article class="space-y-5 rounded-2xl border bg-itinera-card p-6">
+        <div>
+          <h2 class="font-itinera-display text-xl">Viaje</h2>
+          <p class="mt-1 text-sm text-itinera-muted">Cuándo viajan, con cuánto y a qué ritmo.</p>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label class="mb-1.5 block text-sm font-medium" for="fechas">Fechas <span class="text-red-600">*</span></label>
+            <app-rango-fechas
+              idCampo="fechas"
+              descripcion="Fechas del viaje"
+              [desde]="valores().fechaInicio"
+              [hasta]="valores().fechaFin"
+              (cambio)="cambiarViaje($event)"
+            />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="presupuesto">Presupuesto máximo <span class="text-red-600">*</span></label>
+            <app-input-moneda idCampo="presupuesto" formControlName="presupuesto" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium" for="cantidadViajeros">Viajeros <span class="text-red-600">*</span></label>
+            <div class="flex items-center rounded-lg border bg-itinera-secondary focus-within:border-itinera-accent focus-within:ring-2 focus-within:ring-itinera-accent/30">
+              <button type="button" aria-label="Quitar un viajero" class="px-4 text-lg leading-6 disabled:opacity-30" [disabled]="valores().cantidadViajeros <= 1" (click)="cambiarViajeros(-1)">−</button>
+              <input
+                id="cantidadViajeros"
+                type="number"
+                min="1"
+                formControlName="cantidadViajeros"
+                class="w-full min-w-0 bg-transparent py-2.5 text-center text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button type="button" aria-label="Sumar un viajero" class="px-4 text-lg leading-6" (click)="cambiarViajeros(1)">+</button>
             </div>
+          </div>
+        </div>
+        <fieldset>
+          <legend class="mb-1.5 text-sm font-medium">Intensidad del viaje <span class="text-red-600">*</span></legend>
+          <div class="grid gap-3 sm:grid-cols-3">
+            @for (intensidad of intensidades; track intensidad.valor) {
+              <label class="relative cursor-pointer rounded-xl border px-4 py-3 transition-colors hover:border-itinera-accent has-checked:border-itinera-accent has-checked:bg-itinera-accent/15 has-focus-visible:ring-2 has-focus-visible:ring-itinera-accent/30">
+                <input type="radio" class="sr-only" formControlName="intensidadViaje" [value]="intensidad.valor" />
+                <span class="block text-sm font-semibold">{{ intensidad.valor }}</span>
+                <span class="mt-0.5 block text-xs text-itinera-muted">{{ intensidad.descripcion }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+      </article>
+
+      <article class="space-y-5 rounded-2xl border bg-itinera-card p-6">
+        <div>
+          <h2 class="font-itinera-display text-xl">Destinos <span class="text-red-600">*</span></h2>
+          <p class="mt-1 text-sm text-itinera-muted">Se arma un itinerario por cada destino.</p>
+        </div>
+        <app-buscador-opciones
+          idCampo="destinos"
+          placeholder="Escribí al menos 3 letras para buscar un destino..."
+          [opciones]="opcionesDestinos()"
+          [limpiarAlSeleccionar]="true"
+          (seleccionada)="agregarDestino($event)"
+        />
+        @if (estadias().length) {
+          <div>
+            <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+              <p class="text-sm font-medium">Fechas de cada destino <span class="text-red-600">*</span></p>
+              <button type="button" class="text-xs text-itinera-muted underline underline-offset-4 hover:text-itinera-foreground" (click)="repartirDias()">
+                Repartir días
+              </button>
+            </div>
+            <ol class="divide-y rounded-xl border">
+              @for (estadia of estadias(); track estadia.destinoId) {
+                <li class="flex flex-wrap items-center gap-3 px-4 py-3">
+                  <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-itinera-accent/20 text-xs font-semibold">{{ $index + 1 }}</span>
+                  <span class="min-w-0 flex-1 text-sm font-medium">{{ nombreDestino(estadia.destinoId) }}</span>
+                  <app-rango-fechas
+                    class="order-last w-full sm:order-none sm:w-64"
+                    [descripcion]="'Estadía en ' + nombreDestino(estadia.destinoId)"
+                    [desde]="estadia.fechaLlegada"
+                    [hasta]="estadia.fechaPartida"
+                    [min]="valores().fechaInicio"
+                    [max]="valores().fechaFin"
+                    [alineadoDerecha]="true"
+                    (cambio)="cambiarEstadia(estadia.destinoId, $event)"
+                  />
+                  <button
+                    type="button"
+                    class="rounded-full px-2 py-1 text-sm text-itinera-muted hover:bg-itinera-secondary hover:text-itinera-foreground"
+                    [attr.aria-label]="'Quitar ' + nombreDestino(estadia.destinoId)"
+                    (click)="alternarDestino(estadia.destinoId)"
+                  >
+                    ✕
+                  </button>
+                </li>
+              }
+            </ol>
+          </div>
+        }
+      </article>
+
+      <article class="space-y-5 rounded-2xl border bg-itinera-card p-6">
+        <div>
+          <h2 class="font-itinera-display text-xl">Gustos del cliente</h2>
+          <p class="mt-1 text-sm text-itinera-muted">Con esto la IA arma un itinerario a medida.</p>
+        </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium" for="actividades">Actividades del viaje</label>
+          <p class="mb-3 text-xs text-itinera-muted">
+            Las actividades que selecciones serán obligatorias en el itinerario. Si no elegís ninguna, la IA recomendará libremente.
+          </p>
+          @if (destinosSeleccionados().length) {
+            <app-buscador-opciones
+              idCampo="actividades"
+              placeholder="Escribí al menos 3 letras para buscar en los destinos elegidos..."
+              [opciones]="opcionesActividades()"
+              [limpiarAlSeleccionar]="true"
+              (seleccionada)="agregarActividad($event)"
+            />
+            @if (actividadesElegidas().length) {
+              <ul class="mt-3 flex flex-wrap gap-2">
+                @for (actividad of actividadesElegidas(); track actividad.id) {
+                  <li class="flex items-center gap-2 rounded-full border border-itinera-accent bg-itinera-accent/15 py-1.5 pl-3.5 pr-2 text-sm">
+                    <span>{{ actividad.nombre }} <span class="text-itinera-muted">({{ actividad.ciudadNombre }})</span></span>
+                    <button
+                      type="button"
+                      class="rounded-full px-2 hover:bg-itinera-accent/30"
+                      [attr.aria-label]="'Quitar ' + actividad.nombre"
+                      (click)="quitarActividad(actividad.id)"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
           } @else {
             <p class="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              No hay destinos disponibles para seleccionar.
+              Seleccioná al menos un destino para buscar actividades.
             </p>
           }
-      </fieldset>
+        </div>
 
-      <div>
         <fieldset>
           <legend class="mb-3 text-sm font-medium">Etiquetas</legend>
           @if (etiquetas().length) {
@@ -159,30 +235,78 @@
             <p class="text-sm text-itinera-muted">No hay etiquetas creadas para esta empresa.</p>
           }
         </fieldset>
-      </div>
 
-      <div>
-        <label class="mb-1.5 block text-sm font-medium" for="preferencias">Preferencias y detalles</label>
-        <textarea
-          id="preferencias"
-          rows="4"
-          formControlName="preferencias"
-          placeholder="Contanos detalles adicionales del viaje..."
-          class="w-full resize-none rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
-        ></textarea>
-      </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium" for="preferencias">Preferencias y detalles</label>
+          <textarea
+            id="preferencias"
+            rows="4"
+            formControlName="preferencias"
+            placeholder="Contanos detalles adicionales del viaje..."
+            class="w-full resize-none rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+          ></textarea>
+        </div>
+      </article>
+    </div>
 
+    <aside class="space-y-5 rounded-2xl border bg-itinera-card p-6 text-sm lg:sticky lg:top-6">
+      <h2 class="font-itinera-display text-xl">Resumen</h2>
+      <dl class="space-y-2.5">
+        <div class="flex justify-between gap-3">
+          <dt class="text-itinera-muted">Cliente</dt>
+          <dd class="text-right font-semibold">{{ valores().clienteId ? busquedaCliente() : '—' }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-itinera-muted">Fechas</dt>
+          <dd class="text-right font-semibold">
+            @if (valores().fechaInicio && valores().fechaFin) {
+              {{ valores().fechaInicio | date:'dd/MM' }} al {{ valores().fechaFin | date:'dd/MM/yyyy' }}
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-itinera-muted">Presupuesto</dt>
+          <dd class="text-right font-semibold">{{ (valores().presupuesto | moneda) || '—' }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-itinera-muted">Viajeros</dt>
+          <dd class="text-right font-semibold">{{ valores().cantidadViajeros || '—' }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-itinera-muted">Intensidad</dt>
+          <dd class="text-right font-semibold">{{ valores().intensidadViaje }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-itinera-muted">Destinos</dt>
+          <dd class="text-right font-semibold">{{ estadias().length }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-itinera-muted">Actividades pedidas</dt>
+          <dd class="text-right font-semibold">{{ actividadesSeleccionadas().length }}</dd>
+        </div>
+      </dl>
+
+      @if (faltantes().length) {
+        <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">Falta completar: {{ faltantes().join(', ') }}.</p>
+      }
       @if (error()) {
         <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error() }}</p>
       }
 
-      <button
-        type="submit"
-        [disabled]="formulario.invalid || destinosSeleccionados().length === 0 || cargando()"
-        class="w-full rounded-xl bg-itinera-accent py-3.5 text-sm font-semibold text-itinera-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {{ cargando() ? 'Generando itinerario…' : 'Generar itinerario' }}
-      </button>
-    </form>
-  </section>
+      <div class="space-y-2 border-t pt-5">
+        <button
+          type="submit"
+          [disabled]="formulario.invalid || faltantes().length > 0 || cargando()"
+          class="w-full rounded-lg bg-itinera-foreground px-5 py-3 font-semibold text-itinera-background disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {{ cargando() ? 'Guardando…' : propuesta ? 'Guardar cambios' : 'Crear propuesta' }}
+        </button>
+        <button type="button" class="w-full rounded-lg bg-itinera-secondary px-5 py-3 font-medium" (click)="salir()">
+          Cancelar
+        </button>
+      </div>
+    </aside>
+  </form>
 </section>

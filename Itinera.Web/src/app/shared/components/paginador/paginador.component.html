@@ -1,0 +1,70 @@
+@if (grilla().total()) {
+  <div class="mt-4 flex flex-wrap items-center justify-end gap-x-6 gap-y-3 text-sm">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-itinera-muted">
+      <p>
+        <span class="font-semibold text-itinera-foreground">{{ desde() }}–{{ hasta() }}</span>
+        de <span class="font-semibold text-itinera-foreground">{{ grilla().total() }}</span>
+      </p>
+      <div class="flex items-center gap-2" role="group" aria-label="Elementos por página">
+        Por página
+        <div class="isolate inline-flex -space-x-px rounded-lg bg-itinera-card text-itinera-foreground shadow-sm">
+          @for (tamano of tamanos; track tamano; let primero = $first; let ultimo = $last) {
+            <button
+              type="button"
+              class="min-w-10 border px-3 py-2"
+              [class.rounded-l-lg]="primero"
+              [class.rounded-r-lg]="ultimo"
+              [class]="tamano === grilla().tamanoPagina()
+                ? 'z-10 bg-itinera-foreground font-semibold text-itinera-background'
+                : 'hover:bg-itinera-secondary'"
+              [attr.aria-pressed]="tamano === grilla().tamanoPagina()"
+              (click)="grilla().cambiarTamano(tamano)"
+            >
+              {{ tamano }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (cantidadPaginas() > 1) {
+      <nav class="isolate inline-flex -space-x-px rounded-lg bg-itinera-card shadow-sm" aria-label="Paginación">
+        <button
+          type="button"
+          aria-label="Página anterior"
+          class="rounded-l-lg border px-3 py-2 hover:bg-itinera-secondary disabled:opacity-40"
+          [disabled]="grilla().pagina() === 1"
+          (click)="grilla().irA(grilla().pagina() - 1)"
+        >
+          ‹
+        </button>
+        @for (pagina of paginas(); track $index) {
+          @if (pagina === null) {
+            <span class="border px-3 py-2 text-itinera-muted">…</span>
+          } @else {
+            <button
+              type="button"
+              class="min-w-10 border px-3 py-2"
+              [class]="pagina === grilla().pagina()
+                ? 'z-10 bg-itinera-foreground font-semibold text-itinera-background'
+                : 'hover:bg-itinera-secondary'"
+              [attr.aria-current]="pagina === grilla().pagina() ? 'page' : null"
+              (click)="grilla().irA(pagina)"
+            >
+              {{ pagina }}
+            </button>
+          }
+        }
+        <button
+          type="button"
+          aria-label="Página siguiente"
+          class="rounded-r-lg border px-3 py-2 hover:bg-itinera-secondary disabled:opacity-40"
+          [disabled]="grilla().pagina() === cantidadPaginas()"
+          (click)="grilla().irA(grilla().pagina() + 1)"
+        >
+          ›
+        </button>
+      </nav>
+    }
+  </div>
+}

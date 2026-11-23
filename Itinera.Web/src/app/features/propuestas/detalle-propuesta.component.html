@@ -1,17 +1,7 @@
 <app-menu-principal />
 
 <main class="min-h-screen bg-itinera-background lg:pl-64">
-  <header class="flex h-14 items-center justify-between border-b bg-itinera-card px-6">
-    <div class="flex items-center gap-3">
-      <a routerLink="/propuestas" class="text-sm text-itinera-muted hover:text-itinera-foreground">
-        ← Propuestas
-      </a>
-      <span class="text-itinera-border">|</span>
-      <span class="text-sm font-medium">Detalle de propuesta</span>
-    </div>
-  </header>
-
-  <section class="mx-auto w-full max-w-3xl space-y-5 p-6">
+  <section class="mx-auto w-full max-w-[1000px] space-y-6 px-6 py-8">
     @if (cargando()) {
       <div class="rounded-2xl border bg-itinera-card p-10 text-center">
         <p class="text-sm text-itinera-muted">Cargando propuesta…</p>
@@ -21,80 +11,162 @@
         <p class="text-sm text-red-700">{{ error() }}</p>
       </div>
     } @else if (propuesta(); as propuestaActual) {
-      <article class="rounded-2xl border bg-itinera-card p-6 shadow-sm">
-        <div class="mb-5 flex items-start justify-between">
+      <article class="rounded-2xl border bg-itinera-card p-6">
+        <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="font-mono text-xs text-itinera-muted">Propuesta #{{ propuestaActual.id }}</p>
-            <h1 class="mt-1 text-xl font-semibold">{{ propuestaActual.clienteNombre }}</h1>
-          </div>
-
-          <span
-            class="rounded-full px-3 py-1 text-xs font-semibold"
-            [class.bg-stone-100]="propuestaActual.estado === 'Borrador'"
-            [class.text-stone-600]="propuestaActual.estado === 'Borrador'"
-            [class.bg-blue-50]="propuestaActual.estado === 'Presentada'"
-            [class.text-blue-700]="propuestaActual.estado === 'Presentada'"
-            [class.bg-emerald-50]="propuestaActual.estado === 'Aceptada'"
-            [class.text-emerald-700]="propuestaActual.estado === 'Aceptada'"
-            [class.bg-red-50]="propuestaActual.estado === 'Rechazada'"
-            [class.text-red-700]="propuestaActual.estado === 'Rechazada'"
-          >
-            {{ propuestaActual.estado }}
-          </span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 border-t pt-5">
-          <div>
-            <p class="text-xs text-itinera-muted">Presupuesto</p>
-            <p class="mt-1 text-sm font-semibold">
-              {{ propuestaActual.presupuesto | currency:'USD':'symbol':'1.0-0' }}
+            <h1 class="font-itinera-display text-3xl">{{ propuestaActual.clienteNombre }}</h1>
+            <p class="mt-1.5 text-sm text-itinera-muted">
+              {{ nombresDestinos() }} · {{ propuestaActual.fechaInicio | date:'dd/MM/yyyy' }} – {{ propuestaActual.fechaFin | date:'dd/MM/yyyy' }}
             </p>
           </div>
+          <div class="flex items-center gap-4">
+            @if (puedeEditarPropuesta()) {
+              <a
+                [routerLink]="['/propuestas', propuestaActual.id, 'editar']"
+                class="text-sm text-itinera-muted underline underline-offset-4 hover:text-itinera-foreground"
+              >
+                Editar Propuesta
+              </a>
+            }
+            <span
+              class="rounded-full px-3 py-1 text-xs font-semibold"
+              [class.bg-stone-100]="propuestaActual.estado === 'Borrador'"
+              [class.text-stone-600]="propuestaActual.estado === 'Borrador'"
+              [class.bg-blue-50]="propuestaActual.estado === 'Presentada'"
+              [class.text-blue-700]="propuestaActual.estado === 'Presentada'"
+              [class.bg-emerald-50]="propuestaActual.estado === 'Aceptada'"
+              [class.text-emerald-700]="propuestaActual.estado === 'Aceptada'"
+              [class.bg-red-50]="propuestaActual.estado === 'Rechazada'"
+              [class.text-red-700]="propuestaActual.estado === 'Rechazada'"
+            >
+              {{ propuestaActual.estado }}
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 border-t pt-5 sm:grid-cols-4">
           <div>
-            <p class="text-xs text-itinera-muted">Empleado responsable</p>
+            <p class="text-xs text-itinera-muted">Presupuesto</p>
+            <p class="mt-1 text-sm font-semibold">{{ propuestaActual.presupuesto | moneda }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-itinera-muted">Viajeros</p>
+            <p class="mt-1 text-sm font-semibold">{{ propuestaActual.cantidadViajeros }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-itinera-muted">Intensidad</p>
+            <p class="mt-1 text-sm font-semibold">{{ propuestaActual.intensidadViaje }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-itinera-muted">Responsable</p>
             <p class="mt-1 text-sm font-semibold">{{ propuestaActual.empleadoNombre }}</p>
           </div>
         </div>
+
+        @if (propuestaActual.actividades.length) {
+          <div class="mt-5 flex flex-wrap items-center gap-2">
+            <span class="text-xs text-itinera-muted">Pedido por el cliente</span>
+            @for (actividad of propuestaActual.actividades; track actividad.id) {
+              <span class="rounded-full bg-itinera-secondary px-3 py-1.5 text-xs">{{ actividad.nombre }}</span>
+            }
+          </div>
+        }
         @if (propuestaActual.etiquetas.length) {
-          <div class="mt-5 flex flex-wrap gap-2 border-t pt-5">
+          <div class="mt-3 flex flex-wrap gap-2">
             @for (etiqueta of propuestaActual.etiquetas; track etiqueta.id) {
-              <span class="rounded-full bg-itinera-accent/15 px-3 py-1 text-xs font-medium">
-                #{{ etiqueta.nombre }}
-              </span>
+              <span class="rounded-full bg-itinera-accent/15 px-3 py-1.5 text-xs font-medium">#{{ etiqueta.nombre }}</span>
             }
           </div>
         }
       </article>
 
-      <article class="rounded-2xl border bg-itinera-card p-6 shadow-sm">
-        <h2 class="mb-5 text-sm font-semibold">Resumen del itinerario</h2>
-
-        @if (propuestaActual.itinerario; as itinerario) {
-          <div class="mb-5 grid grid-cols-2 gap-4">
-            <div>
-              <p class="text-xs text-itinera-muted">Inicio</p>
-              <p class="mt-1 text-sm font-medium">{{ itinerario.fechaInicio | date:'dd/MM/yyyy' }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-itinera-muted">Fin</p>
-              <p class="mt-1 text-sm font-medium">{{ itinerario.fechaFin | date:'dd/MM/yyyy' }}</p>
-            </div>
+      <section class="space-y-4">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 class="font-itinera-display text-2xl">Itinerarios</h2>
+            <p class="mt-1 text-sm text-itinera-muted">
+              Uno por destino. {{ cantidadListos() }} de {{ propuestaActual.destinos.length }} {{ cantidadListos() === 1 ? 'listo' : 'listos' }}.
+            </p>
           </div>
-
-          <ol class="space-y-4">
-            @for (destino of itinerario.destinos; track $index) {
-              <li class="flex items-center gap-3">
-                <span class="h-2.5 w-2.5 rounded-full bg-itinera-accent"></span>
-                <span class="text-sm font-medium">
-                  {{ destino.destinoDescripcion || 'Destino' }}
-                </span>
-              </li>
+          <div class="w-full sm:w-72">
+            <div class="flex justify-between gap-3 text-xs">
+              <span class="text-itinera-muted">Presupuesto del viaje</span>
+              <strong>{{ propuestaActual.presupuestoUsado | moneda }} de {{ propuestaActual.presupuesto | moneda }}</strong>
+            </div>
+            <div class="mt-2 h-2 overflow-hidden rounded-full bg-itinera-secondary">
+              <div
+                class="h-full"
+                [class]="propuestaActual.presupuestoDisponible < 0 ? 'bg-red-700' : 'bg-itinera-accent'"
+                [style.width.%]="porcentajePresupuesto()"
+              ></div>
+            </div>
+            @if (propuestaActual.presupuestoDisponible < 0) {
+              <p class="mt-1 text-xs text-red-700">Te pasás por {{ -propuestaActual.presupuestoDisponible | moneda }}</p>
+            } @else {
+              <p class="mt-1 text-xs text-itinera-muted">Quedan {{ propuestaActual.presupuestoDisponible | moneda }}</p>
             }
-          </ol>
-        } @else {
-          <p class="text-sm text-itinera-muted">No hay un itinerario asociado.</p>
+          </div>
+        </div>
+
+        @for (destino of propuestaActual.destinos; track destino.id) {
+          <article class="flex flex-wrap items-center gap-5 rounded-2xl border bg-itinera-card px-6 py-5">
+            <div class="min-w-0 flex-1 basis-64">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-semibold">{{ destino.descripcion }}</h3>
+                @if (!destino.itinerario) {
+                  <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Sin itinerario</span>
+                } @else if (destino.faltantes.length) {
+                  <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Incompleto</span>
+                } @else {
+                  <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Listo</span>
+                }
+              </div>
+              <p class="mt-2 text-sm text-itinera-muted">
+                {{ destino.fechaLlegada | date:'dd/MM' }} al {{ destino.fechaPartida | date:'dd/MM' }}
+                @if (destino.itinerario) {
+                  · {{ destino.itinerario.actividades.length }} {{ destino.itinerario.actividades.length === 1 ? 'actividad' : 'actividades' }}
+                }
+              </p>
+              @if (destino.itinerario) {
+                @for (faltante of destino.faltantes; track faltante) {
+                  <p class="mt-1 text-xs text-amber-800">{{ faltante }}</p>
+                }
+              }
+            </div>
+            @if (destino.itinerario; as itinerario) {
+              <div class="w-32">
+                <p class="text-xs text-itinera-muted">Costo total</p>
+                <p class="mt-1 text-sm font-semibold">{{ itinerario.costo | moneda }}</p>
+              </div>
+              <a
+                [routerLink]="['/propuestas', propuestaActual.id, 'destinos', destino.id]"
+                class="rounded-lg bg-itinera-secondary px-4 py-3 text-sm font-medium"
+              >
+                {{ editable() ? 'Ver y editar' : 'Ver' }}
+              </a>
+            } @else if (editable()) {
+              <div class="flex flex-wrap gap-2">
+                @if (puedeEditarItinerario()) {
+                  <a
+                    [routerLink]="['/propuestas', propuestaActual.id, 'destinos', destino.id, 'armar']"
+                    class="rounded-lg bg-itinera-secondary px-4 py-3 text-sm font-medium"
+                  >
+                    Crear a mano
+                  </a>
+                }
+                @if (puedeGenerarConIa()) {
+                  <a
+                    [routerLink]="['/propuestas', propuestaActual.id, 'destinos', destino.id, 'generar']"
+                    class="rounded-lg border border-itinera-accent bg-itinera-card px-4 py-3 text-sm font-medium"
+                  >
+                    Generar con IA
+                  </a>
+                }
+              </div>
+            }
+          </article>
         }
-      </article>
+      </section>
 
       @if (puedeRegistrarRespuesta() && propuestaActual.estado === 'Presentada') {
         <article class="rounded-2xl border bg-itinera-card p-6 shadow-sm">
@@ -144,36 +216,37 @@
         </article>
       }
 
-      <div class="flex gap-3">
-        @if (puedeCrearFactura() && propuestaActual.estado === 'Aceptada' && propuestaActual.itinerario) {
+      @if (puedeCrearFactura() && propuestaActual.estado === 'Aceptada') {
+        <div class="flex justify-end border-t pt-6">
           <a
             [routerLink]="['/facturacion']"
             [queryParams]="{ propuestaId: propuestaActual.id }"
-            class="rounded-lg bg-itinera-secondary px-5 py-2.5 text-sm font-medium hover:bg-itinera-secondary/70"
+            class="rounded-lg bg-itinera-foreground px-5 py-3 text-sm font-semibold text-itinera-background"
           >
             Generar factura
           </a>
-        }
-        @if (puedeEditarItinerario()) {
+        </div>
+      }
+
+      @if (puedePresentar() && propuestaActual.estado === 'Borrador') {
+        <div class="flex flex-wrap items-center justify-between gap-4 border-t pt-6">
+          <p class="text-sm text-itinera-muted">
+            @if (propuestaActual.itinerariosCompletos) {
+              Todos los itinerarios están listos.
+            } @else {
+              Para presentarla falta completar: {{ destinosPendientes() }}
+            }
+          </p>
           <button
             type="button"
-            [routerLink]="['/propuestas', propuestaActual.id, 'editar']"
-            class="rounded-lg bg-itinera-secondary px-5 py-2.5 text-sm font-medium hover:bg-itinera-secondary/70"
-          >
-            Editar itinerario
-          </button>
-        }
-        @if (puedePresentar() && propuestaActual.estado === 'Borrador') {
-          <button
-            type="button"
-            [disabled]="procesando()"
-            class="rounded-lg bg-itinera-foreground px-5 py-2.5 text-sm font-medium text-itinera-background hover:opacity-90"
+            [disabled]="procesando() || !propuestaActual.itinerariosCompletos"
+            class="rounded-lg bg-itinera-foreground px-5 py-3 text-sm font-semibold text-itinera-background disabled:cursor-not-allowed disabled:opacity-40"
             (click)="presentar()"
           >
             {{ procesando() ? 'Presentando…' : 'Presentar propuesta' }}
           </button>
-        }
-      </div>
+        </div>
+      }
     }
   </section>
 </main>

@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Destinos.Dtos;
 using Itinera.Application.Destinos.Interfaces;
 using Itinera.Security.Application.Common;
@@ -35,6 +36,12 @@ public class DestinosController(IDestinoService destinoService) : ApiController
 
         return Ok(response);
     }
+
+    [HttpGet("paginado")]
+    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
+    [ProducesResponseType(typeof(Pagina<DestinoResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<Pagina<DestinoResponse>>> ObtenerPagina([FromQuery] PaginacionRequest paginacion)
+        => Ok(await _destinoService.ObtenerPaginaAsync(paginacion));
 
     [HttpGet("{id:int}")]
     [Authorize(Policy = Permisos.CatalogosOperativosVer)]

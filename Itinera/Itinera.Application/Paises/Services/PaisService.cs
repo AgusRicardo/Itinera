@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Paises.Dtos;
 using Itinera.Application.Paises.Interfaces;
@@ -24,6 +25,13 @@ public class PaisService(IPaisRepository paisRepository) : IPaisService
         var pais = await ObtenerPaisById(id);
 
         return PaisMapper.ToResponse(pais);
+    }
+
+    public async Task<Pagina<PaisResponse>> ObtenerPaginaAsync(PaginacionRequest paginacion)
+    {
+        var pagina = await _paisRepository.GetPaginaAsync(paginacion);
+
+        return pagina.Convertir(PaisMapper.ToResponse);
     }
 
     public async Task<List<PaisResponse>> ObtenerTodosAsync()

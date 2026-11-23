@@ -24,6 +24,9 @@ public class ActividadConfiguration : IEntityTypeConfiguration<Actividad>
 
         builder.Property(x => x.DuracionEstimada);
 
+        builder.Property(x => x.GeneradoPorIA)
+               .IsRequired();
+
         builder.Property(x => x.Activo)
                .IsRequired();
 

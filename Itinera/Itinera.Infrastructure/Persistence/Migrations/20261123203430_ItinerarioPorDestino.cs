@@ -1,0 +1,200 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
+#nullable disable
+
+namespace Itinera.Infrastructure.Persistence.Migrations
+{
+    /// <inheritdoc />
+    public partial class ItinerarioPorDestino : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "FK_ActividadesDestinoItinerario_DestinosItinerario_DestinoItin~",
+                table: "ActividadesDestinoItinerario");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Itinerarios_PropuestaId",
+                table: "Itinerarios");
+
+            migrationBuilder.Sql(
+                """
+                INSERT INTO "PropuestasDestinos" ("PropuestaId", "DestinoId", "Orden")
+                SELECT i."PropuestaId", d."DestinoId", MIN(d."Orden")
+                FROM "DestinosItinerario" d
+                JOIN "Itinerarios" i ON i."Id" = d."ItinerarioId"
+                GROUP BY i."PropuestaId", d."DestinoId"
+                ON CONFLICT DO NOTHING;
+
+                ALTER TABLE "PropuestasDestinos" ADD COLUMN "FechaLlegada" date;
+                ALTER TABLE "PropuestasDestinos" ADD COLUMN "FechaPartida" date;
+
+                CREATE TEMP TABLE itinerarios_ordenados ON COMMIT DROP AS
+                SELECT d."Id" AS destino_itinerario_id,
+                       i."Id" AS itinerario_id,
+                       i."PropuestaId" AS propuesta_id,
+                       d."DestinoId" AS destino_id,
+                       d."FechaLlegada" AS llegada,
+                       d."FechaPartida" AS partida,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY i."PropuestaId", d."DestinoId"
+                           ORDER BY i."Id" DESC, d."Id" DESC) AS posicion
+                FROM "DestinosItinerario" d
+                JOIN "Itinerarios" i ON i."Id" = d."ItinerarioId";
+
+                UPDATE "PropuestasDestinos" pd
+                SET "FechaLlegada" = o.llegada, "FechaPartida" = o.partida
+                FROM itinerarios_ordenados o
+                WHERE o.propuesta_id = pd."PropuestaId"
+                  AND o.destino_id = pd."DestinoId"
+                  AND o.posicion = 1;
+
+                CREATE TEMP TABLE propuestas_a_repartir ON COMMIT DROP AS
+                SELECT DISTINCT pd."PropuestaId" AS propuesta_id
+                FROM "PropuestasDestinos" pd
+                JOIN "Propuestas" p ON p."Id" = pd."PropuestaId"
+                WHERE pd."FechaLlegada" IS NULL
+                   OR pd."FechaLlegada" < p."FechaInicio"
+                   OR pd."FechaPartida" > p."FechaFin"
+                   OR pd."FechaPartida" < pd."FechaLlegada"
+                   OR EXISTS (
+                       SELECT 1
+                       FROM "PropuestasDestinos" otro
+                       WHERE otro."PropuestaId" = pd."PropuestaId"
+                         AND otro."DestinoId" <> pd."DestinoId"
+                         AND otro."FechaLlegada" < pd."FechaPartida"
+                         AND pd."FechaLlegada" < otro."FechaPartida");
+
+                UPDATE "PropuestasDestinos" pd
+                SET "FechaLlegada" = r.inicio + ((r.fin - r.inicio) * (r.posicion - 1) / r.cantidad)::int,
+                    "FechaPartida" = r.inicio + ((r.fin - r.inicio) * r.posicion / r.cantidad)::int
+                FROM (
+                    SELECT x."PropuestaId", x."DestinoId",
+                           p."FechaInicio" AS inicio, p."FechaFin" AS fin,
+                           ROW_NUMBER() OVER (PARTITION BY x."PropuestaId" ORDER BY x."Orden", x."DestinoId") AS posicion,
+                           COUNT(*) OVER (PARTITION BY x."PropuestaId") AS cantidad
+                    FROM "PropuestasDestinos" x
+                    JOIN "Propuestas" p ON p."Id" = x."PropuestaId"
+                    WHERE x."PropuestaId" IN (SELECT propuesta_id FROM propuestas_a_repartir)
+                ) r
+                WHERE r."PropuestaId" = pd."PropuestaId" AND r."DestinoId" = pd."DestinoId";
+
+                UPDATE "PropuestasDestinos" pd
+                SET "Orden" = r.posicion
+                FROM (
+                    SELECT "PropuestaId", "DestinoId",
+                           ROW_NUMBER() OVER (
+                               PARTITION BY "PropuestaId"
+                               ORDER BY "FechaLlegada", "FechaPartida", "Orden", "DestinoId") AS posicion
+                    FROM "PropuestasDestinos"
+                ) r
+                WHERE r."PropuestaId" = pd."PropuestaId" AND r."DestinoId" = pd."DestinoId";
+
+                ALTER TABLE "PropuestasDestinos" ALTER COLUMN "FechaLlegada" SET NOT NULL;
+                ALTER TABLE "PropuestasDestinos" ALTER COLUMN "FechaPartida" SET NOT NULL;
+
+                CREATE TABLE "ItinerariosRespaldo" (
+                    "Id" integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+                    "PropuestaId" integer NOT NULL,
+                    "DestinoId" integer,
+                    "ItinerarioId" integer NOT NULL,
+                    "Nombre" character varying(150),
+                    "FechaLlegada" date,
+                    "FechaPartida" date,
+                    "Actividades" jsonb NOT NULL,
+                    "FechaRespaldo" timestamp with time zone NOT NULL DEFAULT now());
+
+                INSERT INTO "ItinerariosRespaldo"
+                    ("PropuestaId", "DestinoId", "ItinerarioId", "Nombre", "FechaLlegada", "FechaPartida", "Actividades")
+                SELECT o.propuesta_id, o.destino_id, o.itinerario_id, i."Nombre", o.llegada, o.partida,
+                       COALESCE((
+                           SELECT jsonb_agg(to_jsonb(a) ORDER BY a."FechaHoraInicio", a."Orden")
+                           FROM "ActividadesDestinoItinerario" a
+                           WHERE a."DestinoItinerarioId" = o.destino_itinerario_id), '[]'::jsonb)
+                FROM itinerarios_ordenados o
+                JOIN "Itinerarios" i ON i."Id" = o.itinerario_id
+                WHERE o.posicion > 1
+                UNION ALL
+                SELECT i."PropuestaId", NULL, i."Id", i."Nombre", i."FechaInicio", i."FechaFin", '[]'::jsonb
+                FROM "Itinerarios" i
+                WHERE NOT EXISTS (SELECT 1 FROM itinerarios_ordenados o WHERE o.itinerario_id = i."Id");
+
+                ALTER TABLE "Itinerarios" ADD COLUMN "DestinoId" integer;
+                ALTER TABLE "Itinerarios" ADD COLUMN "OrigenId" integer;
+
+                INSERT INTO "Itinerarios"
+                    ("PropuestaId", "DestinoId", "OrigenId", "Nombre", "FechaInicio", "FechaFin",
+                     "FechaRegistracion", "UsuarioRegistracionId", "FechaModificacion", "UsuarioModificacionId")
+                SELECT i."PropuestaId", o.destino_id, o.destino_itinerario_id, i."Nombre", i."FechaInicio", i."FechaFin",
+                       i."FechaRegistracion", i."UsuarioRegistracionId", i."FechaModificacion", i."UsuarioModificacionId"
+                FROM itinerarios_ordenados o
+                JOIN "Itinerarios" i ON i."Id" = o.itinerario_id
+                WHERE o.posicion = 1;
+
+                ALTER TABLE "ActividadesDestinoItinerario" ADD COLUMN "ItinerarioId" integer;
+
+                UPDATE "ActividadesDestinoItinerario" a
+                SET "ItinerarioId" = i."Id"
+                FROM "Itinerarios" i
+                WHERE i."OrigenId" = a."DestinoItinerarioId";
+
+                DELETE FROM "ActividadesDestinoItinerario" WHERE "ItinerarioId" IS NULL;
+                ALTER TABLE "ActividadesDestinoItinerario" DROP COLUMN "DestinoItinerarioId";
+                ALTER TABLE "ActividadesDestinoItinerario" ALTER COLUMN "ItinerarioId" SET NOT NULL;
+
+                DROP TABLE "DestinosItinerario";
+                DELETE FROM "Itinerarios" WHERE "DestinoId" IS NULL;
+                ALTER TABLE "Itinerarios" DROP COLUMN "OrigenId";
+                ALTER TABLE "Itinerarios" ALTER COLUMN "DestinoId" SET NOT NULL;
+                """);
+
+            migrationBuilder.DropColumn(
+                name: "FechaFin",
+                table: "Itinerarios");
+
+            migrationBuilder.DropColumn(
+                name: "FechaInicio",
+                table: "Itinerarios");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActividadesDestinoItinerario_ItinerarioId",
+                table: "ActividadesDestinoItinerario",
+                column: "ItinerarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Itinerarios_DestinoId",
+                table: "Itinerarios",
+                column: "DestinoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Itinerarios_PropuestaId_DestinoId",
+                table: "Itinerarios",
+                columns: new[] { "PropuestaId", "DestinoId" },
+                unique: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ActividadesDestinoItinerario_Itinerarios_ItinerarioId",
+                table: "ActividadesDestinoItinerario",
+                column: "ItinerarioId",
+                principalTable: "Itinerarios",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Itinerarios_Destinos_DestinoId",
+                table: "Itinerarios",
+                column: "DestinoId",
+                principalTable: "Destinos",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+            => throw new NotSupportedException(
+                "La migración une los itinerarios por destino y no puede revertirse: restaurar desde un backup.");
+    }
+}
