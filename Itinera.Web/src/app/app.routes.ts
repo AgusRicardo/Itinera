@@ -131,7 +131,7 @@ export const routes: Routes = [
   {
     path: 'administracion/usuarios',
     canActivate: [guardAutenticacion, guardPermiso],
-    data: { permisos: ['plataforma.usuarios.gestionar'] },
+    data: { permisos: ['plataforma.usuarios.gestionar', 'seguridad.gestionar'] },
     loadComponent: () =>
       import('./features/administracion/usuarios.component').then(
         componente => componente.UsuariosComponent
@@ -140,7 +140,7 @@ export const routes: Routes = [
   {
     path: 'administracion/roles',
     canActivate: [guardAutenticacion, guardPermiso],
-    data: { permisos: ['plataforma.roles.gestionar'] },
+    data: { permisos: ['plataforma.roles.gestionar', 'seguridad.gestionar'] },
     loadComponent: () =>
       import('./features/administracion/roles.component').then(
         componente => componente.RolesComponent
@@ -158,7 +158,7 @@ export const routes: Routes = [
   {
     path: 'administracion/grupos',
     canActivate: [guardAutenticacion, guardPermiso],
-    data: { permisos: ['plataforma.grupos.gestionar'] },
+    data: { permisos: ['plataforma.grupos.gestionar', 'seguridad.gestionar'] },
     loadComponent: () =>
       import('./features/administracion/grupos.component').then(
         componente => componente.GruposComponent

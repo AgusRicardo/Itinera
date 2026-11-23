@@ -39,14 +39,14 @@ export class UsuariosComponent {
   protected readonly cargoSeleccionado = signal(0);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    empresaId: [0, Validators.required],
+    empresaId: [0, [Validators.required, Validators.min(1)]],
     nombre: ['', Validators.required],
     apellido: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     telefono: [''],
     password: ['', [Validators.required, Validators.minLength(8)]],
-    cargoId: [0, Validators.required],
-    rolId: [0, Validators.required]
+    cargoId: [0, [Validators.required, Validators.min(1)]],
+    rolId: [0, [Validators.required, Validators.min(1)]]
   });
 
   protected readonly usuariosFiltrados = computed(() => {

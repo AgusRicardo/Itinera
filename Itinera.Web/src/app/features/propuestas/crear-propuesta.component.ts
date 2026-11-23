@@ -42,8 +42,8 @@ export class CrearPropuestaComponent {
   protected readonly etiquetasSeleccionadas = signal<number[]>([]);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    clienteId: [0, Validators.required],
-    empleadoId: [0, Validators.required],
+    clienteId: [0, [Validators.required, Validators.min(1)]],
+    empleadoId: [0, [Validators.required, Validators.min(1)]],
     presupuesto: [5000, [Validators.required, Validators.min(1)]],
     fechaInicio: ['', Validators.required],
     fechaFin: ['', Validators.required],

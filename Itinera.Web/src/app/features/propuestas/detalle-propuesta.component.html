@@ -86,7 +86,7 @@
               <li class="flex items-center gap-3">
                 <span class="h-2.5 w-2.5 rounded-full bg-itinera-accent"></span>
                 <span class="text-sm font-medium">
-                  {{ destino.destinoDescripcion || destino.destinoNombre }}
+                  {{ destino.destinoDescripcion || 'Destino' }}
                 </span>
               </li>
             }
@@ -96,7 +96,7 @@
         }
       </article>
 
-      @if (propuestaActual.estado === 'Presentada') {
+      @if (puedeRegistrarRespuesta() && propuestaActual.estado === 'Presentada') {
         <article class="rounded-2xl border bg-itinera-card p-6 shadow-sm">
           <h2 class="mb-4 text-sm font-semibold">Respuesta del cliente</h2>
 
@@ -154,14 +154,16 @@
             Generar factura
           </a>
         }
-        <button
-          type="button"
-          [routerLink]="['/propuestas', propuestaActual.id, 'editar']"
-          class="rounded-lg bg-itinera-secondary px-5 py-2.5 text-sm font-medium hover:bg-itinera-secondary/70"
-        >
-          Editar itinerario
-        </button>
-        @if (propuestaActual.estado === 'Borrador') {
+        @if (puedeEditarItinerario()) {
+          <button
+            type="button"
+            [routerLink]="['/propuestas', propuestaActual.id, 'editar']"
+            class="rounded-lg bg-itinera-secondary px-5 py-2.5 text-sm font-medium hover:bg-itinera-secondary/70"
+          >
+            Editar itinerario
+          </button>
+        }
+        @if (puedePresentar() && propuestaActual.estado === 'Borrador') {
           <button
             type="button"
             [disabled]="procesando()"

@@ -1,11 +1,11 @@
 import { ActividadItinerario } from './actividad-itinerario';
 
 export interface DestinoItinerario {
-  destinoId?: number;
-  destinoNombre?: string;
-  destinoDescripcion?: string;
+  id?: number;
   orden?: number;
   fechaLlegada?: string;
   fechaPartida?: string;
+  destinoId?: number;
+  destinoDescripcion?: string;
   actividades?: ActividadItinerario[];
 }

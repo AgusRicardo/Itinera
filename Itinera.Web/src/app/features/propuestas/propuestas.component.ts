@@ -7,6 +7,7 @@ import {
   EstadoPropuesta,
   EstadosPropuestasService
 } from '../../core/services/estados-propuestas.service';
+import { AutenticacionService } from '../../core/services/autenticacion.service';
 import { MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 import { CrearPropuestaComponent } from './crear-propuesta.component';
@@ -26,6 +27,7 @@ import { CrearPropuestaComponent } from './crear-propuesta.component';
 export class PropuestasComponent {
   private readonly propuestasService = inject(PropuestasService);
   private readonly estadosService = inject(EstadosPropuestasService);
+  private readonly autenticacion = inject(AutenticacionService);
   protected readonly propuestas = signal<Propuesta[]>([]);
   protected readonly cargando = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -92,6 +94,14 @@ export class PropuestasComponent {
         this.eliminando.set(null);
       }
     });
+  }
+
+  protected puedeCrear(): boolean {
+    return this.autenticacion.tienePermiso('propuestas.crear');
+  }
+
+  protected puedeEliminar(): boolean {
+    return this.autenticacion.tienePermiso('propuestas.eliminar');
   }
 
   protected abrirNuevaPropuesta(): void {

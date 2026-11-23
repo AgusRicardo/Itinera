@@ -13,7 +13,6 @@ interface ClienteVista {
   apellido: string;
   email: string;
   telefono: string;
-  ciudad: string;
   propuestas?: number;
   ultimaGestion?: string;
   estado: 'Activo' | 'Inactivo';
@@ -47,7 +46,6 @@ export class ClientesComponent {
     apellido: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     telefono: ['', Validators.required],
-    ciudad: [''],
     estado: ['Activo' as 'Activo' | 'Inactivo']
   });
 
@@ -56,7 +54,7 @@ export class ClientesComponent {
     const estado = this.estado();
 
     return this.clientes().filter(cliente => {
-      const contenido = `${cliente.nombre} ${cliente.email} ${cliente.telefono} ${cliente.ciudad}`.toLowerCase();
+      const contenido = `${cliente.nombre} ${cliente.email} ${cliente.telefono}`.toLowerCase();
       return contenido.includes(texto) && (!estado || cliente.estado === estado);
     });
   });
@@ -84,7 +82,6 @@ export class ClientesComponent {
       apellido: '',
       email: '',
       telefono: '',
-      ciudad: '',
       estado: 'Activo'
     });
     this.editor.set('nuevo');
@@ -96,7 +93,6 @@ export class ClientesComponent {
       apellido: cliente.apellido,
       email: cliente.email,
       telefono: cliente.telefono,
-      ciudad: cliente.ciudad,
       estado: cliente.estado
     });
     this.editor.set(cliente);
@@ -208,7 +204,6 @@ export class ClientesComponent {
       apellido: cliente.apellido ?? '',
       email: cliente.email,
       telefono: cliente.telefono,
-      ciudad: '—',
       estado: cliente.activo === false ? 'Inactivo' : 'Activo'
     };
   }

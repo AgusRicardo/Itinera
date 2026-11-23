@@ -14,6 +14,7 @@ public sealed class SecuritySeeder(
     public async Task SembrarAsync(CancellationToken cancellationToken = default)
     {
         var permisos = await SembrarPermisosAsync(cancellationToken);
+        await EliminarPermisosFueraDelCatalogoAsync(cancellationToken);
         var roles = await SembrarRolesAsync(permisos, cancellationToken);
         await SembrarAdministradorPlataformaAsync(roles, cancellationToken);
     }
@@ -37,6 +38,35 @@ public sealed class SecuritySeeder(
         return porCodigo;
     }
 
+    private async Task EliminarPermisosFueraDelCatalogoAsync(CancellationToken cancellationToken)
+    {
+        var codigosCatalogo = Permisos.Catalogo.Select(p => p.Codigo).ToList();
+
+        var obsoletos = await context.Permisos
+            .Where(p => !codigosCatalogo.Contains(p.Codigo))
+            .ToListAsync(cancellationToken);
+
+        if (obsoletos.Count == 0)
+            return;
+
+        var roles = await context.Roles
+            .Include(rol => rol.Permisos)
+            .ToListAsync(cancellationToken);
+
+        foreach (var rol in roles)
+        {
+            foreach (var permiso in obsoletos)
+                rol.QuitarPermiso(permiso);
+        }
+
+        context.Permisos.RemoveRange(obsoletos);
+        await context.SaveChangesAsync(cancellationToken);
+
+        logger.LogWarning(
+            "Permisos fuera del catálogo eliminados: {Codigos}.",
+            string.Join(", ", obsoletos.Select(p => p.Codigo)));
+    }
+
     private async Task<Dictionary<string, Rol>> SembrarRolesAsync(
         Dictionary<string, Permiso> permisos,
         CancellationToken cancellationToken)
@@ -48,31 +78,30 @@ public sealed class SecuritySeeder(
         var porNombre = roles.ToDictionary(rol => rol.Nombre);
 
         var administrador = ObtenerOCrearRol(
-            porNombre, Roles.Administrador, "Acceso total a la empresa");
+            porNombre, Roles.Administrador, "Administrador de la empresa: opera como agente y gestiona clientes");
 
         var administradorItinera = ObtenerOCrearRol(
-            porNombre, Roles.AdministradorItinera, "Acceso total a la plataforma");
+            porNombre, Roles.AdministradorItinera, "Administrador de la plataforma: empresas, usuarios, roles y grupos");
 
         var agente = ObtenerOCrearRol(
             porNombre, Roles.Agente, "Gestión operativa de clientes, propuestas y facturación");
 
-        var todos = permisos.Values.ToList();
-        var noPlataforma = todos
-            .Where(p => !Roles.EsDePlataforma(p.Codigo)
-                && p.Codigo != Permisos.EmpresasGestionar)
-            .ToList();
-        var delAgente = Roles.PermisosDelAgente.Select(codigo => permisos[codigo]).ToList();
-        var delAdministradorItinera = Roles.PermisosDelAdministradorItinera
-            .Select(codigo => permisos[codigo])
-            .ToList();
+        var delAgente = ResolverPermisos(permisos, Roles.PermisosDelAgente);
+        var delAdministrador = ResolverPermisos(permisos, Roles.PermisosDelAdministrador);
+        var delAdministradorItinera = ResolverPermisos(permisos, Roles.PermisosDelAdministradorItinera);
 
         SincronizarPermisos(administradorItinera, delAdministradorItinera);
-        SincronizarPermisos(administrador, noPlataforma);
+        SincronizarPermisos(administrador, delAdministrador);
         SincronizarPermisos(agente, delAgente);
 
         await context.SaveChangesAsync(cancellationToken);
         return porNombre;
     }
+
+    private static List<Permiso> ResolverPermisos(
+        Dictionary<string, Permiso> permisos,
+        IEnumerable<string> codigos)
+        => codigos.Select(codigo => permisos[codigo]).ToList();
 
     private async Task SembrarAdministradorPlataformaAsync(
         Dictionary<string, Rol> roles,

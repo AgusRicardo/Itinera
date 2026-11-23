@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Itinera.Security.Application.Dtos;
 
 public sealed record UsuarioAdminResponse(
@@ -27,14 +29,14 @@ public sealed record GrupoAdminResponse(
     IReadOnlyList<string> Roles);
 
 public sealed record CrearRolRequest(
-    string Nombre,
-    string Descripcion,
+    [Required] string Nombre,
+    [Required] string Descripcion,
     IReadOnlyList<string> Permisos);
 
-public sealed record CrearGrupoRequest(string Nombre);
+public sealed record CrearGrupoRequest([Required] string Nombre);
 
-public sealed record AsignarRolRequest(int RolId);
+public sealed record AsignarRolRequest([Range(1, int.MaxValue)] int RolId);
 
-public sealed record AsignarPermisoRequest(int PermisoId);
+public sealed record AsignarPermisoRequest([Range(1, int.MaxValue)] int PermisoId);
 
 public sealed record AgregarMiembroRequest(Guid MiembroId);

@@ -6,4 +6,5 @@ public record LoginResponse(
     string Nombre,
     string Email,
     IReadOnlyList<string> Roles,
-    IReadOnlyList<string> Permisos);
+    IReadOnlyList<string> Permisos,
+    string EmpresaRazonSocial);

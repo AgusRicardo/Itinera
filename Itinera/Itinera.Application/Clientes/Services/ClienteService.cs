@@ -28,6 +28,9 @@ public class ClienteService(
             request.Email,
             request.Telefono);
 
+        if (request.Activo == false)
+            cliente.Desactivar();
+
         await _clienteRepository.AddAsync(cliente);
         await _empresaClienteRepository.AddAsync(new EmpresaCliente(empresaId, cliente.Id));
 
@@ -57,6 +60,11 @@ public class ClienteService(
             request.Apellido,
             request.Email,
             request.Telefono);
+
+        if (request.Activo == true)
+            cliente.Activar();
+        else if (request.Activo == false)
+            cliente.Desactivar();
 
         await _clienteRepository.UpdateAsync(cliente);
 

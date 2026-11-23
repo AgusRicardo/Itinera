@@ -67,7 +67,7 @@
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-sm font-semibold">
-                      {{ destino.destinoDescripcion || destino.destinoNombre || 'Destino' }}
+                      {{ destino.destinoDescripcion || 'Destino' }}
                     </p>
                     <p class="mt-1 text-xs text-itinera-muted">
                       {{ destino.fechaLlegada ? (destino.fechaLlegada | date:'dd/MM/yyyy') : 'Sin fecha' }} →
