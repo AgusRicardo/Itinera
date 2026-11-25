@@ -34,6 +34,9 @@ public static class Permisos
     public const string FacturacionRegistrarPago = "facturacion.registrar-pago";
     public const string FacturacionAnular = "facturacion.anular";
 
+    public const string ConceptosVer = "conceptos.ver";
+    public const string ConceptosGestionar = "conceptos.gestionar";
+
     public const string SeguridadGestionar = "seguridad.gestionar";
 
     public const string PlataformaGestionarEmpresas = "plataforma.empresas.gestionar";
@@ -67,6 +70,8 @@ public static class Permisos
         new(FacturacionCrear, "Generar facturas"),
         new(FacturacionRegistrarPago, "Registrar pagos"),
         new(FacturacionAnular, "Anular facturas"),
+        new(ConceptosVer, "Ver conceptos de facturación"),
+        new(ConceptosGestionar, "Gestionar conceptos de facturación"),
         new(SeguridadGestionar, "Gestionar seguridad (usuarios, roles y grupos)"),
         new(PlataformaGestionarEmpresas, "Gestionar empresas de la plataforma (alta de tenants)"),
         new(PlataformaGestionarUsuarios, "Gestionar usuarios de la plataforma"),

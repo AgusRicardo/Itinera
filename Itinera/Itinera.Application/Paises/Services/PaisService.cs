@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Services;
 using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Paises.Dtos;
@@ -7,12 +8,15 @@ using Itinera.Domain.Propuestas;
 
 namespace Itinera.Application.Paises.Services;
 
-public class PaisService(IPaisRepository paisRepository) : IPaisService
+public class PaisService(IPaisRepository paisRepository)
+    : PaginadoService<Pais, PaisResponse, ListadoRequest>(paisRepository), IPaisService
 {
     private readonly IPaisRepository _paisRepository = paisRepository;
 
     public async Task<PaisResponse> CrearAsync(CrearPaisRequest request)
     {
+        await ValidarDuplicadoAsync(request.Nombre, null);
+
         var pais = new Pais(request.Nombre);
 
         await _paisRepository.AddAsync(pais);
@@ -27,13 +31,6 @@ public class PaisService(IPaisRepository paisRepository) : IPaisService
         return PaisMapper.ToResponse(pais);
     }
 
-    public async Task<Pagina<PaisResponse>> ObtenerPaginaAsync(PaginacionRequest paginacion)
-    {
-        var pagina = await _paisRepository.GetPaginaAsync(paginacion);
-
-        return pagina.Convertir(PaisMapper.ToResponse);
-    }
-
     public async Task<List<PaisResponse>> ObtenerTodosAsync()
     {
         var paises = await _paisRepository.GetAllAsync();
@@ -44,6 +41,8 @@ public class PaisService(IPaisRepository paisRepository) : IPaisService
     public async Task<PaisResponse> ActualizarAsync(int id, ActualizarPaisRequest request)
     {
         var pais = await ObtenerPaisById(id);
+
+        await ValidarDuplicadoAsync(request.Nombre, id);
 
         pais.ActualizarNombre(request.Nombre);
 
@@ -59,6 +58,15 @@ public class PaisService(IPaisRepository paisRepository) : IPaisService
         pais.Desactivar();
 
         await _paisRepository.DeleteAsync(pais);
+    }
+
+    protected override List<PaisResponse> Convertir(IEnumerable<Pais> entidades)
+        => PaisMapper.ToResponse(entidades);
+
+    private async Task ValidarDuplicadoAsync(string nombre, int? idExcluido)
+    {
+        if (await _paisRepository.ExisteAsync(nombre.Trim(), idExcluido))
+            throw new InvalidOperationException("Ya existe un país con ese nombre.");
     }
 
     private async Task<Pais> ObtenerPaisById(int id)

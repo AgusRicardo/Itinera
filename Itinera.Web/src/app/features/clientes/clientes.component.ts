@@ -1,11 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
+import { DatePipe } from '@angular/common';
 import { map } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ClienteApi, ClientesService, ResumenClientes } from '../../core/services/clientes.service';
 import { GrillaPaginada } from '../../core/utils/grilla-paginada';
-import { PaginadorComponent } from '../../shared/components/paginador/paginador.component';
+import { ColumnaOrdenableComponent } from '../../shared/components/columna-ordenable/columna-ordenable.component';
+import { AccionMenu, MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
+import { EstadoComponent } from '../../shared/components/estado/estado.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
 
@@ -16,21 +18,37 @@ interface ClienteVista {
   apellido: string;
   email: string;
   telefono: string;
-  propuestas?: number;
-  ultimaGestion?: string;
+  propuestas: number;
+  ultimaGestion: string | null;
   estado: 'Activo' | 'Inactivo';
 }
+import { ConfirmacionService } from '../../core/services/confirmacion.service';
+import { ToastrService } from '../../core/services/toastr.service';
+import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
+import { FiltrosGrillaComponent } from '../../shared/components/filtros-grilla/filtros-grilla.component';
+import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { TablaComponent } from '../../shared/components/tabla/tabla.component';
+import { FiltrosGrilla } from '../../core/models/pagina';
 
 @Component({
   selector: 'app-clientes',
   imports: [
     ReactiveFormsModule,
+    DatePipe,
+    ColumnaOrdenableComponent,
+    MenuAccionesComponent,
+    EstadoComponent,
     MenuPrincipalComponent,
-    PaginadorComponent
+    EncabezadoComponent,
+    FiltrosGrillaComponent,
+    ModalComponent,
+    TablaComponent
   ],
   templateUrl: './clientes.component.html'
 })
 export class ClientesComponent {
+  private readonly confirmacion = inject(ConfirmacionService);
+  private readonly toastr = inject(ToastrService);
   private readonly clientesService = inject(ClientesService);
   private readonly constructorFormulario = inject(FormBuilder);
   private readonly autenticacion = inject(AutenticacionService);
@@ -41,30 +59,54 @@ export class ClientesComponent {
       elementos: pagina.elementos.map(cliente => this.convertirCliente(cliente))
     }))),
     'No se pudieron cargar los clientes.');
-  protected readonly resumen = signal<ResumenClientes>({ total: 0, activos: 0 });
-  protected readonly error = signal<string | null>(null);
-  protected readonly busqueda = signal('');
-  protected readonly estado = signal('');
+  protected readonly resumen = signal<ResumenClientes>({
+    total: 0,
+    activos: 0,
+    conPropuestas: 0,
+    nuevosEsteMes: 0
+  });
   protected readonly editor = signal<ClienteVista | 'nuevo' | null>(null);
-  protected readonly clienteAEliminar = signal<ClienteVista | null>(null);
-  protected readonly aviso = signal('');
   protected readonly guardando = signal(false);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
     nombre: ['', Validators.required],
     apellido: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    telefono: ['', Validators.required],
-    estado: ['Activo' as 'Activo' | 'Inactivo']
+    telefono: ['', Validators.required]
   });
 
-  protected filtrar(): void {
-    const activo = this.estado() && String(this.estado() === 'Activo');
-    this.grilla.filtrar({ texto: this.busqueda().trim(), activo });
+  protected readonly estados = [
+    { id: 1, descripcion: 'Activo' },
+    { id: 2, descripcion: 'Inactivo' }
+  ];
+
+  protected readonly campos = [
+    { id: 'nombre', etiqueta: 'Nombre', tipo: 'text', largo: 100 },
+    { id: 'apellido', etiqueta: 'Apellido', tipo: 'text', largo: 100 },
+    { id: 'email', etiqueta: 'Correo electrónico', tipo: 'email', largo: 200 },
+    { id: 'telefono', etiqueta: 'Teléfono', tipo: 'tel', largo: 30 }
+  ];
+
+  protected filtrar(filtros: FiltrosGrilla): void {
+    const estados = filtros['estadoIds'] as number[];
+
+    this.grilla.filtrar({
+      texto: filtros['texto'],
+      activo: estados.length === 1 ? estados[0] === 1 : ''
+    });
   }
 
   protected puedeGestionarClientes(): boolean {
     return this.autenticacion.tienePermiso('clientes.gestionar');
+  }
+
+  protected acciones(cliente: ClienteVista): AccionMenu[] {
+    return [
+      { texto: 'Editar', ejecutar: () => this.abrirEdicion(cliente) },
+      cliente.estado === 'Activo'
+        ? { texto: 'Desactivar', peligro: true, ejecutar: () => this.desactivar(cliente) }
+        : { texto: 'Activar', ejecutar: () => this.activar(cliente) }
+    ];
   }
 
   protected campoInvalido(nombre: string): boolean {
@@ -81,8 +123,7 @@ export class ClientesComponent {
       nombre: '',
       apellido: '',
       email: '',
-      telefono: '',
-      estado: 'Activo'
+      telefono: ''
     });
     this.editor.set('nuevo');
   }
@@ -92,8 +133,7 @@ export class ClientesComponent {
       nombre: cliente.nombrePrincipal,
       apellido: cliente.apellido,
       email: cliente.email,
-      telefono: cliente.telefono,
-      estado: cliente.estado
+      telefono: cliente.telefono
     });
     this.editor.set(cliente);
   }
@@ -119,8 +159,7 @@ export class ClientesComponent {
       nombre: datos.nombre.trim(),
       apellido: datos.apellido.trim(),
       email: datos.email,
-      telefono: datos.telefono,
-      activo: datos.estado === 'Activo'
+      telefono: datos.telefono
     };
     const peticion = actual === 'nuevo'
       ? this.clientesService.crear(datosApi)
@@ -131,40 +170,42 @@ export class ClientesComponent {
         this.guardando.set(false);
         this.cerrarEditor();
         this.recargar();
-        this.mostrarAviso(actual === 'nuevo' ? 'Cliente creado correctamente' : 'Cliente actualizado');
+        this.toastr.exito(actual === 'nuevo' ? 'Cliente creado.' : 'Cliente actualizado.');
       },
-      error: (error: HttpErrorResponse) => {
-        this.guardando.set(false);
-        this.error.set(
-          error.error?.detail
-          ?? error.error?.message
-          ?? 'No se pudo guardar el cliente.'
-        );
-      }
+      error: () => this.guardando.set(false)
     });
   }
 
-  protected confirmarEliminacion(cliente: ClienteVista): void {
-    this.clienteAEliminar.set(cliente);
-  }
+  private async desactivar(cliente: ClienteVista): Promise<void> {
+    const confirmado = await this.confirmacion.confirmar({
+      titulo: `¿Desactivar a ${cliente.nombre}?`,
+      mensaje: 'Va a seguir en la grilla como inactivo, pero no se podrá elegir en propuestas nuevas.',
+      accion: 'Desactivar',
+      peligro: true
+    });
 
-  protected cancelarEliminacion(): void {
-    this.clienteAEliminar.set(null);
-  }
-
-  protected eliminar(): void {
-    const cliente = this.clienteAEliminar();
-    if (!cliente) {
+    if (!confirmado) {
       return;
     }
 
-    this.clientesService.desactivar(cliente.id).subscribe({
+    this.clientesService.desactivar(cliente.id).subscribe(() => {
+      this.recargar();
+      this.toastr.exito('Cliente desactivado.');
+    });
+  }
+
+  private activar(cliente: ClienteVista): void {
+    this.clientesService.actualizar(cliente.id, {
+      nombre: cliente.nombrePrincipal,
+      apellido: cliente.apellido,
+      email: cliente.email,
+      telefono: cliente.telefono,
+      activo: true
+    }).subscribe({
       next: () => {
         this.recargar();
-        this.clienteAEliminar.set(null);
-        this.mostrarAviso('Cliente desactivado');
-      },
-      error: () => this.error.set('No se pudo desactivar el cliente.')
+        this.toastr.exito('Cliente activado.');
+      }
     });
   }
 
@@ -185,12 +226,9 @@ export class ClientesComponent {
       apellido: cliente.apellido ?? '',
       email: cliente.email,
       telefono: cliente.telefono,
+      propuestas: cliente.cantidadPropuestas ?? 0,
+      ultimaGestion: cliente.ultimaGestion ?? null,
       estado: cliente.activo === false ? 'Inactivo' : 'Activo'
     };
-  }
-
-  private mostrarAviso(mensaje: string): void {
-    this.aviso.set(mensaje);
-    setTimeout(() => this.aviso.set(''), 2600);
   }
 }

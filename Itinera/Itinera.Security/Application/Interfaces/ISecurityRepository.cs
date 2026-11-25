@@ -8,23 +8,20 @@ public interface ISecurityRepository
     Task<Usuario> GetByIdAsync(Guid id);
     Task<List<Rol>> GetRolesDeUsuarioAsync(Guid usuarioId);
     Task<List<Permiso>> GetPermisosDeUsuarioAsync(Guid usuarioId);
-    Task<Guid> CreateUsuarioAsync(Usuario usuario);
-    Task<bool> UsuarioTienePermisoAsync(Guid usuarioId, string codigoPermiso);
-    Task<(int? EmpresaId, string EmpresaRazonSocial)> ObtenerEmpresaUsuarioAsync(Guid usuarioId);
+    Task<(int? EmpresaId, string EmpresaRazonSocial)> GetEmpresaDeUsuarioAsync(Guid usuarioId);
 
-    Task<List<Usuario>> ListarUsuariosAsync();
     Task<List<Usuario>> BuscarUsuariosAsync(string texto);
-    Task<List<Rol>> ListarRolesAsync();
+    Task<List<Rol>> GetRolesAsync();
     Task<Rol> GetRolAsync(int id);
-    Task<List<Permiso>> ListarPermisosAsync();
+    Task<List<Permiso>> GetPermisosAsync();
     Task<Permiso> GetPermisoAsync(int id);
-    Task<List<GrupoUsuarios>> ListarGruposAsync();
+    Task<List<GrupoUsuarios>> GetGruposAsync();
 
-    Task CrearRolAsync(Rol rol);
-    Task CrearGrupoAsync(GrupoUsuarios grupo);
+    Task AddRolAsync(Rol rol);
+    Task AddGrupoAsync(GrupoUsuarios grupo);
     Task AsignarRolAsync(Guid componenteId, int rolId);
     Task QuitarRolAsync(Guid componenteId, int rolId);
     Task AgregarMiembroAsync(Guid grupoId, Guid miembroId);
     Task QuitarMiembroAsync(Guid grupoId, Guid miembroId);
-    Task GuardarAsync();
+    Task SaveAsync();
 }

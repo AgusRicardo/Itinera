@@ -70,6 +70,23 @@ public class CargoServiceTests
         Assert.Equal(2, response.Count);
     }
 
+    [Fact]
+    public async Task No_admite_descripciones_repetidas_salvo_que_el_otro_este_desactivado()
+    {
+        var servicio = new CargoService(new CargoRepositoryFake());
+        var agente = await servicio.CrearAsync(new CrearCargoRequest { Descripcion = "Agente" });
+        var otro = await servicio.CrearAsync(new CrearCargoRequest { Descripcion = "Coordinador" });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => servicio.CrearAsync(new CrearCargoRequest { Descripcion = " AGENTE " }));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => servicio.ActualizarAsync(otro.Id, new ActualizarCargoRequest { Descripcion = "agente" }));
+        await servicio.ActualizarAsync(agente.Id, new ActualizarCargoRequest { Descripcion = "agente" });
+
+        await servicio.EliminarAsync(agente.Id);
+        await servicio.CrearAsync(new CrearCargoRequest { Descripcion = "Agente" });
+    }
+
     private sealed class CargoRepositoryFake : ICargoRepository
     {
         private int _ultimoId;
@@ -86,6 +103,9 @@ public class CargoServiceTests
 
         public Task<Cargo?> GetByIdAsync(int id)
             => Task.FromResult(Cargos.FirstOrDefault(c => c.Id == id));
+
+        public Task<bool> ExisteAsync(string descripcion, int? idExcluido)
+            => Task.FromResult(Cargos.Any(c => c.Activo && c.Id != idExcluido && string.Equals(c.Descripcion, descripcion, StringComparison.OrdinalIgnoreCase)));
 
         public Task<List<Cargo>> GetAllAsync()
             => Task.FromResult(Cargos.ToList());

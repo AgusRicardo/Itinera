@@ -3,14 +3,26 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { Etiqueta } from '../../core/models/etiqueta';
 import { EtiquetasService } from '../../core/services/etiquetas.service';
+import { AccionMenu, MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { ConfirmacionService } from '../../core/services/confirmacion.service';
+import { ToastrService } from '../../core/services/toastr.service';
+import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
+import { AutenticacionService } from '../../core/services/autenticacion.service';
 
 @Component({
   selector: 'app-etiquetas',
-  imports: [ReactiveFormsModule, MenuPrincipalComponent],
+  imports: [
+    ReactiveFormsModule,
+    MenuAccionesComponent,
+    MenuPrincipalComponent,
+    EncabezadoComponent
+  ],
   templateUrl: './etiquetas.component.html'
 })
 export class EtiquetasComponent {
+  private readonly confirmacion = inject(ConfirmacionService);
+  private readonly toastr = inject(ToastrService);
   private readonly etiquetasService = inject(EtiquetasService);
   private readonly formularioConstructor = inject(FormBuilder);
 
@@ -20,7 +32,8 @@ export class EtiquetasComponent {
   protected readonly cargando = signal(true);
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly aviso = signal('');
+
+  protected readonly puedeGestionar = inject(AutenticacionService).tienePermiso('etiquetas.gestionar');
 
   protected readonly formulario = this.formularioConstructor.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(80)]]
@@ -30,10 +43,16 @@ export class EtiquetasComponent {
     this.cargarEtiquetas();
   }
 
+  protected acciones(etiqueta: Etiqueta): AccionMenu[] {
+    return [
+      { texto: 'Editar', ejecutar: () => this.abrirModal(etiqueta) },
+      { texto: 'Eliminar', peligro: true, ejecutar: () => this.eliminar(etiqueta) }
+    ];
+  }
+
   protected abrirModal(etiqueta?: Etiqueta): void {
     this.etiquetaEditando.set(etiqueta ?? null);
     this.formulario.reset({ nombre: etiqueta?.nombre ?? '' });
-    this.error.set(null);
     this.modalAbierto.set(true);
   }
 
@@ -50,7 +69,6 @@ export class EtiquetasComponent {
     }
 
     this.guardando.set(true);
-    this.error.set(null);
     const etiqueta = this.etiquetaEditando();
     const nombre = this.formulario.controls.nombre.value.trim();
     const solicitud = etiqueta
@@ -62,28 +80,29 @@ export class EtiquetasComponent {
         this.guardando.set(false);
         this.modalAbierto.set(false);
         this.cargarEtiquetas();
-        this.mostrarAviso(etiqueta ? 'Etiqueta actualizada correctamente' : 'Etiqueta creada correctamente');
+        this.toastr.exito(etiqueta ? 'Etiqueta actualizada.' : 'Etiqueta creada.');
       },
-      error: respuesta => {
-        this.guardando.set(false);
-        this.error.set(respuesta.error?.detail ?? 'No se pudo guardar la etiqueta.');
-      }
+      error: () => this.guardando.set(false)
     });
   }
 
-  protected desactivar(etiqueta: Etiqueta): void {
-    if (!window.confirm(`¿Querés desactivar la etiqueta "${etiqueta.nombre}"?`)) {
+  private async eliminar(etiqueta: Etiqueta): Promise<void> {
+    const confirmado = await this.confirmacion.confirmar({
+      titulo: `¿Eliminar la etiqueta ${etiqueta.nombre}?`,
+      mensaje: 'Las propuestas que ya la usan no cambian.',
+      accion: 'Eliminar',
+      peligro: true
+    });
+
+    if (!confirmado) {
       return;
     }
 
-    this.etiquetasService.desactivar(etiqueta.id).subscribe({
+    this.etiquetasService.eliminar(etiqueta.id).subscribe({
       next: () => {
         this.cargarEtiquetas();
-        this.mostrarAviso('Etiqueta desactivada');
-      },
-      error: respuesta => this.error.set(
-        respuesta.error?.detail ?? 'No se pudo desactivar la etiqueta.'
-      )
+        this.toastr.exito('Etiqueta eliminada.');
+      }
     });
   }
 
@@ -98,10 +117,5 @@ export class EtiquetasComponent {
         this.cargando.set(false);
       }
     });
-  }
-
-  private mostrarAviso(mensaje: string): void {
-    this.aviso.set(mensaje);
-    setTimeout(() => this.aviso.set(''), 2600);
   }
 }

@@ -23,6 +23,7 @@ public sealed class DetalleFacturaResponse
     public string Descripcion { get; set; } = string.Empty;
     public decimal Cantidad { get; set; }
     public decimal PrecioUnitario { get; set; }
+    public decimal? Porcentaje { get; set; }
     public decimal SubTotal { get; set; }
 }
 

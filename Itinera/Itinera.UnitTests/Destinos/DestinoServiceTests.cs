@@ -83,10 +83,11 @@ public class DestinoServiceTests
     {
         var ciudadRepositorio = new CiudadRepositoryFake();
         var ciudad = await CrearCiudad(ciudadRepositorio, "Buenos Aires", "Argentina");
+        var otraCiudad = await CrearCiudad(ciudadRepositorio, "Cordoba", "Argentina");
         var servicio = new DestinoService(new DestinoRepositoryFake(), ciudadRepositorio);
 
         await servicio.CrearAsync(new CrearDestinoRequest { CiudadId = ciudad.Id });
-        await servicio.CrearAsync(new CrearDestinoRequest { CiudadId = ciudad.Id });
+        await servicio.CrearAsync(new CrearDestinoRequest { CiudadId = otraCiudad.Id });
 
         var response = await servicio.ObtenerTodosAsync();
 
@@ -98,6 +99,19 @@ public class DestinoServiceTests
         var ciudad = new Ciudad(nombre, new Pais(paisNombre));
         await repositorio.AddAsync(ciudad);
         return ciudad;
+    }
+
+    [Fact]
+    public async Task No_admite_dos_destinos_para_la_misma_ciudad()
+    {
+        var ciudades = new CiudadRepositoryFake();
+        var ciudad = await CrearCiudad(ciudades, "Roma", "Italia");
+        var servicio = new DestinoService(new DestinoRepositoryFake(), ciudades);
+        var creado = await servicio.CrearAsync(new CrearDestinoRequest { CiudadId = ciudad.Id });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => servicio.CrearAsync(new CrearDestinoRequest { CiudadId = ciudad.Id }));
+        await servicio.ActualizarAsync(creado.Id, new ActualizarDestinoRequest { CiudadId = ciudad.Id });
     }
 
     private sealed class CiudadRepositoryFake : ICiudadRepository
@@ -117,7 +131,10 @@ public class DestinoServiceTests
         public Task<Ciudad?> GetByIdAsync(int id)
             => Task.FromResult(Ciudades.FirstOrDefault(c => c.Id == id));
 
-        public Task<Pagina<Ciudad>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Ciudad>> GetPaginaAsync(ListadoRequest request) => throw new NotSupportedException();
+        public Task<bool> ExisteAsync(string nombre, int paisId, int? idExcluido)
+            => Task.FromResult(Ciudades.Any(c => c.Activo && c.Id != idExcluido && string.Equals(c.Nombre, nombre, StringComparison.OrdinalIgnoreCase) && c.PaisId == paisId));
+
         public Task<List<Ciudad>> GetAllAsync()
             => Task.FromResult(Ciudades.ToList());
 
@@ -143,11 +160,14 @@ public class DestinoServiceTests
         public Task<Destino?> GetByIdAsync(int id)
             => Task.FromResult(Destinos.FirstOrDefault(d => d.Id == id));
 
-        public Task<Pagina<Destino>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Destino>> GetPaginaAsync(ListadoRequest request) => throw new NotSupportedException();
+        public Task<bool> ExisteAsync(int ciudadId, int? idExcluido)
+            => Task.FromResult(Destinos.Any(d => d.Activo && d.Id != idExcluido && d.CiudadId == ciudadId));
+
         public Task<List<Destino>> GetAllAsync()
             => Task.FromResult(Destinos.ToList());
 
-        public Task<List<Destino>> ObtenerPorIdsConActividadesAsync(IEnumerable<int> ids)
+        public Task<List<Destino>> GetByIdsConActividadesAsync(IEnumerable<int> ids)
         {
             var listaIds = ids.ToList();
             return Task.FromResult(Destinos.Where(destino => listaIds.Contains(destino.Id)).ToList());

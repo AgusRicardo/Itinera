@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Cargos;
 
-[Authorize]
+[Authorize(Policy = Permisos.CatalogosVer)]
 public class CargosController(ICargoService cargoService) : ApiController
 {
     private readonly ICargoService _cargoService = cargoService;
@@ -26,7 +26,6 @@ public class CargosController(ICargoService cargoService) : ApiController
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.CatalogosVer)]
     [ProducesResponseType(typeof(List<CargoResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<CargoResponse>>> ObtenerTodos()
     {
@@ -36,7 +35,6 @@ public class CargosController(ICargoService cargoService) : ApiController
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosVer)]
     [ProducesResponseType(typeof(CargoResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CargoResponse>> ObtenerPorId(int id)

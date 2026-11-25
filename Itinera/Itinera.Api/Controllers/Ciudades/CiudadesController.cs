@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Ciudades;
 
-[Authorize]
-public class CiudadesController(ICiudadService ciudadService) : ApiController
+[Authorize(Policy = Permisos.CatalogosOperativosVer)]
+public class CiudadesController(ICiudadService ciudadService)
+    : PaginadoController<CiudadResponse, ListadoRequest>(ciudadService)
 {
     private readonly ICiudadService _ciudadService = ciudadService;
 
@@ -28,7 +29,6 @@ public class CiudadesController(ICiudadService ciudadService) : ApiController
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(List<CiudadResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<CiudadResponse>>> ObtenerTodos()
     {
@@ -37,14 +37,7 @@ public class CiudadesController(ICiudadService ciudadService) : ApiController
         return Ok(response);
     }
 
-    [HttpGet("paginado")]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
-    [ProducesResponseType(typeof(Pagina<CiudadResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<Pagina<CiudadResponse>>> ObtenerPagina([FromQuery] PaginacionRequest paginacion)
-        => Ok(await _ciudadService.ObtenerPaginaAsync(paginacion));
-
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(CiudadResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CiudadResponse>> ObtenerPorId(int id)

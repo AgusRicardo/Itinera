@@ -38,6 +38,18 @@ export class RutasApiService {
     return `${this.apiUrl}/estadospropuestas`;
   }
 
+  get estadosFacturas(): string {
+    return `${this.apiUrl}/estadosfacturas`;
+  }
+
+  get conceptos(): string {
+    return `${this.apiUrl}/conceptos`;
+  }
+
+  conceptoPorId(id: number): string {
+    return `${this.conceptos}/${id}`;
+  }
+
   get usuarios(): string {
     return `${this.apiUrl}/usuarios`;
   }

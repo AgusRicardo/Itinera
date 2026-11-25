@@ -1,31 +1,48 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import {
   Empresa,
   EmpresasService
 } from '../../core/services/empresas.service';
+import { AccionMenu, MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
+import { EstadoComponent } from '../../shared/components/estado/estado.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { ConfirmacionService } from '../../core/services/confirmacion.service';
+import { ToastrService } from '../../core/services/toastr.service';
+import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
+import { FiltrosGrillaComponent } from '../../shared/components/filtros-grilla/filtros-grilla.component';
+import { TablaComponent } from '../../shared/components/tabla/tabla.component';
+import { ColumnaOrdenableComponent } from '../../shared/components/columna-ordenable/columna-ordenable.component';
+import { FiltrosGrilla } from '../../core/models/pagina';
+import { GrillaPaginada } from '../../core/utils/grilla-paginada';
 
 @Component({
   selector: 'app-empresas',
   imports: [
     ReactiveFormsModule,
-    MenuPrincipalComponent
+    MenuAccionesComponent,
+    EstadoComponent,
+    MenuPrincipalComponent,
+    EncabezadoComponent,
+    FiltrosGrillaComponent,
+    TablaComponent,
+    ColumnaOrdenableComponent
   ],
   templateUrl: './empresas.component.html'
 })
 export class EmpresasComponent {
+  private readonly confirmacion = inject(ConfirmacionService);
+  private readonly toastr = inject(ToastrService);
   private readonly empresasService = inject(EmpresasService);
   private readonly constructorFormulario = inject(FormBuilder);
 
-  protected readonly empresas = signal<Empresa[]>([]);
-  protected readonly cargando = signal(true);
+  protected readonly grilla = new GrillaPaginada<Empresa>(
+    consulta => this.empresasService.obtenerPagina(consulta),
+    'No se pudieron cargar las empresas.');
   protected readonly guardando = signal(false);
   protected readonly modalAbierto = signal(false);
   protected readonly empresaEditando = signal<Empresa | null>(null);
-  protected readonly error = signal<string | null>(null);
-  protected readonly aviso = signal('');
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
     razonSocial: ['', Validators.required],
@@ -43,22 +60,37 @@ export class EmpresasComponent {
     telefono: ['']
   });
 
-  protected readonly empresasActivas = computed(() =>
-    this.empresas().filter(empresa => empresa.activo).length
-  );
+  protected readonly estados = [
+    { id: 1, descripcion: 'Activa' },
+    { id: 2, descripcion: 'Inactiva' }
+  ];
 
-  constructor() {
-    this.cargarEmpresas();
+  protected filtrar(filtros: FiltrosGrilla): void {
+    const estados = filtros['estadoIds'] as number[];
+
+    this.grilla.filtrar({
+      texto: filtros['texto'],
+      activo: estados.length === 1 ? estados[0] === 1 : ''
+    });
   }
 
   protected abrirModal(): void {
     this.formulario.reset();
-    this.error.set(null);
     this.modalAbierto.set(true);
   }
 
   protected cerrarModal(): void {
     this.modalAbierto.set(false);
+  }
+
+  protected acciones(empresa: Empresa): AccionMenu[] {
+    const acciones: AccionMenu[] = [{ texto: 'Editar', ejecutar: () => this.abrirEdicion(empresa) }];
+
+    if (empresa.activo) {
+      acciones.push({ texto: 'Desactivar', peligro: true, ejecutar: () => this.desactivar(empresa) });
+    }
+
+    return acciones;
   }
 
   protected abrirEdicion(empresa: Empresa): void {
@@ -67,7 +99,6 @@ export class EmpresasComponent {
       cuit: empresa.cuit,
       telefono: empresa.telefono
     });
-    this.error.set(null);
     this.empresaEditando.set(empresa);
   }
 
@@ -87,30 +118,28 @@ export class EmpresasComponent {
       next: () => {
         this.guardando.set(false);
         this.cerrarEdicion();
-        this.cargarEmpresas();
-        this.aviso.set('Empresa actualizada correctamente');
-        setTimeout(() => this.aviso.set(''), 2600);
+        this.grilla.cargar();
+        this.toastr.exito('Empresa actualizada.');
       },
-      error: respuesta => {
-        this.guardando.set(false);
-        this.error.set(respuesta.error?.detail ?? 'No se pudo actualizar la empresa.');
-      }
+      error: () => this.guardando.set(false)
     });
   }
 
-  protected desactivar(empresa: Empresa): void {
-    if (!window.confirm(`¿Querés desactivar ${empresa.razonSocial}?`)) {
+  private async desactivar(empresa: Empresa): Promise<void> {
+    const confirmado = await this.confirmacion.confirmar({
+      titulo: `¿Desactivar ${empresa.razonSocial}?`,
+      mensaje: 'Va a seguir en la grilla como inactiva, pero no se podrá elegir para usuarios nuevos.',
+      accion: 'Desactivar',
+      peligro: true
+    });
+
+    if (!confirmado) {
       return;
     }
 
-    this.empresasService.desactivar(empresa.id).subscribe({
-      next: () => {
-        this.cargarEmpresas();
-        this.aviso.set('Empresa desactivada');
-        setTimeout(() => this.aviso.set(''), 2600);
-      },
-      error: respuesta => this.error.set(
-        respuesta.error?.detail ?? 'No se pudo desactivar la empresa.')
+    this.empresasService.desactivar(empresa.id).subscribe(() => {
+      this.grilla.cargar();
+      this.toastr.exito('Empresa desactivada.');
     });
   }
 
@@ -119,27 +148,20 @@ export class EmpresasComponent {
 
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
-      this.error.set(`Completá los campos obligatorios: ${this.camposInvalidos()}.`);
+      this.toastr.advertencia(`Completá los campos obligatorios: ${this.camposInvalidos()}.`);
       return;
     }
 
     this.guardando.set(true);
-    this.error.set(null);
 
     this.empresasService.registrar(this.formulario.getRawValue()).subscribe({
       next: () => {
         this.guardando.set(false);
         this.cerrarModal();
-        this.cargarEmpresas();
-        this.aviso.set('Empresa creada correctamente');
-        setTimeout(() => this.aviso.set(''), 2600);
+        this.grilla.cargar();
+        this.toastr.exito('Empresa creada.');
       },
-      error: respuesta => {
-        this.guardando.set(false);
-        this.error.set(
-          respuesta.error?.detail ?? 'No se pudo registrar la empresa.'
-        );
-      }
+      error: () => this.guardando.set(false)
     });
   }
 
@@ -157,18 +179,5 @@ export class EmpresasComponent {
       .filter(([, control]) => control.invalid)
       .map(([nombre]) => nombres[nombre] ?? nombre)
       .join(', ');
-  }
-
-  private cargarEmpresas(): void {
-    this.empresasService.obtenerTodas().subscribe({
-      next: empresas => {
-        this.empresas.set(empresas);
-        this.cargando.set(false);
-      },
-      error: () => {
-        this.error.set('No se pudieron cargar las empresas.');
-        this.cargando.set(false);
-      }
-    });
   }
 }

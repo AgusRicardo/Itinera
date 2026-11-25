@@ -11,10 +11,17 @@ import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 import { ToastrService } from '../../core/services/toastr.service';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
+import { EstadoComponent } from '../../shared/components/estado/estado.component';
 
 @Component({
   selector: 'app-detalle-propuesta',
-  imports: [RouterLink, MonedaPipe, DatePipe, MenuPrincipalComponent],
+  imports: [
+    RouterLink,
+    MonedaPipe,
+    DatePipe,
+    MenuPrincipalComponent,
+    EstadoComponent
+  ],
   templateUrl: './detalle-propuesta.component.html'
 })
 export class DetallePropuestaComponent {
@@ -110,11 +117,9 @@ export class DetallePropuestaComponent {
       next: propuesta => {
         this.propuesta.set(propuesta);
         this.procesando.set(false);
+        this.toastr.exito('Propuesta presentada.');
       },
-      error: () => {
-        this.toastr.error('No se pudo presentar la propuesta.');
-        this.procesando.set(false);
-      }
+      error: () => this.procesando.set(false)
     });
   }
 
@@ -131,11 +136,9 @@ export class DetallePropuestaComponent {
       next: propuesta => {
         this.propuesta.set(propuesta);
         this.procesando.set(false);
+        this.toastr.exito('Respuesta registrada.');
       },
-      error: () => {
-        this.toastr.error('No se pudo registrar la respuesta.');
-        this.procesando.set(false);
-      }
+      error: () => this.procesando.set(false)
     });
   }
 }

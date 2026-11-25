@@ -1,4 +1,54 @@
-﻿<app-menu-principal /><main class="min-h-screen bg-itinera-background lg:pl-64"><section class="mx-auto w-full max-w-6xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10"><div class="mb-8 flex items-end justify-between gap-5"><div><p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">Catálogos operativos</p><h1 class="font-itinera-display text-3xl">Ciudades</h1><p class="mt-1 text-sm text-itinera-muted">Ciudades asociadas a cada país.</p></div><button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background" (click)="abrir()">+ Nueva ciudad</button></div>@if (grilla.cargando()) {<div class="rounded-xl border bg-itinera-card p-12 text-center text-sm text-itinera-muted">Cargando ciudades…</div>} @else if ((grilla.error() ?? error()) && !modal()) {<div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center text-sm text-red-700">{{ grilla.error() ?? error() }}</div>} @else {<div class="overflow-hidden rounded-xl border bg-itinera-card shadow-sm"><table class="w-full text-left text-sm"><thead class="border-b bg-itinera-secondary/50 text-xs text-itinera-muted"><tr><th class="px-5 py-3">Ciudad</th><th class="px-5 py-3">País</th><th class="px-5 py-3 text-right">Acciones</th></tr></thead><tbody class="divide-y">@for (ciudad of grilla.elementos(); track ciudad.id) {<tr><td class="px-5 py-4 font-medium">{{ ciudad.nombre }}</td><td class="px-5 py-4">{{ ciudad.paisNombre }}</td><td class="px-5 py-4 text-right"><button type="button" class="mr-2 rounded-lg border px-3 py-2 text-xs" (click)="abrir(ciudad)">Editar</button><button type="button" class="rounded-lg px-3 py-2 text-xs text-red-700" (click)="eliminar(ciudad)">Desactivar</button></td></tr>}</tbody></table></div><app-paginador [grilla]="grilla" />}</section>@if (modal()) {<div class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4" (click)="cerrar()"><section class="w-full max-w-md rounded-2xl border bg-itinera-card shadow-xl" (click)="$event.stopPropagation()"><header class="flex justify-between border-b px-6 py-5"><h2 class="font-itinera-display text-xl">{{ editando() ? 'Editar ciudad' : 'Nueva ciudad' }}</h2><button type="button" (click)="cerrar()">✕</button></header><form class="space-y-5 p-6" [formGroup]="formulario" (ngSubmit)="guardar()"><div><label class="mb-1.5 block text-sm font-medium">Nombre <span class="text-red-600">*</span></label><input formControlName="nombre" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></div><div><label class="mb-1.5 block text-sm font-medium">País</label><select formControlName="paisId" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm"><option [ngValue]="0">Seleccioná un país</option>@for (pais of paises(); track pais.id) {<option [ngValue]="pais.id">{{ pais.nombre }}</option>}</select></div>@if (error()) {<p class="text-sm text-red-700">{{ error() }}</p>}<div class="flex justify-end gap-2 border-t pt-5"><button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrar()">Cancelar</button><button type="submit" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm text-itinera-background" [disabled]="formulario.invalid || guardando()">Guardar</button></div></form></section></div>}</main>
+<app-menu-principal />
 
+<main class="min-h-screen bg-itinera-background lg:pl-64">
+  <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
+    <app-encabezado seccion="Catálogos" titulo="Ciudades" descripcion="Ciudades asociadas a cada país.">
+      <button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background" (click)="abrir()">+ Nueva ciudad</button>
+    </app-encabezado>
 
+    <app-filtros-grilla placeholder="Buscar por ciudad o país" [conFiltros]="false" (cambio)="grilla.filtrar($event)" />
 
+    <app-tabla [grilla]="grilla" elementos="ciudades">
+      <thead>
+        <tr>
+          <th appColumnaOrdenable="nombre" [grilla]="grilla">Ciudad</th>
+          <th appColumnaOrdenable="pais" [grilla]="grilla">País</th>
+          <th class="numero">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ciudad of grilla.elementos(); track ciudad.id) {
+          <tr>
+            <td class="font-medium">{{ ciudad.nombre }}</td>
+            <td>{{ ciudad.paisNombre }}</td>
+            <td class="numero"><app-menu-acciones [acciones]="acciones(ciudad)" /></td>
+          </tr>
+        }
+      </tbody>
+    </app-tabla>
+  </section>
+
+  @if (modal()) {
+    <app-modal seccion="Catálogos" [titulo]="editando() ? 'Editar ciudad' : 'Nueva ciudad'" (cerrar)="cerrar()">
+      <form class="space-y-5 p-6" [formGroup]="formulario" (ngSubmit)="guardar()">
+      <div>
+        <label for="nombre" class="mb-1.5 block text-sm font-medium">Nombre <span class="text-red-600">*</span></label>
+        <input id="nombre" formControlName="nombre" maxlength="100" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+        @if (formulario.controls.nombre.touched && formulario.controls.nombre.invalid) {
+          <p class="mt-1 text-xs text-red-700">Ingresá un nombre.</p>
+        }
+      </div>
+      <div>
+        <label for="paisId" class="mb-1.5 block text-sm font-medium">País <span class="text-red-600">*</span></label>
+        <app-selector idCampo="paisId" descripcion="País" placeholder="Seleccioná un país" formControlName="paisId" [opciones]="opcionesPaises()" />
+      </div>
+      <div class="flex justify-end gap-2 border-t pt-5">
+        <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" [disabled]="guardando()" (click)="cerrar()">Cancelar</button>
+        <button type="submit" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50" [disabled]="formulario.invalid || guardando()">
+          {{ guardando() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+      </form>
+    </app-modal>
+  }
+</main>

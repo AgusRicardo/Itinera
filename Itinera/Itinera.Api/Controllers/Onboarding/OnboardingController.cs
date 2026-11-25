@@ -6,10 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Onboarding;
 
-[ApiController]
-[Route("api/onboarding")]
 [Authorize(Policy = Permisos.PlataformaGestionarEmpresas)]
-public class OnboardingController(IOnboardingService onboardingService) : ControllerBase
+public class OnboardingController(IOnboardingService onboardingService) : ApiController
 {
     [HttpPost("empresas")]
     [ProducesResponseType(StatusCodes.Status201Created)]

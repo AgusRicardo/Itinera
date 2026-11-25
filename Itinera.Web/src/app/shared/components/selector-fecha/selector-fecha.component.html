@@ -1,0 +1,54 @@
+<button
+  type="button"
+  aria-haspopup="dialog"
+  [id]="idCampo()"
+  [attr.aria-label]="descripcion() + ': ' + (valor() ? formatear(valor()!) : 'sin elegir')"
+  [attr.aria-expanded]="abierto()"
+  [disabled]="deshabilitado()"
+  class="flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg border bg-itinera-secondary px-3 py-2.5 text-left text-sm outline-none focus-visible:border-itinera-accent focus-visible:ring-2 focus-visible:ring-itinera-accent/30 disabled:opacity-60"
+  [class.border-itinera-accent]="abierto()"
+  (click)="alternar()"
+>
+  <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0 text-itinera-muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+    <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+  </svg>
+  <span [class.text-itinera-muted]="!valor()">{{ valor() ? formatear(valor()!) : 'Elegí una fecha' }}</span>
+</button>
+
+@if (abierto()) {
+  <div
+    role="dialog"
+    class="fixed z-[60] w-[300px] rounded-2xl border bg-itinera-card p-4 shadow-xl"
+    [attr.aria-label]="descripcion()"
+    [style.top]="posicion().top"
+    [style.left]="posicion().left"
+  >
+    <div class="mb-3 flex h-8 items-center justify-between">
+      <button type="button" aria-label="Mes anterior" class="h-8 w-8 rounded-full hover:bg-itinera-secondary disabled:opacity-30" [disabled]="!hayMesAnterior()" (click)="moverMes(-1)">‹</button>
+      <p class="text-sm font-semibold">{{ mes().titulo }}</p>
+      <button type="button" aria-label="Mes siguiente" class="h-8 w-8 rounded-full hover:bg-itinera-secondary disabled:opacity-30" [disabled]="!hayMesSiguiente()" (click)="moverMes(1)">›</button>
+    </div>
+    <div class="grid grid-cols-7 gap-y-1 text-center text-xs">
+      @for (dia of diasSemana; track dia) {
+        <span class="pb-1 text-itinera-muted">{{ dia }}</span>
+      }
+      @for (hueco of mes().huecos; track hueco) {
+        <span></span>
+      }
+      @for (dia of mes().dias; track dia) {
+        <button
+          type="button"
+          class="h-9 rounded-lg disabled:cursor-not-allowed disabled:opacity-30"
+          [class]="dia === valor() ? 'bg-itinera-foreground font-semibold text-itinera-background' : 'hover:bg-itinera-secondary'"
+          [attr.aria-label]="formatear(dia)"
+          [attr.aria-pressed]="dia === valor()"
+          [disabled]="estaDeshabilitado(dia)"
+          (click)="elegirValor(dia)"
+        >
+          {{ +dia.slice(8) }}
+        </button>
+      }
+    </div>
+  </div>
+}

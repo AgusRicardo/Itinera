@@ -4,7 +4,7 @@ namespace Itinera.Security.Application.Interfaces;
 
 public interface IGrupoAdminService
 {
-    Task<List<GrupoAdminResponse>> ListarAsync();
+    Task<List<GrupoAdminResponse>> ObtenerTodosAsync();
     Task<GrupoAdminResponse> CrearAsync(CrearGrupoRequest request);
     Task AgregarMiembroAsync(Guid grupoId, Guid miembroId);
     Task QuitarMiembroAsync(Guid grupoId, Guid miembroId);

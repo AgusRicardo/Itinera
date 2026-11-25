@@ -33,7 +33,6 @@
 
   a,
   button:not(:disabled),
-  select,
   summary,
   [role='button'] {
     cursor: pointer;
@@ -49,6 +48,37 @@
     color: #f7f5f0 !important;
     stroke: #f7f5f0 !important;
     fill: none !important;
+  }
+}
+
+@layer components {
+  .contenedor-tabla {
+    @apply max-h-[65vh] overflow-auto rounded-xl border bg-itinera-card shadow-sm;
+  }
+
+  .tabla {
+    @apply w-full text-left text-sm;
+  }
+
+  .tabla thead th {
+    @apply sticky top-0 z-10 whitespace-nowrap border-b bg-[#f6f4f1] px-4 py-3.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-itinera-muted;
+  }
+
+  .tabla tbody tr {
+    @apply border-b transition-colors last:border-b-0 hover:bg-itinera-secondary/25;
+  }
+
+  .tabla td {
+    @apply px-4 py-4;
+  }
+
+  .tabla thead th.numero,
+  .tabla td.numero {
+    @apply text-right;
+  }
+
+  input[type='search']::-webkit-search-cancel-button {
+    appearance: none;
   }
 }
 

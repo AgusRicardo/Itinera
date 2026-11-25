@@ -11,10 +11,19 @@ import { ToastrService } from '../../core/services/toastr.service';
 import { describirDia, diasDeEstadia, fechaDe, horaDe } from '../../core/utils/fechas-itinerario';
 import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { OpcionSelector, SelectorComponent } from '../../shared/components/selector/selector.component';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-itinerario',
-  imports: [RouterLink, MonedaPipe, DatePipe, MenuPrincipalComponent],
+  imports: [
+    RouterLink,
+    MonedaPipe,
+    DatePipe,
+    MenuPrincipalComponent,
+    ReactiveFormsModule,
+    SelectorComponent
+  ],
   templateUrl: './itinerario.component.html'
 })
 export class ItinerarioComponent {
@@ -36,11 +45,17 @@ export class ItinerarioComponent {
   protected readonly procesando = signal(false);
   protected readonly cambiandoDestino = signal(false);
   protected readonly destinos = signal<DestinoApi[]>([]);
-  protected readonly nuevoDestinoId = signal(0);
+  protected readonly nuevoDestino = new FormControl(0, { nonNullable: true });
   protected readonly horaDe = horaDe;
 
   protected readonly destino = computed(() =>
     this.propuesta()?.destinos.find(destino => destino.id === this.destinoId) ?? null);
+
+  protected readonly opcionesDestinos = computed<OpcionSelector[]>(() =>
+    this.destinos().map(destino => ({
+      id: destino.id,
+      nombre: `${destino.ciudadNombre}, ${destino.paisNombre}`
+    })));
 
   protected readonly editable = computed(() =>
     !['Aceptada', 'Eliminada'].includes(this.propuesta()?.estado ?? ''));
@@ -97,7 +112,7 @@ export class ItinerarioComponent {
       this.destinosService.obtenerTodos().subscribe(destinos => {
         const usados = this.propuesta()?.destinos.map(destino => destino.id) ?? [];
         this.destinos.set(destinos.filter(destino => !usados.includes(destino.id)));
-        this.nuevoDestinoId.set(this.destinos()[0]?.id ?? 0);
+        this.nuevoDestino.setValue(this.destinos()[0]?.id ?? 0);
       });
     }
   }
@@ -140,12 +155,7 @@ export class ItinerarioComponent {
         this.cambios.set(cambios);
         this.sinCambios.set(!cambios.length);
       },
-      error: respuesta => {
-        this.procesando.set(false);
-        if (respuesta.status === 503) {
-          this.toastr.error(respuesta.error?.detail ?? 'El servicio de IA no está disponible.');
-        }
-      }
+      error: () => this.procesando.set(false)
     });
   }
 

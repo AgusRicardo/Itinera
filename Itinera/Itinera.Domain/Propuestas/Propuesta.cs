@@ -176,6 +176,11 @@ public class Propuesta
     public Itinerario ObtenerItinerario(int destinoId)
         => Itinerarios.FirstOrDefault(item => item.DestinoId == destinoId);
 
+    public bool UsaActividad(int actividadId)
+        => Actividades.Any(item => item.ActividadId == actividadId)
+            || Itinerarios.Any(itinerario =>
+                itinerario.Actividades.Any(item => item.ActividadId == actividadId));
+
     public decimal CostoItinerarios => Itinerarios.Sum(itinerario => itinerario.Costo);
 
     public decimal PresupuestoDisponiblePara(int destinoId)

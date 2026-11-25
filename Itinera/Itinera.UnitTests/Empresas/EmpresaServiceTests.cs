@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Empresas.Dtos;
 using Itinera.Application.Empresas.Interfaces;
@@ -104,10 +105,13 @@ public class EmpresaServiceTests
             return Task.CompletedTask;
         }
 
+        public Task<Pagina<EmpresaEntidad>> GetPaginaAsync(ListadoActivableRequest filtro) => throw new NotSupportedException();
+        public Task<EmpresaEntidad?> GetByIdConInactivasAsync(int id) => GetByIdAsync(id);
+
         public Task<EmpresaEntidad?> GetByIdAsync(int id)
             => Task.FromResult(Empresas.FirstOrDefault(e => e.Id == id));
 
-        public Task<List<EmpresaEntidad>> GetAllAsync()
+        public Task<List<EmpresaEntidad>> GetAllConInactivasAsync()
             => Task.FromResult(Empresas.ToList());
 
         public Task UpdateAsync(EmpresaEntidad empresa) => Task.CompletedTask;

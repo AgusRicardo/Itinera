@@ -19,6 +19,10 @@ public sealed class RegistroAuditoriaConfiguration : IEntityTypeConfiguration<Re
             .HasMaxLength(100)
             .IsRequired();
 
+        builder.Property(registro => registro.EntidadId)
+            .HasMaxLength(100)
+            .IsRequired();
+
         builder.Property(registro => registro.Detalle)
             .HasMaxLength(2000);
 

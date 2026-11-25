@@ -22,7 +22,7 @@ export class EtiquetasService {
     return this.http.put<Etiqueta>(this.rutasApi.etiquetaPorId(id), { nombre });
   }
 
-  desactivar(id: number): Observable<void> {
+  eliminar(id: number): Observable<void> {
     return this.http.delete<void>(this.rutasApi.etiquetaPorId(id));
   }
 }

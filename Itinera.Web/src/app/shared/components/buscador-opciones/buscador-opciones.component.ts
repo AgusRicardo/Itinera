@@ -1,12 +1,11 @@
 import { Component, EventEmitter, Input, Output, signal, computed } from '@angular/core';
 
+import { sinTildes } from '../../../core/utils/texto';
+
 export interface OpcionBuscable {
   id: string;
   nombre: string;
 }
-
-const normalizar = (texto: string): string =>
-  texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 @Component({
   selector: 'app-buscador-opciones',
@@ -30,11 +29,11 @@ export class BuscadorOpcionesComponent {
   protected readonly texto = signal('');
   protected readonly abierto = signal(false);
   protected readonly resultados = computed(() => {
-    const busqueda = normalizar(this.texto().trim());
+    const busqueda = sinTildes(this.texto().trim());
     return busqueda.length < 3
       ? []
       : this.opcionesActuales()
-          .filter(opcion => normalizar(opcion.nombre).includes(busqueda))
+          .filter(opcion => sinTildes(opcion.nombre).includes(busqueda))
           .slice(0, 8);
   });
 

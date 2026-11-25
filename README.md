@@ -132,6 +132,14 @@ La API está desplegada en **Render** (Web Service + PostgreSQL administrada). L
 migraciones y el seeder de seguridad corren automáticamente al arrancar, por lo que
 no hay pasos manuales de migración ni de seed.
 
+El front es un **Static Site** de Render. Como Angular resuelve las rutas en el navegador,
+necesita esta regla en **Redirects/Rewrites**; sin ella, entrar directo a una URL o
+recargar la página responde 404:
+
+| Source | Destination | Action |
+| --- | --- | --- |
+| `/*` | `/index.html` | Rewrite |
+
 ## Pruebas
 
 Todos los tests (unitarios, de arquitectura y de integración):

@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Plataforma.Dtos;
 using Itinera.Application.Plataforma.Interfaces;
 using Itinera.Domain.Empresa;
@@ -21,13 +22,13 @@ public sealed class AdministracionPlataformaService(AppDbContext context)
             .FirstOrDefaultAsync(
                 item => item.Id == request.EmpresaId && item.Activo,
                 cancellationToken)
-            ?? throw new KeyNotFoundException("Empresa no encontrada.");
+            ?? throw new EmpresaNoEncontradaException(request.EmpresaId);
 
         var cargo = await context.Cargos
             .FirstOrDefaultAsync(
                 item => item.Id == request.CargoId && item.Activo,
                 cancellationToken)
-            ?? throw new KeyNotFoundException("Cargo no encontrado.");
+            ?? throw new CargoNoEncontradoException(request.CargoId);
 
         var rol = await context.Roles
             .FirstOrDefaultAsync(item => item.Id == request.RolId, cancellationToken)
@@ -86,13 +87,13 @@ public sealed class AdministracionPlataformaService(AppDbContext context)
             .FirstOrDefaultAsync(
                 item => item.Id == request.EmpresaId && item.Activo,
                 cancellationToken)
-            ?? throw new KeyNotFoundException("Empresa no encontrada.");
+            ?? throw new EmpresaNoEncontradaException(request.EmpresaId);
 
         var cargo = await context.Cargos
             .FirstOrDefaultAsync(
                 item => item.Id == request.CargoId && item.Activo,
                 cancellationToken)
-            ?? throw new KeyNotFoundException("Cargo no encontrado.");
+            ?? throw new CargoNoEncontradoException(request.CargoId);
 
         var vinculo = await context.UsuariosEmpleados
             .Include(item => item.Empleado)

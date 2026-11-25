@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Itinera.Application.Common.Paginacion;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,4 +24,10 @@ internal static class ConsultasPaginadas
 
         return new Pagina<T>(elementos, numeroPagina, paginacion.TamanoPagina, total);
     }
+
+    public static IOrderedQueryable<T> OrdenarPor<T, TClave>(
+        this IQueryable<T> consulta,
+        Expression<Func<T, TClave>> clave,
+        bool descendente)
+        => descendente ? consulta.OrderByDescending(clave) : consulta.OrderBy(clave);
 }

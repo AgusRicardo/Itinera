@@ -1,3 +1,5 @@
+using Itinera.Application.Common.Exceptions;
+using Itinera.Application.Actividades.Dtos;
 using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Actividades.Interfaces;
 using Itinera.Application.Common.Interfaces;
@@ -117,6 +119,21 @@ public class GeneradorItinerariosServiceTests
         var alternativa = Assert.Single(await servicio.GenerarAlternativasDiaAsync(1, 1, CrearModificacion()));
         Assert.Equal(2, alternativa.Actividades.Count);
         Assert.Single(_actividades.Guardadas);
+    }
+
+    [Fact]
+    public async Task Armar_acepta_una_actividad_desactivada_solo_si_la_propuesta_ya_la_usa()
+    {
+        _coliseo.Desactivar();
+        var armador = new ArmadorItinerario(_actividades);
+        ActividadItinerarioRequest[] solicitadas =
+        [
+            new() { ActividadId = 1, FechaHoraInicio = Fecha.ToDateTime(new TimeOnly(9, 0)) }
+        ];
+
+        Assert.Single(await armador.ConstruirAsync(CrearPropuesta(conColiseo: true), 1, solicitadas));
+        await Assert.ThrowsAsync<ActividadNoEncontradaException>(
+            () => armador.ConstruirAsync(CrearPropuesta(conColiseo: false), 1, solicitadas));
     }
 
     private GeneradorItinerariosService CrearServicio(
@@ -351,7 +368,7 @@ public class GeneradorItinerariosServiceTests
     {
         public Task AddAsync(Propuesta nueva) => Task.CompletedTask;
         public Task<Propuesta?> GetByIdAsync(int id) => Task.FromResult<Propuesta?>(propuesta);
-        public Task<Pagina<Propuesta>> GetPaginaAsync(ListarPropuestasRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Propuesta>> GetPaginaAsync(ListadoComercialRequest request) => throw new NotSupportedException();
         public Task<ResumenPropuestasResponse> GetResumenAsync() => throw new NotSupportedException();
         public Task<List<Propuesta>> GetAllAsync() => Task.FromResult(new List<Propuesta> { propuesta });
         public Task<List<Propuesta>> GetByClienteAsync(int clienteId) => GetAllAsync();
@@ -362,9 +379,10 @@ public class GeneradorItinerariosServiceTests
     {
         public Task AddAsync(Destino nuevo) => Task.CompletedTask;
         public Task<Destino?> GetByIdAsync(int id) => Task.FromResult<Destino?>(destino);
-        public Task<Pagina<Destino>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Destino>> GetPaginaAsync(ListadoRequest request) => throw new NotSupportedException();
+        public Task<bool> ExisteAsync(int ciudadId, int? idExcluido) => Task.FromResult(false);
         public Task<List<Destino>> GetAllAsync() => Task.FromResult(new List<Destino> { destino });
-        public Task<List<Destino>> ObtenerPorIdsConActividadesAsync(IEnumerable<int> ids) => GetAllAsync();
+        public Task<List<Destino>> GetByIdsConActividadesAsync(IEnumerable<int> ids) => GetAllAsync();
         public Task UpdateAsync(Destino modificado) => Task.CompletedTask;
         public Task DeleteAsync(Destino eliminado) => Task.CompletedTask;
     }
@@ -385,10 +403,12 @@ public class GeneradorItinerariosServiceTests
             return Task.CompletedTask;
         }
 
+        public Task<Actividad?> GetByIdConInactivasAsync(int id) => GetByIdAsync(id);
+
         public Task<Actividad?> GetByIdAsync(int id)
             => Task.FromResult(_actividades.FirstOrDefault(actividad => actividad.Id == id));
 
-        public Task<Pagina<Actividad>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Actividad>> GetPaginaAsync(ListarActividadesRequest request) => throw new NotSupportedException();
         public Task<List<Actividad>> GetAllAsync() => Task.FromResult(_actividades.ToList());
         public Task UpdateAsync(Actividad actividad) => Task.CompletedTask;
         public Task DeleteAsync(Actividad actividad) => Task.CompletedTask;

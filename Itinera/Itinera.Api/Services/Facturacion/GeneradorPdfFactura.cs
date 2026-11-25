@@ -1,3 +1,4 @@
+using Itinera.Domain.Common;
 using Itinera.Application.Facturacion.Dtos;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -38,7 +39,7 @@ public sealed class GeneradorPdfFactura
                         });
                         fila.ConstantItem(180).Column(datos =>
                         {
-                            datos.Item().Text($"Emisión: {factura.FechaEmision:dd/MM/yyyy}");
+                            datos.Item().Text($"Emisión: {FechaComercial.Desde(factura.FechaEmision):dd/MM/yyyy}");
                             datos.Item().Text($"Vencimiento: {factura.FechaVencimiento:dd/MM/yyyy}");
                             datos.Item().Text($"Estado: {factura.Estado}");
                         });
@@ -64,7 +65,9 @@ public sealed class GeneradorPdfFactura
 
                         foreach (var detalle in factura.Detalles)
                         {
-                            tabla.Cell().Element(EstiloCelda).Text(detalle.Descripcion);
+                            tabla.Cell().Element(EstiloCelda).Text(detalle.Porcentaje is decimal porcentaje
+                                ? $"{detalle.Descripcion} ({porcentaje:0.##}% del costo del viaje)"
+                                : detalle.Descripcion);
                             tabla.Cell().Element(EstiloCelda).AlignRight().Text(detalle.Cantidad.ToString("N2"));
                             tabla.Cell().Element(EstiloCelda).AlignRight().Text(detalle.PrecioUnitario.ToString("C2"));
                             tabla.Cell().Element(EstiloCelda).AlignRight().Text(detalle.SubTotal.ToString("C2"));

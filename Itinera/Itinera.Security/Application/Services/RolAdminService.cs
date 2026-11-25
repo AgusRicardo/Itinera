@@ -8,15 +8,15 @@ namespace Itinera.Security.Application.Services;
 
 public class RolAdminService(ISecurityRepository repository) : IRolAdminService
 {
-    public async Task<List<RolAdminResponse>> ListarAsync()
+    public async Task<List<RolAdminResponse>> ObtenerTodosAsync()
     {
-        var roles = await repository.ListarRolesAsync();
+        var roles = await repository.GetRolesAsync();
         return roles.Select(Mapear).ToList();
     }
 
-    public async Task<List<PermisoAdminResponse>> ListarPermisosAsync(ClaimsPrincipal usuario)
+    public async Task<List<PermisoAdminResponse>> ObtenerPermisosAsync(ClaimsPrincipal usuario)
     {
-        var permisos = await repository.ListarPermisosAsync();
+        var permisos = await repository.GetPermisosAsync();
         var esAdministradorPlataforma = EsAdministradorPlataforma(usuario);
 
         return permisos
@@ -28,7 +28,7 @@ public class RolAdminService(ISecurityRepository repository) : IRolAdminService
     public async Task<RolAdminResponse> CrearAsync(CrearRolRequest request, ClaimsPrincipal usuario)
     {
         var rol = new Rol(request.Nombre, request.Descripcion);
-        var permisos = await repository.ListarPermisosAsync();
+        var permisos = await repository.GetPermisosAsync();
 
         foreach (var codigo in request.Permisos)
         {
@@ -39,7 +39,7 @@ public class RolAdminService(ISecurityRepository repository) : IRolAdminService
 
         ValidarPermisosDePlataforma(usuario, rol.Permisos);
 
-        await repository.CrearRolAsync(rol);
+        await repository.AddRolAsync(rol);
         return Mapear(rol);
     }
 
@@ -53,7 +53,7 @@ public class RolAdminService(ISecurityRepository repository) : IRolAdminService
         ValidarPermisosDePlataforma(usuario, new[] { permiso });
 
         rol.AgregarPermiso(permiso);
-        await repository.GuardarAsync();
+        await repository.SaveAsync();
     }
 
     public async Task QuitarPermisoAsync(int rolId, int permisoId, ClaimsPrincipal usuario)
@@ -66,7 +66,7 @@ public class RolAdminService(ISecurityRepository repository) : IRolAdminService
         ValidarPermisosDePlataforma(usuario, new[] { permiso });
 
         rol.QuitarPermiso(permiso);
-        await repository.GuardarAsync();
+        await repository.SaveAsync();
     }
 
     private static bool EsAdministradorPlataforma(ClaimsPrincipal usuario)

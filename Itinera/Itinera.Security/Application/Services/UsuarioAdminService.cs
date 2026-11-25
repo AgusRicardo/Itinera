@@ -6,27 +6,20 @@ namespace Itinera.Security.Application.Services;
 
 public class UsuarioAdminService(ISecurityRepository repository) : IUsuarioAdminService
 {
-    public async Task<List<UsuarioAdminResponse>> ListarAsync()
-    {
-        var usuarios = await repository.ListarUsuariosAsync();
-        return await CrearRespuestasAsync(usuarios);
-    }
-
     public async Task<List<UsuarioAdminResponse>> BuscarAsync(string texto)
     {
         var usuarios = await repository.BuscarUsuariosAsync(texto);
-        return await CrearRespuestasAsync(usuarios);
+        return await ConvertirAsync(usuarios);
     }
 
-    private async Task<List<UsuarioAdminResponse>> CrearRespuestasAsync(
-        List<Usuario> usuarios)
+    public async Task<List<UsuarioAdminResponse>> ConvertirAsync(List<Usuario> usuarios)
     {
         var resultado = new List<UsuarioAdminResponse>(usuarios.Count);
 
         foreach (var usuario in usuarios)
         {
             var roles = await repository.GetRolesDeUsuarioAsync(usuario.Id);
-            var empresa = await repository.ObtenerEmpresaUsuarioAsync(usuario.Id);
+            var empresa = await repository.GetEmpresaDeUsuarioAsync(usuario.Id);
             resultado.Add(new UsuarioAdminResponse(
                 usuario.Id,
                 usuario.Nombre,
@@ -60,6 +53,6 @@ public class UsuarioAdminService(ISecurityRepository repository) : IUsuarioAdmin
         else
             usuario.Desactivar();
 
-        await repository.GuardarAsync();
+        await repository.SaveAsync();
     }
 }

@@ -7,7 +7,7 @@ public sealed class RegistroAuditoria
     public int? EmpresaId { get; private set; }
     public string Accion { get; private set; }
     public string Entidad { get; private set; }
-    public int EntidadId { get; private set; }
+    public string EntidadId { get; private set; }
     public string Detalle { get; private set; }
     public DateTime Fecha { get; private set; }
 
@@ -15,6 +15,7 @@ public sealed class RegistroAuditoria
     {
         Accion = string.Empty;
         Entidad = string.Empty;
+        EntidadId = string.Empty;
     }
 
     public RegistroAuditoria(
@@ -22,13 +23,15 @@ public sealed class RegistroAuditoria
         int? empresaId,
         AccionAuditoria accion,
         string entidad,
-        int entidadId,
+        string entidadId,
         string detalle)
     {
         if (!Enum.IsDefined(accion))
             throw new ArgumentException("La acción es obligatoria.", nameof(accion));
         if (string.IsNullOrWhiteSpace(entidad))
             throw new ArgumentException("La entidad es obligatoria.", nameof(entidad));
+        if (string.IsNullOrWhiteSpace(entidadId))
+            throw new ArgumentException("El identificador es obligatorio.", nameof(entidadId));
 
         UsuarioId = usuarioId;
         EmpresaId = empresaId;

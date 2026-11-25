@@ -27,10 +27,19 @@ interface ActividadArmada {
   hora: string;
   observaciones: string;
 }
+import { SelectorHoraComponent } from '../../shared/components/selector-hora/selector-hora.component';
+import { EstadoComponent } from '../../shared/components/estado/estado.component';
+import { sinTildes } from '../../core/utils/texto';
 
 @Component({
   selector: 'app-armar-itinerario',
-  imports: [MonedaPipe, DatePipe, MenuPrincipalComponent],
+  imports: [
+    MonedaPipe,
+    DatePipe,
+    MenuPrincipalComponent,
+    SelectorHoraComponent,
+    EstadoComponent
+  ],
   templateUrl: './armar-itinerario.component.html'
 })
 export class ArmarItinerarioComponent {
@@ -116,10 +125,10 @@ export class ArmarItinerarioComponent {
   });
 
   protected readonly opciones = computed(() => {
-    const texto = this.busqueda().trim().toLowerCase();
+    const texto = sinTildes(this.busqueda().trim());
 
     return this.catalogo().filter(actividad =>
-      actividad.nombre.toLowerCase().includes(texto)
+      sinTildes(actividad.nombre).includes(texto)
       && !this.actividades().some(item => item.actividadId === actividad.id));
   });
 
@@ -169,7 +178,7 @@ export class ArmarItinerarioComponent {
       duracion: actividad.duracionEstimada,
       costo: actividad.costoBase * (this.propuesta()?.cantidadViajeros ?? 1),
       fecha,
-      hora: this.horaNueva() || '10:00',
+      hora: this.horaNueva(),
       observaciones: ''
     }]);
     this.diaAbierto.set(null);
@@ -177,10 +186,6 @@ export class ArmarItinerarioComponent {
   }
 
   protected cambiarHora(actividadId: number, hora: string): void {
-    if (!hora) {
-      return;
-    }
-
     this.actividades.update(actividades => actividades.map(actividad =>
       actividad.actividadId === actividadId ? { ...actividad, hora } : actividad));
   }

@@ -7,13 +7,22 @@ import {
   RolesService
 } from '../../core/services/roles.service';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { ToastrService } from '../../core/services/toastr.service';
+import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
+import { CasillaComponent } from '../../shared/components/casilla/casilla.component';
 
 @Component({
   selector: 'app-roles',
-  imports: [ReactiveFormsModule, MenuPrincipalComponent],
+  imports: [
+    ReactiveFormsModule,
+    MenuPrincipalComponent,
+    EncabezadoComponent,
+    CasillaComponent
+  ],
   templateUrl: './roles.component.html'
 })
 export class RolesComponent {
+  private readonly toastr = inject(ToastrService);
   private readonly rolesService = inject(RolesService);
   private readonly constructorFormulario = inject(FormBuilder);
 
@@ -23,7 +32,6 @@ export class RolesComponent {
   protected readonly modalAbierto = signal(false);
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly aviso = signal('');
   protected readonly permisosSeleccionados = signal<string[]>([]);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
@@ -47,7 +55,6 @@ export class RolesComponent {
   protected abrirModal(): void {
     this.formulario.reset();
     this.permisosSeleccionados.set([]);
-    this.error.set(null);
     this.modalAbierto.set(true);
   }
 
@@ -74,7 +81,6 @@ export class RolesComponent {
     }
 
     this.guardando.set(true);
-    this.error.set(null);
 
     this.rolesService.crear({
       ...this.formulario.getRawValue(),
@@ -84,13 +90,9 @@ export class RolesComponent {
         this.guardando.set(false);
         this.cerrarModal();
         this.cargarDatos();
-        this.aviso.set('Rol creado correctamente');
-        setTimeout(() => this.aviso.set(''), 2600);
+        this.toastr.exito('Rol creado.');
       },
-      error: respuesta => {
-        this.guardando.set(false);
-        this.error.set(respuesta.error?.detail ?? 'No se pudo crear el rol.');
-      }
+      error: () => this.guardando.set(false)
     });
   }
 

@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Destinos;
 
-[Authorize]
-public class DestinosController(IDestinoService destinoService) : ApiController
+[Authorize(Policy = Permisos.CatalogosOperativosVer)]
+public class DestinosController(IDestinoService destinoService)
+    : PaginadoController<DestinoResponse, ListadoRequest>(destinoService)
 {
     private readonly IDestinoService _destinoService = destinoService;
 
@@ -28,7 +29,6 @@ public class DestinosController(IDestinoService destinoService) : ApiController
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(List<DestinoResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<DestinoResponse>>> ObtenerTodos()
     {
@@ -37,14 +37,7 @@ public class DestinosController(IDestinoService destinoService) : ApiController
         return Ok(response);
     }
 
-    [HttpGet("paginado")]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
-    [ProducesResponseType(typeof(Pagina<DestinoResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<Pagina<DestinoResponse>>> ObtenerPagina([FromQuery] PaginacionRequest paginacion)
-        => Ok(await _destinoService.ObtenerPaginaAsync(paginacion));
-
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(DestinoResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DestinoResponse>> ObtenerPorId(int id)

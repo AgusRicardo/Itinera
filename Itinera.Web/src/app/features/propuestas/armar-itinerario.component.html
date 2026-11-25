@@ -15,7 +15,7 @@
     </div>
   </header>
 
-  <section class="mx-auto flex w-full max-w-7xl flex-wrap items-start gap-6 p-6">
+  <section class="mx-auto flex w-full max-w-7xl flex-wrap items-start gap-6 px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
     @if (error()) {
       <p class="w-full rounded-2xl border border-red-200 bg-red-50 p-10 text-center text-sm text-red-700">{{ error() }}</p>
     } @else if (propuesta(); as propuestaActual) {
@@ -23,7 +23,7 @@
         <div class="min-w-0 flex-[999_1_480px] space-y-4">
           <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 class="font-itinera-display text-3xl">Itinerario de {{ destinoActual.descripcion }}</h1>
+              <h1 class="font-itinera-display text-3xl tracking-tight">Itinerario de {{ destinoActual.descripcion }}</h1>
               <p class="mt-1.5 text-sm text-itinera-muted">
                 {{ propuestaActual.cantidadViajeros }} viajeros · Intensidad {{ propuestaActual.intensidadViaje.toLowerCase() }}
               </p>
@@ -76,13 +76,7 @@
 
               @for (actividad of dia.actividades; track actividad.actividadId) {
                 <div class="flex flex-wrap items-center gap-4 border-t pt-3">
-                  <input
-                    type="time"
-                    [attr.aria-label]="'Hora de ' + actividad.nombre"
-                    [value]="actividad.hora"
-                    class="rounded-lg border bg-itinera-secondary px-3 py-2 text-sm"
-                    (change)="cambiarHora(actividad.actividadId, $any($event.target).value)"
-                  />
+                  <app-selector-hora [descripcion]="'Hora de ' + actividad.nombre" [hora]="actividad.hora" (horaChange)="cambiarHora(actividad.actividadId, $event)" />
                   <div class="min-w-0 flex-1 basis-44">
                     <p class="text-sm font-semibold">{{ actividad.nombre }}</p>
                     <p class="mt-1 text-xs text-itinera-muted">
@@ -105,13 +99,7 @@
                       class="min-w-0 flex-1 basis-48 rounded-lg border bg-itinera-card px-3 py-2.5 text-sm"
                       (input)="busqueda.set($any($event.target).value)"
                     />
-                    <input
-                      type="time"
-                      aria-label="Hora de inicio"
-                      [value]="horaNueva()"
-                      class="rounded-lg border bg-itinera-card px-3 py-2.5 text-sm"
-                      (change)="horaNueva.set($any($event.target).value)"
-                    />
+                    <app-selector-hora descripcion="Hora de inicio" [(hora)]="horaNueva" />
                   </div>
                   @for (opcion of opciones(); track opcion.id) {
                     <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-itinera-card px-3 py-2.5">
@@ -171,12 +159,7 @@
               @for (pedida of pedidas(); track pedida.id) {
                 <div class="flex items-center justify-between gap-3">
                   <span>{{ pedida.nombre }}</span>
-                  <span
-                    class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold"
-                    [class]="pedida.incluida ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'"
-                  >
-                    {{ pedida.incluida ? 'Incluida' : 'Falta ubicar' }}
-                  </span>
+                  <app-estado [estado]="pedida.incluida ? 'Incluida' : 'Falta ubicar'" />
                 </div>
               }
             </section>

@@ -2,6 +2,7 @@ using Itinera.Security.Application.Common;
 using Itinera.Security.Application.Dtos;
 using Itinera.Security.Application.Interfaces;
 using Itinera.Application.Common.Interfaces;
+using Itinera.Application.Common.Paginacion;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,19 +11,12 @@ namespace Itinera.Api.Controllers.Seguridad;
 [Authorize(Policy = Permisos.SeguridadGestionar)]
 public class UsuariosController(
     IUsuarioAdminService usuarioAdminService,
-    ICurrentUserService currentUserService) : ApiController
+    IPaginadoService<UsuarioAdminResponse, ListadoActivableRequest> usuarioPaginadoService,
+    ICurrentUserService currentUserService)
+    : PaginadoController<UsuarioAdminResponse, ListadoActivableRequest>(usuarioPaginadoService)
 {
     private readonly IUsuarioAdminService _usuarioAdminService = usuarioAdminService;
     private readonly ICurrentUserService _currentUserService = currentUserService;
-
-    [HttpGet]
-    [ProducesResponseType(typeof(List<UsuarioAdminResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<UsuarioAdminResponse>>> Listar()
-    {
-        var response = await _usuarioAdminService.ListarAsync();
-
-        return Ok(response);
-    }
 
     [HttpGet("buscar")]
     [ProducesResponseType(typeof(List<UsuarioAdminResponse>), StatusCodes.Status200OK)]

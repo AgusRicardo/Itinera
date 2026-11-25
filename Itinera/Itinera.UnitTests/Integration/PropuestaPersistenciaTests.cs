@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Propuestas.Dtos;
 using Itinera.Application.Propuestas.Mappers;
 using Itinera.Application.Propuestas.Planificacion;
@@ -96,10 +97,10 @@ public class PropuestaPersistenciaTests
         var auditoria = await contexto.RegistrosAuditoria
             .SingleAsync(registro =>
                 registro.Entidad == nameof(Propuesta)
-                && registro.EntidadId == respuesta.Id
+                && registro.EntidadId == respuesta.Id.ToString()
                 && registro.Accion == nameof(AccionAuditoria.CrearPropuesta));
 
-        Assert.Equal(respuesta.Id, auditoria.EntidadId);
+        Assert.Equal(respuesta.Id.ToString(), auditoria.EntidadId);
     }
 
     [Fact]
@@ -203,6 +204,49 @@ public class PropuestaPersistenciaTests
         Assert.True(guardada.TieneItinerariosCompletos());
         Assert.True(await verificacion.Actividades.AnyAsync(item =>
             item.DestinoId == otro.Destino.Id && item.GeneradoPorIA));
+    }
+
+    [Fact]
+    public async Task CatalogoDesactivado_SigueVisibleYEditableEnLaPropuestaQueLoUsa()
+    {
+        await using var contextoInicial = _fixture.CrearContexto();
+        var escenario = await CrearEscenarioAsync(contextoInicial);
+        var empresaId = escenario.Empleado.EmpresaId;
+        int propuestaId;
+        await using (var contexto = _fixture.CrearContextoConEmpresa(empresaId))
+        {
+            var servicio = CrearServicio(contexto, empresaId);
+            propuestaId = (await servicio.CrearAsync(NuevaPropuesta(escenario))).Id;
+            await AgregarActividadAsync(servicio, propuestaId, escenario);
+        }
+
+        escenario.Actividad.Desactivar();
+        escenario.Destino.Desactivar();
+        escenario.Destino.Ciudad.Desactivar();
+        escenario.Destino.Ciudad.Pais.Desactivar();
+        escenario.Empleado.Cargo.Desactivar();
+        await contextoInicial.SaveChangesAsync();
+
+        await using var posterior = _fixture.CrearContextoConEmpresa(empresaId);
+        var servicioPosterior = CrearServicio(posterior, empresaId);
+        var actualizada = await servicioPosterior.ActualizarAsync(propuestaId, new ActualizarPropuestaRequest
+        {
+            Presupuesto = 2000,
+            FechaInicio = new DateOnly(2026, 7, 1),
+            FechaFin = new DateOnly(2026, 7, 5),
+            Destinos = [NuevaEstadia(escenario.Destino.Id)],
+            ActividadIds = [escenario.Actividad.Id]
+        });
+        await AgregarActividadAsync(servicioPosterior, propuestaId, escenario, hora: 11);
+
+        var destino = Assert.Single(actualizada.Destinos);
+        Assert.Contains(escenario.Destino.Ciudad.Nombre, destino.Descripcion);
+        Assert.Single(destino.Itinerario!.Actividades);
+        Assert.Single(actualizada.Actividades);
+
+        await using var otro = _fixture.CrearContextoConEmpresa(empresaId);
+        await Assert.ThrowsAsync<DestinoNoEncontradoException>(
+            () => CrearServicio(otro, empresaId).CrearAsync(NuevaPropuesta(escenario)));
     }
 
     private static EstadiaRequest NuevaEstadia(int destinoId, int dia = 1)

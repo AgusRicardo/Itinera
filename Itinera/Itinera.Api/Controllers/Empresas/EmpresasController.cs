@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Empresas.Dtos;
 using Itinera.Application.Empresas.Interfaces;
 using Itinera.Security.Application.Common;
@@ -7,7 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Itinera.Api.Controllers.Empresas;
 
 [Authorize(Policy = Permisos.PlataformaGestionarEmpresas)]
-public class EmpresasController(IEmpresaService empresaService) : ApiController
+public class EmpresasController(IEmpresaService empresaService)
+    : PaginadoController<EmpresaResponse, ListadoActivableRequest>(empresaService)
 {
     private readonly IEmpresaService _empresaService = empresaService;
 

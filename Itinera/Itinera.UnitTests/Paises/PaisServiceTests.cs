@@ -80,6 +80,19 @@ public class PaisServiceTests
         Assert.Equal(2, response.Count);
     }
 
+    [Fact]
+    public async Task No_admite_nombres_repetidos()
+    {
+        var servicio = new PaisService(new PaisRepositoryFake());
+        await servicio.CrearAsync(new CrearPaisRequest { Nombre = "Italia" });
+        var otro = await servicio.CrearAsync(new CrearPaisRequest { Nombre = "Francia" });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => servicio.CrearAsync(new CrearPaisRequest { Nombre = " italia" }));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => servicio.ActualizarAsync(otro.Id, new ActualizarPaisRequest { Nombre = "ITALIA" }));
+    }
+
     private sealed class PaisRepositoryFake : IPaisRepository
     {
         private int _ultimoId;
@@ -97,7 +110,10 @@ public class PaisServiceTests
         public Task<Pais?> GetByIdAsync(int id)
             => Task.FromResult(Paises.FirstOrDefault(p => p.Id == id));
 
-        public Task<Pagina<Pais>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Pais>> GetPaginaAsync(ListadoRequest request) => throw new NotSupportedException();
+        public Task<bool> ExisteAsync(string nombre, int? idExcluido)
+            => Task.FromResult(Paises.Any(p => p.Activo && p.Id != idExcluido && string.Equals(p.Nombre, nombre, StringComparison.OrdinalIgnoreCase)));
+
         public Task<List<Pais>> GetAllAsync()
             => Task.FromResult(Paises.ToList());
 

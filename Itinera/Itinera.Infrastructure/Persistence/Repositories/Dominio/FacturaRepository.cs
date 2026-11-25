@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
-public sealed class FacturaRepository(AppDbContext context) : IFacturaRepository
+public sealed class FacturaRepository(AppDbContext context)
+    : PaginadoRepository<Factura, ListadoComercialRequest>, IFacturaRepository
 {
     private static readonly SemaphoreSlim SemaforoNumeracion = new(1, 1);
     private readonly AppDbContext _context = context;
@@ -20,12 +21,52 @@ public sealed class FacturaRepository(AppDbContext context) : IFacturaRepository
         => ConRelaciones()
             .FirstOrDefaultAsync(factura => factura.Id == id);
 
-    public Task<Pagina<Factura>> GetPaginaAsync(PaginacionRequest paginacion)
-        => ConRelaciones()
-            .AsNoTracking()
-            .OrderByDescending(factura => factura.FechaEmision)
-            .ThenByDescending(factura => factura.Id)
-            .PaginarAsync(paginacion);
+    protected override IQueryable<Factura> Filtrar(ListadoComercialRequest filtro)
+    {
+        var consulta = ConRelaciones().AsNoTracking();
+
+        if (filtro.EstadoIds.Count > 0)
+            consulta = consulta.Where(factura => filtro.EstadoIds.Contains(factura.EstadoFacturaId));
+
+        if (filtro.ClienteId is int clienteId)
+            consulta = consulta.Where(factura => factura.Propuesta.ClienteId == clienteId);
+
+        if (filtro.Desde?.UtcDateTime is DateTime desde)
+            consulta = consulta.Where(factura => factura.FechaEmision >= desde);
+
+        if (filtro.Hasta?.UtcDateTime is DateTime hasta)
+            consulta = consulta.Where(factura => factura.FechaEmision < hasta);
+
+        if (filtro.TextoNormalizado is string texto)
+            consulta = consulta.Where(factura =>
+                AppDbContext.SinTildes(factura.Numero).Contains(texto)
+                || ("propuesta #" + factura.PropuestaId).Contains(texto)
+                || AppDbContext.SinTildes(factura.Propuesta.Cliente.Nombre + " " + factura.Propuesta.Cliente.Apellido).Contains(texto));
+
+        return consulta;
+    }
+
+    protected override IOrderedQueryable<Factura> Ordenar(
+        IQueryable<Factura> consulta,
+        ListadoComercialRequest filtro)
+    {
+        var descendente = filtro.Descendente;
+        var ordenada = filtro.Orden switch
+        {
+            "numero" => consulta.OrdenarPor(factura => factura.Numero, descendente),
+            "cliente" => consulta.OrdenarPor(
+                factura => factura.Propuesta.Cliente.Nombre + " " + factura.Propuesta.Cliente.Apellido,
+                descendente),
+            "emision" => consulta.OrdenarPor(factura => factura.FechaEmision, descendente),
+            "vencimiento" => consulta.OrdenarPor(factura => factura.FechaVencimiento, descendente),
+            "total" => consulta.OrdenarPor(factura => factura.ImporteTotal, descendente),
+            "saldo" => consulta.OrdenarPor(factura => factura.SaldoPendiente, descendente),
+            "estado" => consulta.OrdenarPor(factura => factura.EstadoFacturaId, descendente),
+            _ => consulta.OrderByDescending(factura => factura.FechaEmision)
+        };
+
+        return ordenada.ThenByDescending(factura => factura.Id);
+    }
 
     public Task<List<Factura>> GetAllAsync()
         => ConRelaciones()
@@ -38,7 +79,7 @@ public sealed class FacturaRepository(AppDbContext context) : IFacturaRepository
             factura.PropuestaId == propuestaId
             && factura.EstadoFacturaId != (int)Itinera.Domain.Common.EstadoFactura.Anulada);
 
-    public async Task<int> ObtenerSiguienteNumeroAsync(int empresaId)
+    public async Task<int> GetSiguienteNumeroAsync(int empresaId)
     {
         await SemaforoNumeracion.WaitAsync();
         try
@@ -75,5 +116,9 @@ public sealed class FacturaRepository(AppDbContext context) : IFacturaRepository
                     .ThenInclude(empleado => empleado.Empresa)
             .Include(factura => factura.Detalles)
             .Include(factura => factura.Pagos)
-            .IgnoreQueryFilters([AppDbContext.FiltroNoEliminada]);
+            .IgnoreQueryFilters([
+                AppDbContext.FiltroNoEliminada,
+                AppDbContext.FiltroPersonaActiva,
+                AppDbContext.FiltroEmpresaActiva
+            ]);
 }

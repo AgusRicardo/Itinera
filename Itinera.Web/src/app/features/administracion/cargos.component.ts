@@ -2,14 +2,25 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { Cargo, CargosService } from '../../core/services/cargos.service';
+import { AccionMenu, MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { ConfirmacionService } from '../../core/services/confirmacion.service';
+import { ToastrService } from '../../core/services/toastr.service';
+import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
 
 @Component({
   selector: 'app-cargos',
-  imports: [ReactiveFormsModule, MenuPrincipalComponent],
+  imports: [
+    ReactiveFormsModule,
+    MenuAccionesComponent,
+    MenuPrincipalComponent,
+    EncabezadoComponent
+  ],
   templateUrl: './cargos.component.html'
 })
 export class CargosComponent {
+  private readonly confirmacion = inject(ConfirmacionService);
+  private readonly toastr = inject(ToastrService);
   private readonly cargosService = inject(CargosService);
   private readonly constructorFormulario = inject(FormBuilder);
 
@@ -19,7 +30,6 @@ export class CargosComponent {
   protected readonly cargoEnEdicion = signal<Cargo | null>(null);
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly aviso = signal('');
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
     descripcion: ['', Validators.required]
@@ -29,10 +39,16 @@ export class CargosComponent {
     this.cargarCargos();
   }
 
+  protected acciones(cargo: Cargo): AccionMenu[] {
+    return [
+      { texto: 'Editar', ejecutar: () => this.abrirModal(cargo) },
+      { texto: 'Eliminar', peligro: true, ejecutar: () => this.eliminar(cargo) }
+    ];
+  }
+
   protected abrirModal(cargo?: Cargo): void {
     this.cargoEnEdicion.set(cargo ?? null);
     this.formulario.reset({ descripcion: cargo?.descripcion ?? '' });
-    this.error.set(null);
     this.modalAbierto.set(true);
   }
 
@@ -56,7 +72,6 @@ export class CargosComponent {
     }
 
     this.guardando.set(true);
-    this.error.set(null);
     const cargo = this.cargoEnEdicion();
     const solicitud = cargo
       ? this.cargosService.actualizar(cargo.id, descripcion)
@@ -67,28 +82,29 @@ export class CargosComponent {
         this.guardando.set(false);
         this.modalAbierto.set(false);
         this.cargarCargos();
-        this.mostrarAviso(cargo ? 'Cargo actualizado correctamente' : 'Cargo creado correctamente');
+        this.toastr.exito(cargo ? 'Cargo actualizado.' : 'Cargo creado.');
       },
-      error: respuesta => {
-        this.guardando.set(false);
-        this.error.set(respuesta.error?.detail ?? 'No se pudo guardar el cargo.');
-      }
+      error: () => this.guardando.set(false)
     });
   }
 
-  protected eliminar(cargo: Cargo): void {
-    if (!window.confirm(`¿Querés eliminar el cargo "${cargo.descripcion}"?`)) {
+  private async eliminar(cargo: Cargo): Promise<void> {
+    const confirmado = await this.confirmacion.confirmar({
+      titulo: `¿Eliminar el cargo ${cargo.descripcion}?`,
+      mensaje: 'Quienes ya lo tienen lo conservan.',
+      accion: 'Eliminar',
+      peligro: true
+    });
+
+    if (!confirmado) {
       return;
     }
 
     this.cargosService.eliminar(cargo.id).subscribe({
       next: () => {
         this.cargarCargos();
-        this.mostrarAviso('Cargo eliminado correctamente');
-      },
-      error: respuesta => this.error.set(
-        respuesta.error?.detail ?? 'No se pudo eliminar el cargo.'
-      )
+        this.toastr.exito('Cargo eliminado.');
+      }
     });
   }
 
@@ -103,10 +119,5 @@ export class CargosComponent {
         this.cargando.set(false);
       }
     });
-  }
-
-  private mostrarAviso(mensaje: string): void {
-    this.aviso.set(mensaje);
-    setTimeout(() => this.aviso.set(''), 2600);
   }
 }

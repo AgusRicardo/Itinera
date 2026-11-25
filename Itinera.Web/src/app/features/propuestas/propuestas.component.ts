@@ -9,11 +9,17 @@ import {
   EstadosPropuestasService
 } from '../../core/services/estados-propuestas.service';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
-import { MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
+import { AccionMenu, MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
 import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
 import { GrillaPaginada } from '../../core/utils/grilla-paginada';
-import { PaginadorComponent } from '../../shared/components/paginador/paginador.component';
+import { ColumnaOrdenableComponent } from '../../shared/components/columna-ordenable/columna-ordenable.component';
+import { FiltrosGrillaComponent } from '../../shared/components/filtros-grilla/filtros-grilla.component';
+import { EstadoComponent } from '../../shared/components/estado/estado.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { ConfirmacionService } from '../../core/services/confirmacion.service';
+import { ToastrService } from '../../core/services/toastr.service';
+import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
+import { TablaComponent } from '../../shared/components/tabla/tabla.component';
 
 @Component({
   selector: 'app-propuestas',
@@ -22,13 +28,19 @@ import { MenuPrincipalComponent } from '../../shared/components/menu-principal/m
     DatePipe,
     DecimalPipe,
     MenuAccionesComponent,
+    ColumnaOrdenableComponent,
+    FiltrosGrillaComponent,
+    EstadoComponent,
     MenuPrincipalComponent,
-    PaginadorComponent,
-    RouterLink
+    RouterLink,
+    EncabezadoComponent,
+    TablaComponent
   ],
   templateUrl: './propuestas.component.html'
 })
 export class PropuestasComponent {
+  private readonly confirmacion = inject(ConfirmacionService);
+  private readonly toastr = inject(ToastrService);
   private readonly propuestasService = inject(PropuestasService);
   private readonly estadosService = inject(EstadosPropuestasService);
   private readonly autenticacion = inject(AutenticacionService);
@@ -41,17 +53,28 @@ export class PropuestasComponent {
     presentadas: 0,
     aceptadas: 0
   });
-  protected readonly error = signal<string | null>(null);
-  protected readonly busqueda = signal('');
-  protected readonly estado = signal('');
   protected readonly estados = signal<EstadoPropuesta[]>([]);
   protected readonly eliminando = signal<number | null>(null);
 
-  protected rutaEditar(propuesta: Propuesta): string[] | null {
-    return this.autenticacion.tienePermiso('propuestas.editar')
-      && !['Aceptada', 'Eliminada'].includes(propuesta.estado)
-      ? ['/propuestas', propuesta.id.toString(), 'editar']
-      : null;
+  protected acciones(propuesta: Propuesta): AccionMenu[] {
+    const ruta = ['/propuestas', propuesta.id.toString()];
+    const acciones: AccionMenu[] = [{ texto: 'Ver detalle', ruta }];
+
+    if (this.autenticacion.tienePermiso('propuestas.editar')
+      && !['Aceptada', 'Eliminada'].includes(propuesta.estado)) {
+      acciones.push({ texto: 'Editar', ruta: [...ruta, 'editar'] });
+    }
+
+    if (this.autenticacion.tienePermiso('propuestas.eliminar')) {
+      acciones.push({
+        texto: 'Eliminar',
+        peligro: true,
+        deshabilitada: this.eliminando() === propuesta.id,
+        ejecutar: () => this.eliminar(propuesta)
+      });
+    }
+
+    return acciones;
   }
 
   constructor() {
@@ -59,16 +82,15 @@ export class PropuestasComponent {
     this.cargarEstados();
   }
 
-  protected filtrar(): void {
-    this.grilla.filtrar({ texto: this.busqueda().trim(), estadoId: this.estado() });
-  }
+  private async eliminar(propuesta: Propuesta): Promise<void> {
+    const confirmado = await this.confirmacion.confirmar({
+      titulo: `¿Eliminar la propuesta #${propuesta.id}?`,
+      mensaje: `Es de ${propuesta.clienteNombre}.`,
+      accion: 'Eliminar',
+      peligro: true
+    });
 
-  protected eliminar(propuesta: Propuesta): void {
-    const confirmar = window.confirm(
-      `¿Querés eliminar la propuesta #${propuesta.id} de ${propuesta.clienteNombre}?`
-    );
-
-    if (!confirmar) {
+    if (!confirmado) {
       return;
     }
 
@@ -78,11 +100,9 @@ export class PropuestasComponent {
         this.grilla.cargar();
         this.cargarResumen();
         this.eliminando.set(null);
+        this.toastr.exito('Propuesta eliminada.');
       },
-      error: () => {
-        this.error.set('No se pudo eliminar la propuesta.');
-        this.eliminando.set(null);
-      }
+      error: () => this.eliminando.set(null)
     });
   }
 
@@ -90,18 +110,12 @@ export class PropuestasComponent {
     return this.autenticacion.tienePermiso('propuestas.crear');
   }
 
-  protected puedeEliminar(): boolean {
-    return this.autenticacion.tienePermiso('propuestas.eliminar');
-  }
-
   private cargarResumen(): void {
     this.propuestasService.obtenerResumen().subscribe(resumen => this.resumen.set(resumen));
   }
 
   private cargarEstados(): void {
-    this.estadosService.obtenerTodos().subscribe({
-      next: estados => this.estados.set(estados),
-      error: () => this.error.set('No se pudieron cargar los estados de propuestas.')
-    });
+    this.estadosService.obtenerTodos().subscribe(estados =>
+      this.estados.set(estados.filter(estado => estado.descripcion !== 'Eliminada')));
   }
 }

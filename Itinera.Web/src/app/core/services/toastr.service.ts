@@ -21,10 +21,6 @@ export class ToastrService {
     this.mostrar('error', texto);
   }
 
-  informacion(texto: string): void {
-    this.mostrar('info', texto);
-  }
-
   advertencia(texto: string): void {
     this.mostrar('warning', texto);
   }

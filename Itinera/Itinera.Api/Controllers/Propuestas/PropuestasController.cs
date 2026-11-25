@@ -7,10 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Propuestas;
 
-[Authorize]
+[Authorize(Policy = Permisos.PropuestasVer)]
 public class PropuestasController(
     IPropuestaService propuestaService,
-    IGeneradorItinerariosService generadorItinerariosService) : ApiController
+    IGeneradorItinerariosService generadorItinerariosService)
+    : PaginadoController<PropuestaResponse, ListadoComercialRequest>(propuestaService)
 {
     private readonly IPropuestaService _propuestaService = propuestaService;
     private readonly IGeneradorItinerariosService _generadorItinerariosService = generadorItinerariosService;
@@ -30,20 +31,12 @@ public class PropuestasController(
             response);
     }
 
-    [HttpGet("paginado")]
-    [Authorize(Policy = Permisos.PropuestasVer)]
-    [ProducesResponseType(typeof(Pagina<PropuestaResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<Pagina<PropuestaResponse>>> ObtenerPagina([FromQuery] ListarPropuestasRequest request)
-        => Ok(await _propuestaService.ObtenerPaginaAsync(request));
-
     [HttpGet("resumen")]
-    [Authorize(Policy = Permisos.PropuestasVer)]
     [ProducesResponseType(typeof(ResumenPropuestasResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<ResumenPropuestasResponse>> ObtenerResumen()
         => Ok(await _propuestaService.ObtenerResumenAsync());
 
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.PropuestasVer)]
     [ProducesResponseType(typeof(PropuestaResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PropuestaResponse>> ObtenerPorId(int id)
@@ -54,14 +47,13 @@ public class PropuestasController(
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.PropuestasVer)]
     [ProducesResponseType(typeof(List<PropuestaResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<PropuestaResponse>>> ObtenerPorCliente(
+    public async Task<ActionResult<List<PropuestaResponse>>> ObtenerTodos(
         [FromQuery] int? clienteId)
     {
         var response = clienteId.HasValue
             ? await _propuestaService.ObtenerPorClienteAsync(clienteId.Value)
-            : await _propuestaService.ObtenerTodasAsync();
+            : await _propuestaService.ObtenerTodosAsync();
 
         return Ok(response);
     }

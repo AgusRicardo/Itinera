@@ -1,4 +1,6 @@
 using Itinera.Application.Common.Exceptions;
+using Itinera.Application.Common.Paginacion;
+using Itinera.Application.Common.Services;
 using Itinera.Application.Empresas.Dtos;
 using Itinera.Application.Empresas.Interfaces;
 using Itinera.Application.Empresas.Mappers;
@@ -6,7 +8,8 @@ using Itinera.Domain.Empresa;
 
 namespace Itinera.Application.Empresas.Services;
 
-public class EmpresaService(IEmpresaRepository empresaRepository) : IEmpresaService
+public class EmpresaService(IEmpresaRepository empresaRepository)
+    : PaginadoService<Empresa, EmpresaResponse, ListadoActivableRequest>(empresaRepository), IEmpresaService
 {
     private readonly IEmpresaRepository _empresaRepository = empresaRepository;
 
@@ -28,7 +31,7 @@ public class EmpresaService(IEmpresaRepository empresaRepository) : IEmpresaServ
 
     public async Task<List<EmpresaResponse>> ObtenerTodosAsync()
     {
-        var empresas = await _empresaRepository.GetAllAsync();
+        var empresas = await _empresaRepository.GetAllConInactivasAsync();
 
         return EmpresaMapper.ToResponse(empresas);
     }
@@ -53,9 +56,12 @@ public class EmpresaService(IEmpresaRepository empresaRepository) : IEmpresaServ
         await _empresaRepository.DeleteAsync(empresa);
     }
 
+    protected override List<EmpresaResponse> Convertir(IEnumerable<Empresa> entidades)
+        => EmpresaMapper.ToResponse(entidades);
+
     private async Task<Empresa> ObtenerEmpresaById(int id)
     {
-        Empresa? empresa = await _empresaRepository.GetByIdAsync(id);
+        Empresa? empresa = await _empresaRepository.GetByIdConInactivasAsync(id);
 
         return empresa ?? throw new EmpresaNoEncontradaException(id);
     }

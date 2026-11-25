@@ -16,7 +16,6 @@ public static class DependencyInjection
             configuration.GetSection(JwtSettings.SectionName));
 
         services.AddScoped<IAuthenticationService, AuthenticationService>();
-        services.AddScoped<IAuthorizationService, AuthorizationService>();
 
         services.AddScoped<IUsuarioAdminService, UsuarioAdminService>();
         services.AddScoped<IRolAdminService, RolAdminService>();

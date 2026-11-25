@@ -53,4 +53,12 @@ public sealed class RolesScopeTests
         Assert.True(Roles.EsDePlataforma(Permisos.PlataformaGestionarUsuarios));
         Assert.False(Roles.EsDePlataforma(Permisos.ClientesGestionar));
     }
+
+    [Fact]
+    public void Agente_solo_lee_conceptos_y_el_administrador_los_gestiona()
+    {
+        Assert.Contains(Permisos.ConceptosVer, Roles.PermisosDelAgente);
+        Assert.DoesNotContain(Permisos.ConceptosGestionar, Roles.PermisosDelAgente);
+        Assert.Contains(Permisos.ConceptosGestionar, Roles.PermisosDelAdministrador);
+    }
 }

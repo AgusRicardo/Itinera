@@ -1,14 +1,14 @@
 <app-menu-principal />
 
 <main class="min-h-screen bg-itinera-background lg:pl-64">
-  <section class="mx-auto w-full max-w-5xl space-y-5 p-6">
+  <section class="mx-auto w-full max-w-7xl space-y-5 px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
     @if (error()) {
       <p class="rounded-2xl border border-red-200 bg-red-50 p-10 text-center text-sm text-red-700">{{ error() }}</p>
     } @else if (propuesta(); as propuestaActual) {
       @if (destino(); as destinoActual) {
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 class="font-itinera-display text-3xl">Itinerario de {{ destinoActual.descripcion }}</h1>
+            <h1 class="font-itinera-display text-3xl tracking-tight">Itinerario de {{ destinoActual.descripcion }}</h1>
             <p class="mt-1.5 text-sm text-itinera-muted">
               {{ destinoActual.fechaLlegada | date:'dd/MM/yyyy' }} – {{ destinoActual.fechaPartida | date:'dd/MM/yyyy' }}
               · {{ propuestaActual.cantidadViajeros }} viajeros
@@ -69,22 +69,12 @@
               <div class="flex flex-wrap items-end gap-3">
                 <div class="min-w-0 flex-1 basis-60">
                   <label for="nuevoDestino" class="mb-1.5 block font-medium">Nuevo destino</label>
-                  <select
-                    id="nuevoDestino"
-                    class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5"
-                    (change)="nuevoDestinoId.set(+$any($event.target).value)"
-                  >
-                    @for (opcion of destinos(); track opcion.id) {
-                      <option [value]="opcion.id" [selected]="opcion.id === nuevoDestinoId()">
-                        {{ opcion.ciudadNombre }}, {{ opcion.paisNombre }}
-                      </option>
-                    }
-                  </select>
+                  <app-selector idCampo="nuevoDestino" descripcion="Nuevo destino" [formControl]="nuevoDestino" [opciones]="opcionesDestinos()" />
                 </div>
                 <button type="button" class="rounded-lg bg-itinera-secondary px-4 py-2.5 font-medium" (click)="alternarDestino()">Cancelar</button>
                 <a
                   [routerLink]="['/propuestas', propuestaId, 'destinos', destinoId, 'generar']"
-                  [queryParams]="{ nuevoDestino: nuevoDestinoId() }"
+                  [queryParams]="{ nuevoDestino: nuevoDestino.value }"
                   class="rounded-lg bg-itinera-accent px-4 py-2.5 font-semibold"
                 >
                   Generar para el nuevo destino
