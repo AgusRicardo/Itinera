@@ -210,6 +210,9 @@ public class EmpleadoServiceTests
         public Task<List<EmpresaEntidad>> GetAllConInactivasAsync()
             => Task.FromResult(Empresas.ToList());
 
+        public Task<bool> ExisteCuitAsync(string cuit, int? idExcluido)
+            => Task.FromResult(Empresas.Any(e => e.CUIT.Replace("-", "") == cuit.Replace("-", "") && e.Id != idExcluido));
+
         public Task UpdateAsync(EmpresaEntidad empresa) => Task.CompletedTask;
 
         public Task DeleteAsync(EmpresaEntidad empresa) => Task.CompletedTask;

@@ -12,6 +12,7 @@ import { InputMonedaComponent } from '../../shared/components/input-moneda/input
 import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 import { ConfirmacionService } from '../../core/services/confirmacion.service';
+import { textoRequerido } from '../../core/utils/validadores';
 import { EstadoComponent } from '../../shared/components/estado/estado.component';
 import { SelectorFechaComponent } from '../../shared/components/selector-fecha/selector-fecha.component';
 
@@ -45,7 +46,7 @@ export class DetalleFacturaComponent {
   protected readonly formularioPago = this.formularioConstructor.nonNullable.group({
     importe: [0, [Validators.required, Validators.min(0.01)]],
     fecha: [this.fechaHoy(), Validators.required],
-    medioPago: ['', [Validators.required, Validators.maxLength(100)]]
+    medioPago: ['', [textoRequerido, Validators.maxLength(100)]]
   });
 
   constructor() {

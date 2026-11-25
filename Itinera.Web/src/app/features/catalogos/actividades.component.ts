@@ -7,6 +7,7 @@ import { DestinoApi, DestinosService } from '../../core/services/destinos.servic
 import { ConfirmacionService } from '../../core/services/confirmacion.service';
 import { ToastrService } from '../../core/services/toastr.service';
 import { GrillaPaginada } from '../../core/utils/grilla-paginada';
+import { textoRequerido } from '../../core/utils/validadores';
 import { ColumnaOrdenableComponent } from '../../shared/components/columna-ordenable/columna-ordenable.component';
 import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
 import { FiltrosGrillaComponent } from '../../shared/components/filtros-grilla/filtros-grilla.component';
@@ -51,7 +52,7 @@ export class ActividadesComponent {
   protected readonly guardando = signal(false);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    nombre: ['', Validators.required],
+    nombre: ['', textoRequerido],
     descripcion: [''],
     costoBase: [0, [Validators.required, Validators.min(0)]],
     duracionEstimada: [1, [Validators.required, Validators.min(1)]],
@@ -109,7 +110,7 @@ export class ActividadesComponent {
   }
 
   protected guardar(): void {
-    if (this.formulario.invalid || !this.formulario.controls.nombre.value.trim()) {
+    if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       return;
     }

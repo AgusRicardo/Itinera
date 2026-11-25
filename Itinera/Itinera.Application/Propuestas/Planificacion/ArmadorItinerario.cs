@@ -15,6 +15,7 @@ public sealed class ArmadorItinerario(IActividadRepository actividadRepository)
         var destino = propuesta.ObtenerDestino(destinoId)
             ?? throw new DestinoNoEncontradoException(destinoId);
         var actividades = new List<ActividadItinerario>();
+        var anterior = propuesta.ObtenerItinerario(destinoId);
 
         foreach (var solicitada in solicitadas.OrderBy(item => item.FechaHoraInicio))
         {
@@ -33,13 +34,31 @@ public sealed class ArmadorItinerario(IActividadRepository actividadRepository)
                 fechaHora,
                 propuesta.CantidadViajeros,
                 solicitada.Observaciones,
-                actividades.Count + 1));
+                actividades.Count + 1,
+                solicitada.RecomendadaPorIA
+                    || anterior?.Actividades.Any(item => item.ActividadId == actividadId && item.RecomendadaPorIA) == true));
         }
 
         if (actividades.DistinctBy(item => item.ActividadId).Count() != actividades.Count)
             throw new ArgumentException("El itinerario tiene actividades repetidas.");
 
+        ValidarSuperposiciones(actividades);
+
         return actividades;
+    }
+
+    private static void ValidarSuperposiciones(List<ActividadItinerario> actividades)
+    {
+        ActividadItinerario? anterior = null;
+
+        foreach (var actividad in actividades.OrderBy(item => item.FechaHoraInicio))
+        {
+            if (anterior is not null && actividad.FechaHoraInicio < anterior.FechaHoraFin)
+                throw new ArgumentException(
+                    $"{anterior.Actividad.Nombre} y {actividad.Actividad.Nombre} se superponen. Cambiá el horario de una de ellas.");
+
+            anterior = actividad;
+        }
     }
 
     private static DateTime NormalizarUtc(DateTime fecha)

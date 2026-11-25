@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Itinera.Application.Propuestas.Dtos;
 
@@ -15,4 +16,7 @@ public sealed class ActividadItinerarioRequest
 
     [MaxLength(500)]
     public string Observaciones { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    public bool RecomendadaPorIA { get; init; }
 }

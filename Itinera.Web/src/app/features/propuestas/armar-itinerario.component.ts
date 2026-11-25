@@ -124,6 +124,23 @@ export class ArmarItinerarioComponent {
       : [];
   });
 
+  protected readonly superpuestas = computed(() => {
+    const actividades = this.actividades().map(actividad => {
+      const inicio = Date.parse(`${actividad.fecha}T${actividad.hora}:00Z`);
+
+      return { ...actividad, inicio, fin: inicio + actividad.duracion * 60_000 };
+    });
+
+    return new Map(actividades.flatMap(actividad => {
+      const otra = actividades.find(item =>
+        item.actividadId !== actividad.actividadId
+        && item.inicio < actividad.fin
+        && actividad.inicio < item.fin);
+
+      return otra ? [[actividad.actividadId, otra.nombre] as const] : [];
+    }));
+  });
+
   protected readonly opciones = computed(() => {
     const texto = sinTildes(this.busqueda().trim());
 

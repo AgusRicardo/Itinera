@@ -537,6 +537,9 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Property<int>("Orden")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("RecomendadaPorIA")
+                        .HasColumnType("boolean");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ActividadId");

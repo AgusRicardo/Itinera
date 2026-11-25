@@ -29,6 +29,7 @@ import { FiltrosGrillaComponent } from '../../shared/components/filtros-grilla/f
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { TablaComponent } from '../../shared/components/tabla/tabla.component';
 import { FiltrosGrilla } from '../../core/models/pagina';
+import { telefonoValido, textoRequerido } from '../../core/utils/validadores';
 
 @Component({
   selector: 'app-clientes',
@@ -69,10 +70,10 @@ export class ClientesComponent {
   protected readonly guardando = signal(false);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    nombre: ['', Validators.required],
-    apellido: ['', Validators.required],
+    nombre: ['', textoRequerido],
+    apellido: ['', textoRequerido],
     email: ['', [Validators.required, Validators.email]],
-    telefono: ['', Validators.required]
+    telefono: ['', [textoRequerido, telefonoValido]]
   });
 
   protected readonly estados = [

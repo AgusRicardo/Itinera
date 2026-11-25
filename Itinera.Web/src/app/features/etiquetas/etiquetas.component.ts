@@ -9,6 +9,7 @@ import { ConfirmacionService } from '../../core/services/confirmacion.service';
 import { ToastrService } from '../../core/services/toastr.service';
 import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
+import { textoRequerido } from '../../core/utils/validadores';
 
 @Component({
   selector: 'app-etiquetas',
@@ -36,7 +37,7 @@ export class EtiquetasComponent {
   protected readonly puedeGestionar = inject(AutenticacionService).tienePermiso('etiquetas.gestionar');
 
   protected readonly formulario = this.formularioConstructor.nonNullable.group({
-    nombre: ['', [Validators.required, Validators.maxLength(80)]]
+    nombre: ['', [textoRequerido, Validators.maxLength(80)]]
   });
 
   constructor() {
@@ -63,7 +64,7 @@ export class EtiquetasComponent {
   }
 
   protected guardar(): void {
-    if (this.formulario.invalid || !this.formulario.controls.nombre.value.trim()) {
+    if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       return;
     }

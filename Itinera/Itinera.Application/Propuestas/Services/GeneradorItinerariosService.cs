@@ -164,7 +164,7 @@ public sealed class GeneradorItinerariosService(
             respuesta.Add(new AlternativaDiaResponse
             {
                 Fecha = alternativa.Fecha,
-                Descripcion = guardado.Descripcion,
+                Descripcion = DescribirDia(guardado.Actividades),
                 CostoEstimado = guardado.CostoEstimado,
                 Actividades = guardado.Actividades
             });
@@ -361,12 +361,26 @@ public sealed class GeneradorItinerariosService(
                 item.ActividadId == pedida.Id && item.Fecha == fecha))
             .ToList();
 
+    // La descripción de la IA puede nombrar actividades que el ajuste quitó; se arma con lo que queda.
+    private static string DescribirDia(List<ActividadAlternativaResponse> actividades)
+    {
+        var nombres = actividades.Select(actividad => actividad.Nombre).ToList();
+
+        return nombres.Count switch
+        {
+            0 => "Día libre.",
+            1 => $"Incluye {nombres[0]}.",
+            _ => $"Incluye {string.Join(", ", nombres[..^1])} y {nombres[^1]}."
+        };
+    }
+
     private static ActividadItinerarioRequest ToRequest(ActividadAlternativaResponse actividad)
         => new()
         {
             ActividadId = actividad.ActividadId,
             FechaHoraInicio = actividad.FechaHoraInicio,
-            Observaciones = Recortar(actividad.Observaciones)
+            Observaciones = Recortar(actividad.Observaciones),
+            RecomendadaPorIA = !actividad.PedidaPorCliente
         };
 
     private static List<string> ObtenerNombresEtiquetas(Propuesta propuesta)

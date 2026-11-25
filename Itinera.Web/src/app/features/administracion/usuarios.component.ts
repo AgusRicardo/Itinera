@@ -22,6 +22,7 @@ import { ColumnaOrdenableComponent } from '../../shared/components/columna-orden
 import { OpcionSelector, SelectorComponent } from '../../shared/components/selector/selector.component';
 import { FiltrosGrilla } from '../../core/models/pagina';
 import { GrillaPaginada } from '../../core/utils/grilla-paginada';
+import { telefonoValido, textoRequerido } from '../../core/utils/validadores';
 
 @Component({
   selector: 'app-usuarios',
@@ -72,10 +73,10 @@ export class UsuariosComponent {
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
     empresaId: [0, [Validators.required, Validators.min(1)]],
-    nombre: ['', Validators.required],
-    apellido: ['', Validators.required],
+    nombre: ['', textoRequerido],
+    apellido: ['', textoRequerido],
     email: ['', [Validators.required, Validators.email]],
-    telefono: [''],
+    telefono: ['', telefonoValido],
     password: ['', [Validators.required, Validators.minLength(8)]],
     cargoId: [0, [Validators.required, Validators.min(1)]],
     rolId: [0, [Validators.required, Validators.min(1)]]
@@ -143,7 +144,7 @@ export class UsuariosComponent {
     this.usuarioSeleccionado.set(usuario);
     this.rolElegido.setValue(0);
     this.empresaElegida.setValue(usuario.empresaId ?? 0);
-    this.cargoElegido.setValue(0);
+    this.cargoElegido.setValue(usuario.cargoId ?? 0);
   }
 
   protected cerrarAcciones(): void {
@@ -221,7 +222,7 @@ export class UsuariosComponent {
         this.grilla.cargar();
         this.usuarioSeleccionado.update(actual =>
           actual && actual.id === usuario.id
-            ? { ...actual, empresaId, empresaRazonSocial: empresa?.razonSocial }
+            ? { ...actual, empresaId, cargoId, empresaActiva: true, empresaRazonSocial: empresa?.razonSocial }
             : actual
         );
         this.toastr.exito('Empresa asignada.');

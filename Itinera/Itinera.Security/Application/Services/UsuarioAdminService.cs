@@ -26,8 +26,10 @@ public class UsuarioAdminService(ISecurityRepository repository) : IUsuarioAdmin
                 usuario.Email,
                 usuario.Activo,
                 roles.Select(r => r.Nombre).ToList(),
-                empresa.EmpresaId,
-                empresa.EmpresaRazonSocial));
+                empresa?.EmpresaId,
+                empresa?.RazonSocial ?? string.Empty,
+                empresa?.Activa ?? false,
+                empresa?.CargoId));
         }
 
         return resultado;

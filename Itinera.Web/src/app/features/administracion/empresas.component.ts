@@ -16,6 +16,7 @@ import { TablaComponent } from '../../shared/components/tabla/tabla.component';
 import { ColumnaOrdenableComponent } from '../../shared/components/columna-ordenable/columna-ordenable.component';
 import { FiltrosGrilla } from '../../core/models/pagina';
 import { GrillaPaginada } from '../../core/utils/grilla-paginada';
+import { cuitValido, telefonoValido, textoRequerido } from '../../core/utils/validadores';
 
 @Component({
   selector: 'app-empresas',
@@ -45,19 +46,19 @@ export class EmpresasComponent {
   protected readonly empresaEditando = signal<Empresa | null>(null);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    razonSocial: ['', Validators.required],
-    cuit: ['', Validators.required],
-    telefono: [''],
-    administradorNombre: ['', Validators.required],
-    administradorApellido: ['', Validators.required],
+    razonSocial: ['', textoRequerido],
+    cuit: ['', [textoRequerido, cuitValido]],
+    telefono: ['', telefonoValido],
+    administradorNombre: ['', textoRequerido],
+    administradorApellido: ['', textoRequerido],
     administradorEmail: ['', [Validators.required, Validators.email]],
     administradorPassword: ['', [Validators.required, Validators.minLength(8)]]
   });
 
   protected readonly formularioEdicion = this.constructorFormulario.nonNullable.group({
-    razonSocial: ['', Validators.required],
-    cuit: ['', Validators.required],
-    telefono: ['']
+    razonSocial: ['', textoRequerido],
+    cuit: ['', [textoRequerido, cuitValido]],
+    telefono: ['', telefonoValido]
   });
 
   protected readonly estados = [
@@ -169,6 +170,7 @@ export class EmpresasComponent {
     const nombres: Record<string, string> = {
       razonSocial: 'razón social',
       cuit: 'CUIT',
+      telefono: 'teléfono',
       administradorNombre: 'nombre del administrador',
       administradorApellido: 'apellido del administrador',
       administradorEmail: 'email del administrador',
