@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/AgusRicardo/Itinera/compare/v1.5.0...v1.6.0) (2026-11-25)
+
+
+### Features
+
+* add invoice concepts, paginated grids and unify UI and API crit… =&gt; DEV ([d4fad93](https://github.com/AgusRicardo/Itinera/commit/d4fad93fa5d3d651c32bf40634804a801d821e25))
+* add invoice concepts, paginated grids and unify UI and API criteria ([d79a081](https://github.com/AgusRicardo/Itinera/commit/d79a08179b634918dd8201555cc712a9532a6890))
+
 ## [1.5.0](https://github.com/AgusRicardo/Itinera/compare/v1.4.0...v1.5.0) (2026-11-23)
 
 
