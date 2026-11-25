@@ -108,6 +108,20 @@ public class CiudadServiceTests
         Assert.Equal(2, response.Count);
     }
 
+    [Fact]
+    public async Task No_admite_la_misma_ciudad_en_un_pais_pero_si_en_otro()
+    {
+        var paises = new PaisRepositoryFake();
+        var argentina = await CrearPais(paises, "Argentina");
+        var espania = await CrearPais(paises, "España");
+        var servicio = new CiudadService(new CiudadRepositoryFake(), paises);
+        await servicio.CrearAsync(new CrearCiudadRequest { Nombre = "Cordoba", PaisId = argentina.Id });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => servicio.CrearAsync(
+            new CrearCiudadRequest { Nombre = "cordoba ", PaisId = argentina.Id }));
+        await servicio.CrearAsync(new CrearCiudadRequest { Nombre = "Cordoba", PaisId = espania.Id });
+    }
+
     private static async Task<Pais> CrearPais(PaisRepositoryFake repositorio, string nombre)
     {
         var pais = new Pais(nombre);
@@ -132,7 +146,10 @@ public class CiudadServiceTests
         public Task<Pais?> GetByIdAsync(int id)
             => Task.FromResult(Paises.FirstOrDefault(p => p.Id == id));
 
-        public Task<Pagina<Pais>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Pais>> GetPaginaAsync(ListadoRequest request) => throw new NotSupportedException();
+        public Task<bool> ExisteAsync(string nombre, int? idExcluido)
+            => Task.FromResult(Paises.Any(p => p.Activo && p.Id != idExcluido && string.Equals(p.Nombre, nombre, StringComparison.OrdinalIgnoreCase)));
+
         public Task<List<Pais>> GetAllAsync()
             => Task.FromResult(Paises.ToList());
 
@@ -158,7 +175,10 @@ public class CiudadServiceTests
         public Task<Ciudad?> GetByIdAsync(int id)
             => Task.FromResult(Ciudades.FirstOrDefault(c => c.Id == id));
 
-        public Task<Pagina<Ciudad>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Ciudad>> GetPaginaAsync(ListadoRequest request) => throw new NotSupportedException();
+        public Task<bool> ExisteAsync(string nombre, int paisId, int? idExcluido)
+            => Task.FromResult(Ciudades.Any(c => c.Activo && c.Id != idExcluido && string.Equals(c.Nombre, nombre, StringComparison.OrdinalIgnoreCase) && c.PaisId == paisId));
+
         public Task<List<Ciudad>> GetAllAsync()
             => Task.FromResult(Ciudades.ToList());
 

@@ -136,7 +136,7 @@ public sealed class GeneradorItinerariosService(
             restricciones.Destinos);
 
         var alternativas = await generador.GenerarModificacionDiaAsync(solicitud, cancellationToken);
-        var catalogo = await ObtenerCatalogo(destinoId);
+        var catalogo = await ObtenerCatalogo(estadia.Destino);
         var idsDeOtrosDias = otrosDias.Select(item => item.ActividadId).ToHashSet();
 
         var respuesta = new List<AlternativaDiaResponse>();
@@ -230,7 +230,7 @@ public sealed class GeneradorItinerariosService(
         {
             PresupuestoObjetivo = propuesta.PresupuestoObjetivoPara(estadia.DestinoId)
         };
-        var catalogo = await ObtenerCatalogo(destino.Id);
+        var catalogo = await ObtenerCatalogo(destino);
         var validas = await GenerarValidas(estadia, destino, solicitud, catalogo, cancellationToken);
 
         if (!validas.Any(alternativa => ajustador.EsAceptable(alternativa, solicitud)))
@@ -322,8 +322,12 @@ public sealed class GeneradorItinerariosService(
         => await destinoRepository.GetByIdAsync(id)
             ?? throw new DestinoNoEncontradoException(id);
 
-    private Task<List<Destino>> ObtenerCatalogo(int destinoId)
-        => destinoRepository.ObtenerPorIdsConActividadesAsync([destinoId]);
+    private async Task<List<Destino>> ObtenerCatalogo(Destino destino)
+    {
+        var catalogo = await destinoRepository.GetByIdsConActividadesAsync([destino.Id]);
+
+        return catalogo.Count > 0 ? catalogo : [destino];
+    }
 
     private async Task<PropuestaResponse> Guardar(Propuesta propuesta, AccionAuditoria accion)
     {

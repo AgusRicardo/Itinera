@@ -14,7 +14,7 @@ import { EstadiaRequest, PropuestasService } from '../../core/services/propuesta
 import { AutenticacionService } from '../../core/services/autenticacion.service';
 import { Etiqueta } from '../../core/models/etiqueta';
 import { EtiquetasService } from '../../core/services/etiquetas.service';
-import { ActividadDisponible, ActividadesService } from '../../core/services/actividades.service';
+import { ActividadesService } from '../../core/services/actividades.service';
 import {
   BuscadorOpcionesComponent,
   OpcionBuscable
@@ -22,6 +22,9 @@ import {
 import { InputMonedaComponent } from '../../shared/components/input-moneda/input-moneda.component';
 import { RangoFechas, RangoFechasComponent } from '../../shared/components/rango-fechas/rango-fechas.component';
 import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
+import { ConfirmacionService } from '../../core/services/confirmacion.service';
+import { ToastrService } from '../../core/services/toastr.service';
+import { SelectorComponent } from '../../shared/components/selector/selector.component';
 
 @Component({
   selector: 'app-crear-propuesta',
@@ -31,11 +34,14 @@ import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
     BuscadorOpcionesComponent,
     InputMonedaComponent,
     RangoFechasComponent,
-    MonedaPipe
+    MonedaPipe,
+    SelectorComponent
   ],
   templateUrl: './crear-propuesta.component.html'
 })
 export class CrearPropuestaComponent implements OnInit {
+  private readonly confirmacion = inject(ConfirmacionService);
+  private readonly toastr = inject(ToastrService);
   @Input() propuesta: Propuesta | null = null;
   private readonly constructorFormulario = inject(FormBuilder);
   private readonly propuestasService = inject(PropuestasService);
@@ -48,20 +54,16 @@ export class CrearPropuestaComponent implements OnInit {
   private readonly actividadesService = inject(ActividadesService);
 
   protected readonly cargando = signal(false);
-  protected readonly error = signal<string | null>(null);
   protected readonly estadias = signal<EstadiaRequest[]>([]);
   protected readonly destinosSeleccionados = computed(() =>
     this.estadias().map(estadia => estadia.destinoId));
-  protected readonly busquedaCliente = signal('');
-  protected readonly clienteSeleccionado = signal<OpcionPropuesta | null>(null);
-  protected readonly clientesAbiertos = signal(false);
 
   protected readonly clientes = signal<OpcionPropuesta[]>([]);
   protected readonly empleados = signal<OpcionPropuesta[]>([]);
   protected readonly destinos = signal<OpcionPropuesta[]>([]);
-  protected readonly etiquetas = signal<Etiqueta[]>([]);
+  protected readonly etiquetas = signal<Pick<Etiqueta, 'id' | 'nombre'>[]>([]);
   protected readonly etiquetasSeleccionadas = signal<number[]>([]);
-  protected readonly actividades = signal<ActividadDisponible[]>([]);
+  protected readonly actividades = signal<Propuesta['actividades']>([]);
   protected readonly actividadesSeleccionadas = signal<number[]>([]);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
@@ -104,7 +106,8 @@ export class CrearPropuestaComponent implements OnInit {
   });
 
   protected readonly opcionesDestinos = computed<OpcionBuscable[]>(() =>
-    this.destinos()
+    this.conLosUsados(this.destinos(), this.propuesta?.destinos
+      .map(destino => ({ id: destino.id, nombre: destino.descripcion })))
       .filter(destino => !this.destinosSeleccionados().includes(destino.id))
       .map(destino => ({ id: destino.id.toString(), nombre: destino.nombre })));
 
@@ -115,24 +118,15 @@ export class CrearPropuestaComponent implements OnInit {
         && !this.actividadesSeleccionadas().includes(actividad.id))
       .map(actividad => ({
         id: actividad.id.toString(),
-        nombre: `${actividad.nombre} (${actividad.ciudadNombre}, ${actividad.paisNombre})`
+        nombre: `${actividad.nombre} (${this.nombreDestino(actividad.destinoId)})`
       })));
 
   protected readonly actividadesElegidas = computed(() =>
     this.actividades().filter(actividad =>
       this.actividadesSeleccionadas().includes(actividad.id)));
 
-  protected readonly clientesFiltrados = computed(() => {
-    const texto = this.busquedaCliente().trim().toLowerCase();
-
-    if (texto.length < 3) {
-      return [];
-    }
-
-    return this.clientes()
-      .filter(cliente => cliente.nombre.toLowerCase().includes(texto))
-      .slice(0, 8);
-  });
+  protected readonly nombreCliente = computed(() =>
+    this.clientes().find(cliente => cliente.id === this.valores().clienteId)?.nombre ?? '');
 
   ngOnInit(): void {
     if (this.propuesta) {
@@ -154,7 +148,9 @@ export class CrearPropuestaComponent implements OnInit {
       intensidadViaje: propuesta.intensidadViaje
     });
     this.formulario.controls.empleadoId.disable();
-    this.busquedaCliente.set(propuesta.clienteNombre);
+    this.formulario.controls.clienteId.disable();
+    this.clientes.set([{ id: propuesta.clienteId, nombre: propuesta.clienteNombre }]);
+    this.empleados.set([{ id: propuesta.empleadoId, nombre: propuesta.empleadoNombre }]);
     this.estadias.set(propuesta.destinos.map(destino => ({
       destinoId: destino.id,
       fechaLlegada: destino.fechaLlegada,
@@ -165,7 +161,9 @@ export class CrearPropuestaComponent implements OnInit {
   }
 
   protected nombreDestino(id: number): string {
-    return this.destinos().find(destino => destino.id === id)?.nombre ?? 'Destino';
+    return this.destinos().find(destino => destino.id === id)?.nombre
+      ?? this.propuesta?.destinos.find(destino => destino.id === id)?.descripcion
+      ?? 'Destino';
   }
 
   protected cambiarEstadia(id: number, rango: RangoFechas): void {
@@ -183,6 +181,12 @@ export class CrearPropuestaComponent implements OnInit {
   protected cambiarViajeros(cantidad: number): void {
     const { cantidadViajeros } = this.formulario.controls;
     cantidadViajeros.setValue(Math.max(1, Number(cantidadViajeros.value) + cantidad));
+  }
+
+  protected escribirViajeros(campo: HTMLInputElement): void {
+    const cantidad = Math.min(9999, Number(campo.value.replace(/\D/g, '')));
+    campo.value = cantidad ? cantidad.toString() : '';
+    this.formulario.controls.cantidadViajeros.setValue(cantidad);
   }
 
   private cambiaronFechas(): void {
@@ -213,6 +217,14 @@ export class CrearPropuestaComponent implements OnInit {
     })));
   }
 
+  /** Suma los que la propuesta ya usa aunque estén desactivados en el catálogo. */
+  private conLosUsados<T extends { id: number }>(disponibles: T[], usados: T[] = []): T[] {
+    return [
+      ...disponibles,
+      ...usados.filter(usado => disponibles.every(disponible => disponible.id !== usado.id))
+    ];
+  }
+
   private cargarOpciones(): void {
     forkJoin({
       clientes: this.clientesService.obtenerTodos(),
@@ -222,30 +234,27 @@ export class CrearPropuestaComponent implements OnInit {
       actividades: this.actividadesService.obtenerTodas()
     }).subscribe({
       next: respuesta => {
-        this.clientes.set(
-          respuesta.clientes.map(cliente => ({
-            id: cliente.id,
-            nombre: `${cliente.nombre} ${cliente.apellido}`.trim()
-          }))
-        );
-        this.empleados.set(
-          respuesta.empleados.map(empleado => ({
-            id: empleado.id,
-            nombre: `${empleado.nombre} ${empleado.apellido}`.trim()
-          }))
-        );
         this.destinos.set(
           respuesta.destinos.map(destino => ({
             id: destino.id,
             nombre: `${destino.ciudadNombre}, ${destino.paisNombre}`
           }))
         );
-        this.etiquetas.set(respuesta.etiquetas);
-        this.actividades.set(respuesta.actividades);
+        this.etiquetas.set(this.conLosUsados(respuesta.etiquetas, this.propuesta?.etiquetas));
+        this.actividades.set(this.conLosUsados(respuesta.actividades, this.propuesta?.actividades));
 
         if (this.propuesta) {
           return;
         }
+
+        this.clientes.set(respuesta.clientes.map(cliente => ({
+          id: cliente.id,
+          nombre: `${cliente.nombre} ${cliente.apellido}`.trim()
+        })));
+        this.empleados.set(respuesta.empleados.map(empleado => ({
+          id: empleado.id,
+          nombre: `${empleado.nombre} ${empleado.apellido}`.trim()
+        })));
 
         const usuario = this.autenticacion.obtenerUsuario();
         const empleadoActual = respuesta.empleados.find(empleado =>
@@ -257,7 +266,7 @@ export class CrearPropuestaComponent implements OnInit {
           this.formulario.controls.empleadoId.setValue(respuesta.empleados[0].id);
         }
       },
-      error: () => this.error.set('No se pudieron cargar los datos de la propuesta.')
+      error: () => this.toastr.error('No se pudieron cargar los datos de la propuesta.')
     });
   }
 
@@ -265,15 +274,19 @@ export class CrearPropuestaComponent implements OnInit {
     this.alternarDestino(Number(opcion.id));
   }
 
-  protected alternarDestino(id: number): void {
+  protected async alternarDestino(id: number): Promise<void> {
     const { fechaInicio, fechaFin } = this.formulario.getRawValue();
 
     if (this.destinosSeleccionados().includes(id)) {
       const tieneItinerario = this.propuesta?.destinos
         .some(destino => destino.id === id && destino.itinerario);
 
-      if (tieneItinerario && !window.confirm(
-        'Al quitar este destino y guardar se elimina su itinerario. ¿Querés continuar?')) {
+      if (tieneItinerario && !await this.confirmacion.confirmar({
+        titulo: `¿Quitar ${this.nombreDestino(id)}?`,
+        mensaje: 'Al guardar la propuesta se elimina su itinerario.',
+        accion: 'Quitar',
+        peligro: true
+      })) {
         return;
       }
 
@@ -292,28 +305,6 @@ export class CrearPropuestaComponent implements OnInit {
       actividades.filter(actividadId =>
         this.actividades().some(actividad =>
           actividad.id === actividadId && this.destinosSeleccionados().includes(actividad.destinoId))));
-  }
-
-  protected buscarCliente(valor: string): void {
-    this.busquedaCliente.set(valor);
-    this.clienteSeleccionado.set(null);
-    this.clientesAbiertos.set(valor.trim().length >= 3);
-    this.formulario.controls.clienteId.setValue(0);
-  }
-
-  protected seleccionarCliente(cliente: OpcionPropuesta): void {
-    this.clienteSeleccionado.set(cliente);
-    this.busquedaCliente.set(cliente.nombre);
-    this.formulario.controls.clienteId.setValue(cliente.id);
-    this.clientesAbiertos.set(false);
-  }
-
-  protected abrirClientes(): void {
-    this.clientesAbiertos.set(this.busquedaCliente().trim().length >= 3);
-  }
-
-  protected cerrarClientes(): void {
-    this.clientesAbiertos.set(false);
   }
 
   protected alternarEtiqueta(id: number): void {
@@ -347,13 +338,12 @@ export class CrearPropuestaComponent implements OnInit {
       || this.estadias().some(estadia => !estadia.fechaLlegada || !estadia.fechaPartida)
     ) {
       this.formulario.markAllAsTouched();
-      this.error.set(
+      this.toastr.advertencia(
         'Completá los campos obligatorios y las fechas de al menos un destino.');
       return;
     }
 
     this.cargando.set(true);
-    this.error.set(null);
 
     const { clienteId, empleadoId, ...configuracion } = this.formulario.getRawValue();
     const request = {
@@ -369,12 +359,10 @@ export class CrearPropuestaComponent implements OnInit {
     guardado$.subscribe({
       next: propuesta => {
         this.cargando.set(false);
+        this.toastr.exito(this.propuesta ? 'Propuesta actualizada.' : 'Propuesta creada.');
         this.navegacion.terminarEn(`/propuestas/${propuesta.id}`);
       },
-      error: respuesta => {
-        this.cargando.set(false);
-        this.error.set(respuesta.error?.detail ?? 'No se pudo guardar la propuesta.');
-      }
+      error: () => this.cargando.set(false)
     });
   }
 

@@ -24,6 +24,6 @@ public class DestinoConfiguration : IEntityTypeConfiguration<Destino>
         builder.Property(x => x.Activo)
                .IsRequired();
 
-        builder.HasQueryFilter(x => x.Activo);
+        builder.HasQueryFilter(AppDbContext.FiltroCatalogoActivo, x => x.Activo);
     }
 }

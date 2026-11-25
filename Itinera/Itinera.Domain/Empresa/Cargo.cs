@@ -13,13 +13,13 @@ public class Cargo
     public Cargo(string descripcion)
     {
         ValidarDescripcion(descripcion);
-        Descripcion = descripcion;
+        Descripcion = descripcion.Trim();
     }
 
     public void ActualizarDescripcion(string descripcion)
     {
         ValidarDescripcion(descripcion);
-        Descripcion = descripcion;
+        Descripcion = descripcion.Trim();
     }
 
     public void Desactivar() => Activo = false;

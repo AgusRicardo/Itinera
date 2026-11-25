@@ -33,10 +33,17 @@ public sealed class OnboardingService(AppDbContext context) : IOnboardingService
         CancellationToken cancellationToken)
     {
         var empresa = new EmpresaEntidad(request.RazonSocial, request.CUIT, request.Telefono);
-        var cargo = new Cargo("Administrador");
+        var cargo = await _context.Cargos
+            .OrderBy(item => item.Id)
+            .FirstOrDefaultAsync(item => item.Descripcion == "Administrador", cancellationToken);
+
+        if (cargo is null)
+        {
+            cargo = new Cargo("Administrador");
+            _context.Cargos.Add(cargo);
+        }
 
         _context.Empresas.Add(empresa);
-        _context.Cargos.Add(cargo);
         await _context.SaveChangesAsync(cancellationToken);
 
         return (empresa, cargo);

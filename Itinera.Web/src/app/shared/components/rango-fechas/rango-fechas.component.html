@@ -14,7 +14,7 @@
   @if (resumen()) {
     <span class="flex-1">{{ resumen() }}</span>
   } @else {
-    <span class="flex-1 text-itinera-muted">Elegí ida y vuelta</span>
+    <span class="flex-1 text-itinera-muted">{{ textoVacio() }}</span>
   }
 </button>
 
@@ -81,11 +81,11 @@
     </div>
     <p class="mt-3 border-t pt-3 text-xs text-itinera-muted">
       @if (inicioElegido(); as inicio) {
-        Desde el {{ formatear(inicio) }}. Elegí la fecha de vuelta.
-      } @else if (noches()) {
+        Desde el {{ formatear(inicio) }}. Elegí la fecha {{ esViaje() ? 'de vuelta' : 'final' }}.
+      } @else if (esViaje() && noches()) {
         {{ noches() }} {{ noches() === 1 ? 'noche' : 'noches' }}. Para cambiarlas, elegí de nuevo ida y vuelta.
       } @else {
-        Elegí la fecha de ida.
+        Elegí la fecha {{ esViaje() ? 'de ida' : 'inicial' }}.
       }
     </p>
   </div>

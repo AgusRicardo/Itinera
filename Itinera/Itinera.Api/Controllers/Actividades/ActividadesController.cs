@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Actividades;
 
-[Authorize]
-public class ActividadesController(IActividadService actividadService) : ApiController
+[Authorize(Policy = Permisos.CatalogosOperativosVer)]
+public class ActividadesController(IActividadService actividadService)
+    : PaginadoController<ActividadResponse, ListarActividadesRequest>(actividadService)
 {
     private readonly IActividadService _actividadService = actividadService;
 
@@ -28,7 +29,6 @@ public class ActividadesController(IActividadService actividadService) : ApiCont
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(List<ActividadResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ActividadResponse>>> ObtenerTodos()
     {
@@ -37,14 +37,7 @@ public class ActividadesController(IActividadService actividadService) : ApiCont
         return Ok(response);
     }
 
-    [HttpGet("paginado")]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
-    [ProducesResponseType(typeof(Pagina<ActividadResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<Pagina<ActividadResponse>>> ObtenerPagina([FromQuery] PaginacionRequest paginacion)
-        => Ok(await _actividadService.ObtenerPaginaAsync(paginacion));
-
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(ActividadResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ActividadResponse>> ObtenerPorId(int id)

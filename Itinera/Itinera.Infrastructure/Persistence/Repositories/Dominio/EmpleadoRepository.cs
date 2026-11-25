@@ -29,7 +29,8 @@ public class EmpleadoRepository(AppDbContext context, ITenantContext tenantConte
     private IQueryable<Empleado> ConRelaciones()
         => _context.Empleados
             .Include(empleado => empleado.Cargo)
-            .Include(empleado => empleado.Empresa);
+            .Include(empleado => empleado.Empresa)
+            .IgnoreQueryFilters([AppDbContext.FiltroCatalogoActivo]);
 
     public Task UpdateAsync(Empleado empleado)
     {

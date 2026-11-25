@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Clientes;
 
-[Authorize]
-public class ClientesController(IClienteService clienteService) : ApiController
+[Authorize(Policy = Permisos.ClientesVer)]
+public class ClientesController(IClienteService clienteService)
+    : PaginadoController<ClienteResponse, ListadoActivableRequest>(clienteService)
 {
     private readonly IClienteService _clienteService = clienteService;
 
@@ -27,7 +28,6 @@ public class ClientesController(IClienteService clienteService) : ApiController
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.ClientesVer)]
     [ProducesResponseType(typeof(List<ClienteResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ClienteResponse>>> ObtenerTodos()
     {
@@ -36,20 +36,12 @@ public class ClientesController(IClienteService clienteService) : ApiController
         return Ok(response);
     }
 
-    [HttpGet("paginado")]
-    [Authorize(Policy = Permisos.ClientesVer)]
-    [ProducesResponseType(typeof(Pagina<ClienteResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<Pagina<ClienteResponse>>> ObtenerPagina([FromQuery] ListarClientesRequest request)
-        => Ok(await _clienteService.ObtenerPaginaAsync(request));
-
     [HttpGet("resumen")]
-    [Authorize(Policy = Permisos.ClientesVer)]
     [ProducesResponseType(typeof(ResumenClientesResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<ResumenClientesResponse>> ObtenerResumen()
         => Ok(await _clienteService.ObtenerResumenAsync());
 
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.ClientesVer)]
     [ProducesResponseType(typeof(ClienteResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ClienteResponse>> ObtenerPorId(int id)

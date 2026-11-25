@@ -1,4 +1,5 @@
 using Itinera.Application.Common.Interfaces;
+using Itinera.Application.Common.Textos;
 using Itinera.Security.Application.Common;
 using Itinera.Security.Application.Interfaces;
 using Itinera.Security.Domain;
@@ -9,7 +10,6 @@ namespace Itinera.Infrastructure.Persistence.Repositories.Seguridad;
 public class SecurityRepository(AppDbContext context, ITenantContext tenantContext) : ISecurityRepository
 {
     private readonly AppDbContext _context = context;
-    private int? EmpresaId => tenantContext.EmpresaId;
     private bool EsAdministradorPlataforma => tenantContext.EsAdministradorPlataforma;
 
     public Task<Usuario?> GetByEmailAsync(string email)
@@ -39,20 +39,7 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
         return roles.SelectMany(r => r.Permisos).Distinct().ToList();
     }
 
-    public async Task<Guid> CreateUsuarioAsync(Usuario usuario)
-    {
-        _context.Usuarios.Add(usuario);
-        await _context.SaveChangesAsync();
-        return usuario.Id;
-    }
-
-    public async Task<bool> UsuarioTienePermisoAsync(Guid usuarioId, string codigoPermiso)
-    {
-        var permisos = await GetPermisosDeUsuarioAsync(usuarioId);
-        return permisos.Any(p => p.Codigo == codigoPermiso);
-    }
-
-    public async Task<(int? EmpresaId, string? EmpresaRazonSocial)> ObtenerEmpresaUsuarioAsync(Guid usuarioId)
+    public async Task<(int? EmpresaId, string? EmpresaRazonSocial)> GetEmpresaDeUsuarioAsync(Guid usuarioId)
     {
         var empresa = await _context.UsuariosEmpleados
             .Where(vinculo => vinculo.UsuarioId == usuarioId && vinculo.Activo)
@@ -68,40 +55,19 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
             : (empresa.EmpresaId, empresa.EmpresaRazonSocial);
     }
 
-    public Task<List<Usuario>> ListarUsuariosAsync()
-    {
-        if (EsAdministradorPlataforma)
-            return _context.Usuarios.OrderBy(u => u.Nombre).ToListAsync();
-
-        if (EmpresaId is null)
-            return Task.FromResult(new List<Usuario>());
-
-        return _context.Usuarios
-            .Where(u => _context.UsuariosEmpleados.Any(ue =>
-                ue.UsuarioId == u.Id && ue.Activo && ue.Empleado.EmpresaId == EmpresaId))
-            .OrderBy(u => u.Nombre)
-            .ToListAsync();
-    }
-
     public Task<List<Usuario>> BuscarUsuariosAsync(string texto)
     {
-        var busqueda = texto.Trim().ToLower();
-        var consulta = EsAdministradorPlataforma
-            ? _context.Usuarios.AsQueryable()
-            : EmpresaId is null
-                ? _context.Usuarios.Where(_ => false)
-                : _context.Usuarios.Where(u => _context.UsuariosEmpleados.Any(ue =>
-                    ue.UsuarioId == u.Id && ue.Activo && ue.Empleado.EmpresaId == EmpresaId));
+        var busqueda = TextoBusqueda.Normalizar(texto);
 
-        return consulta
-            .Where(u => u.Nombre.ToLower().Contains(busqueda)
-                || u.Email.ToLower().Contains(busqueda))
+        return _context.UsuariosVisiblesPara(tenantContext)
+            .Where(u => AppDbContext.SinTildes(u.Nombre).Contains(busqueda)
+                || AppDbContext.SinTildes(u.Email).Contains(busqueda))
             .OrderBy(u => u.Nombre)
             .Take(8)
             .ToListAsync();
     }
 
-    public Task<List<Rol>> ListarRolesAsync()
+    public Task<List<Rol>> GetRolesAsync()
         => RolesConPermisos()
             .Where(rol => EsAdministradorPlataforma
                 || !rol.Permisos.Any(permiso => Roles.EsDePlataforma(permiso.Codigo)))
@@ -114,24 +80,24 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
                 || !rol.Permisos.Any(permiso => Roles.EsDePlataforma(permiso.Codigo)))
             .FirstOrDefaultAsync(r => r.Id == id);
 
-    public Task<List<Permiso>> ListarPermisosAsync()
+    public Task<List<Permiso>> GetPermisosAsync()
         => _context.Permisos.OrderBy(p => p.Codigo).ToListAsync();
 
     public Task<Permiso?> GetPermisoAsync(int id)
         => _context.Permisos.FirstOrDefaultAsync(p => p.Id == id);
 
-    public Task<List<GrupoUsuarios>> ListarGruposAsync()
+    public Task<List<GrupoUsuarios>> GetGruposAsync()
         => GruposConMiembros()
             .OrderBy(g => g.Nombre)
             .ToListAsync();
 
-    public async Task CrearRolAsync(Rol rol)
+    public async Task AddRolAsync(Rol rol)
     {
         _context.Roles.Add(rol);
         await _context.SaveChangesAsync();
     }
 
-    public async Task CrearGrupoAsync(GrupoUsuarios grupo)
+    public async Task AddGrupoAsync(GrupoUsuarios grupo)
     {
         _context.GruposUsuarios.Add(grupo);
         await _context.SaveChangesAsync();
@@ -202,7 +168,7 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
         await _context.SaveChangesAsync();
     }
 
-    public Task GuardarAsync() => _context.SaveChangesAsync();
+    public Task SaveAsync() => _context.SaveChangesAsync();
 
     private IQueryable<Rol> RolesConPermisos()
         => _context.Roles.Include(rol => rol.Permisos);

@@ -12,7 +12,7 @@ import { CrearPropuestaComponent } from './crear-propuesta.component';
   template: `
     <app-menu-principal />
     <main class="min-h-screen bg-itinera-background lg:pl-64">
-      <div class="mx-auto w-full max-w-6xl px-6 py-8">
+      <div class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
         @if (cargada()) {
           <app-crear-propuesta [propuesta]="propuesta()" />
         } @else {

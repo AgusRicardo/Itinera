@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Services;
 using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Ciudades.Interfaces;
 using Itinera.Application.Common.Exceptions;
@@ -10,7 +11,8 @@ namespace Itinera.Application.Destinos.Services;
 
 public class DestinoService(
     IDestinoRepository destinoRepository,
-    ICiudadRepository ciudadRepository) : IDestinoService
+    ICiudadRepository ciudadRepository)
+    : PaginadoService<Destino, DestinoResponse, ListadoRequest>(destinoRepository), IDestinoService
 {
     private readonly IDestinoRepository _destinoRepository = destinoRepository;
     private readonly ICiudadRepository _ciudadRepository = ciudadRepository;
@@ -18,6 +20,8 @@ public class DestinoService(
     public async Task<DestinoResponse> CrearAsync(CrearDestinoRequest request)
     {
         Ciudad ciudad = await ObtenerCiudadById(request.CiudadId);
+
+        await ValidarDuplicadoAsync(request.CiudadId, null);
 
         var destino = new Destino(ciudad);
 
@@ -33,13 +37,6 @@ public class DestinoService(
         return DestinoMapper.ToResponse(destino);
     }
 
-    public async Task<Pagina<DestinoResponse>> ObtenerPaginaAsync(PaginacionRequest paginacion)
-    {
-        var pagina = await _destinoRepository.GetPaginaAsync(paginacion);
-
-        return pagina.Convertir(DestinoMapper.ToResponse);
-    }
-
     public async Task<List<DestinoResponse>> ObtenerTodosAsync()
     {
         var destinos = await _destinoRepository.GetAllAsync();
@@ -51,6 +48,8 @@ public class DestinoService(
     {
         var destino = await ObtenerDestinoById(id);
         Ciudad ciudad = await ObtenerCiudadById(request.CiudadId);
+
+        await ValidarDuplicadoAsync(request.CiudadId, id);
 
         destino.ActualizarDatos(ciudad);
 
@@ -66,6 +65,15 @@ public class DestinoService(
         destino.Desactivar();
 
         await _destinoRepository.DeleteAsync(destino);
+    }
+
+    protected override List<DestinoResponse> Convertir(IEnumerable<Destino> entidades)
+        => DestinoMapper.ToResponse(entidades);
+
+    private async Task ValidarDuplicadoAsync(int ciudadId, int? idExcluido)
+    {
+        if (await _destinoRepository.ExisteAsync(ciudadId, idExcluido))
+            throw new InvalidOperationException("Ya existe un destino para esa ciudad.");
     }
 
     private async Task<Destino> ObtenerDestinoById(int id)

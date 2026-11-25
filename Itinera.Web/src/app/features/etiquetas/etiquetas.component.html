@@ -1,25 +1,20 @@
 <app-menu-principal />
 
 <main class="min-h-screen bg-itinera-background lg:pl-64">
-  <section class="mx-auto w-full max-w-5xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
-    <div class="mb-8 flex items-end justify-between gap-5">
-      <div>
-        <p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">
-          Catálogo empresarial
-        </p>
-        <h1 class="font-itinera-display text-3xl tracking-tight sm:text-4xl">Etiquetas</h1>
-        <p class="mt-1.5 text-sm text-itinera-muted">Organizá las preferencias de tus propuestas.</p>
-      </div>
-      <button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background" (click)="abrirModal()">
-        + Nueva etiqueta
-      </button>
-    </div>
+  <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
+    <app-encabezado seccion="Catálogos" titulo="Etiquetas" descripcion="Organizá las preferencias de tus propuestas.">
+      @if (puedeGestionar) {
+        <button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background" (click)="abrirModal()">
+          + Nueva etiqueta
+        </button>
+      }
+    </app-encabezado>
 
     @if (cargando()) {
       <div class="rounded-xl border bg-itinera-card p-12 text-center">
         <p class="text-sm text-itinera-muted">Cargando etiquetas…</p>
       </div>
-    } @else if (error() && !modalAbierto()) {
+    } @else if (error()) {
       <div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center">
         <p class="text-sm text-red-700">{{ error() }}</p>
       </div>
@@ -31,30 +26,25 @@
     } @else {
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         @for (etiqueta of etiquetas(); track etiqueta.id) {
-          <article class="rounded-xl border bg-itinera-card p-5 shadow-sm">
+          <article class="flex items-center justify-between gap-3 rounded-xl border bg-itinera-card p-5 shadow-sm">
             <span class="inline-flex rounded-full bg-itinera-accent/15 px-3 py-1 text-sm font-medium text-itinera-foreground">
               #{{ etiqueta.nombre }}
             </span>
-            <div class="mt-5 flex gap-2 border-t pt-4">
-              <button type="button" class="rounded-lg border px-3 py-2 text-xs hover:bg-itinera-secondary" (click)="abrirModal(etiqueta)">Editar</button>
-              <button type="button" class="rounded-lg px-3 py-2 text-xs text-red-700 hover:bg-red-50" (click)="desactivar(etiqueta)">Desactivar</button>
-            </div>
+            @if (puedeGestionar) {
+              <app-menu-acciones [acciones]="acciones(etiqueta)" />
+            }
           </article>
         }
       </div>
     }
   </section>
 
-  @if (aviso()) {
-    <div class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm text-itinera-background shadow-xl">{{ aviso() }}</div>
-  }
-
   @if (modalAbierto()) {
     <div class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4 backdrop-blur-[2px]" (click)="cerrarModal()">
       <section class="w-full max-w-md rounded-2xl border bg-itinera-card shadow-xl" (click)="$event.stopPropagation()">
         <header class="flex items-start justify-between border-b px-6 py-5">
           <div>
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">Catálogo empresarial</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">Catálogos</p>
             <h2 class="mt-1 font-itinera-display text-xl">{{ etiquetaEditando() ? 'Editar etiqueta' : 'Nueva etiqueta' }}</h2>
           </div>
           <button type="button" class="p-2 text-itinera-muted" [disabled]="guardando()" (click)="cerrarModal()">✕</button>
@@ -62,14 +52,11 @@
         <form class="space-y-5 p-6" [formGroup]="formulario" (ngSubmit)="guardar()">
           <div>
             <label for="nombreEtiqueta" class="mb-1.5 block text-sm font-medium">Nombre <span class="text-red-600">*</span></label>
-            <input id="nombreEtiqueta" formControlName="nombre" placeholder="Ej.: Playa" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+            <input id="nombreEtiqueta" formControlName="nombre" maxlength="80" placeholder="Ej.: Playa" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
             @if (formulario.controls.nombre.touched && formulario.controls.nombre.invalid) {
               <p class="mt-1 text-xs text-red-700">Ingresá un nombre.</p>
             }
           </div>
-          @if (error()) {
-            <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error() }}</p>
-          }
           <div class="flex justify-end gap-2 border-t pt-5">
             <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" [disabled]="guardando()" (click)="cerrarModal()">Cancelar</button>
             <button type="submit" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50" [disabled]="formulario.invalid || guardando()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>

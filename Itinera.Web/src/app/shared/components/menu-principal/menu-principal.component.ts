@@ -4,10 +4,16 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MigasComponent } from '../migas/migas.component';
 import { AutenticacionService } from '../../../core/services/autenticacion.service';
 import { MenuService } from '../../../core/services/menu.service';
+import { TooltipDirective } from '../tooltip/tooltip.directive';
 
 @Component({
   selector: 'app-menu-principal',
-  imports: [RouterLink, RouterLinkActive, MigasComponent],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    MigasComponent,
+    TooltipDirective
+  ],
   templateUrl: './menu-principal.component.html'
 })
 export class MenuPrincipalComponent {

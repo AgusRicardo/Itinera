@@ -12,11 +12,15 @@ export interface ClienteApi {
   email: string;
   telefono: string;
   activo?: boolean;
+  cantidadPropuestas?: number;
+  ultimaGestion?: string | null;
 }
 
 export interface ResumenClientes {
   total: number;
   activos: number;
+  conPropuestas: number;
+  nuevosEsteMes: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -33,10 +37,6 @@ export class ClientesService {
 
   obtenerTodos(): Observable<ClienteApi[]> {
     return this.http.get<ClienteApi[]>(this.rutasApi.clientes);
-  }
-
-  obtenerPorId(id: number): Observable<ClienteApi> {
-    return this.http.get<ClienteApi>(this.rutasApi.clientePorId(id));
   }
 
   crear(cliente: Omit<ClienteApi, 'id'>): Observable<ClienteApi> {

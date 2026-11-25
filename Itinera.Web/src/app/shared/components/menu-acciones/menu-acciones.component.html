@@ -1,49 +1,43 @@
-<div class="relative inline-block">
-  <button
-    type="button"
-    aria-label="Abrir acciones"
-    class="rounded-md p-2 text-itinera-muted transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
-    (click)="alternar($event)"
-  >
-    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-      <circle cx="5" cy="12" r="1.5" />
-      <circle cx="12" cy="12" r="1.5" />
-      <circle cx="19" cy="12" r="1.5" />
-    </svg>
-  </button>
+<button
+  type="button"
+  aria-label="Abrir acciones"
+  [attr.aria-expanded]="abierto()"
+  class="rounded-md p-2 text-itinera-muted transition-colors hover:bg-itinera-secondary hover:text-itinera-foreground"
+  (click)="alternar($event)"
+>
+  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <circle cx="5" cy="12" r="1.5" />
+    <circle cx="12" cy="12" r="1.5" />
+    <circle cx="19" cy="12" r="1.5" />
+  </svg>
+</button>
 
-  @if (abierto()) {
-    <div
-      class="fixed z-50 w-36 rounded-xl border bg-itinera-card p-1.5 text-left shadow-lg"
-      [style.top]="posicion().top"
-      [style.left]="posicion().left"
-      (click)="$event.stopPropagation()"
-    >
-      <a
-        [routerLink]="rutaVer"
-        class="block rounded-lg px-3 py-2 text-sm hover:bg-itinera-secondary"
-        (click)="abierto.set(false)"
-      >
-        Ver
-      </a>
-      @if (rutaEditar) {
+@if (abierto()) {
+  <div
+    class="fixed z-50 w-40 rounded-xl border bg-itinera-card p-1.5 text-left shadow-lg"
+    [style.top]="posicion().top"
+    [style.left]="posicion().left"
+  >
+    @for (accion of acciones(); track accion.texto) {
+      @if (accion.ruta) {
         <a
-          [routerLink]="rutaEditar"
+          [routerLink]="accion.ruta"
           class="block rounded-lg px-3 py-2 text-sm hover:bg-itinera-secondary"
           (click)="abierto.set(false)"
         >
-          Editar
+          {{ accion.texto }}
         </a>
-      }
-      @if (puedeEliminar) {
+      } @else {
         <button
           type="button"
-          class="w-full rounded-lg px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50"
-          (click)="ejecutarEliminacion()"
+          class="w-full rounded-lg px-3 py-2 text-left text-sm disabled:cursor-not-allowed disabled:opacity-40"
+          [class]="accion.peligro ? 'text-red-700 hover:bg-red-50' : 'hover:bg-itinera-secondary'"
+          [disabled]="accion.deshabilitada"
+          (click)="ejecutar(accion)"
         >
-          Eliminar
+          {{ accion.texto }}
         </button>
       }
-    </div>
-  }
-</div>
+    }
+  </div>
+}

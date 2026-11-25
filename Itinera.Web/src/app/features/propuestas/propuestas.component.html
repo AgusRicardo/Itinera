@@ -2,19 +2,7 @@
 
 <main class="min-h-screen bg-itinera-background lg:pl-64">
   <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
-    <div class="mb-8 grid items-end gap-5 lg:grid-cols-[1fr_auto]">
-      <div>
-        <div class="mb-2 flex items-center gap-2">
-          <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">
-            Operación comercial
-          </span>
-          <span class="h-px w-10 bg-itinera-accent/50"></span>
-        </div>
-        <h1 class="font-itinera-display text-3xl tracking-tight sm:text-4xl">Propuestas</h1>
-        <p class="mt-1.5 max-w-xl text-sm text-itinera-muted">
-          Diseñá, seguí y convertí cada viaje desde un único lugar.
-        </p>
-      </div>
+    <app-encabezado seccion="Operación comercial" titulo="Propuestas" descripcion="Diseñá, seguí y convertí cada viaje desde un único lugar.">
       @if (puedeCrear()) {
         <a
           routerLink="/propuestas/nueva"
@@ -24,7 +12,7 @@
           Nueva propuesta
         </a>
       }
-    </div>
+    </app-encabezado>
 
     <section class="mb-7 grid grid-cols-2 border-y bg-itinera-card/40 lg:grid-cols-4">
       <div class="px-4 py-4 sm:px-6">
@@ -47,121 +35,40 @@
       </div>
     </section>
 
-    <div class="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
-      <div class="flex flex-col gap-2.5 sm:flex-row">
-        <div class="relative">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-itinera-muted">⌕</span>
-          <input
-            type="search"
-            placeholder="Buscar por cliente o destino"
-            [value]="busqueda()"
-            class="w-full rounded-lg border bg-itinera-card py-2.5 pl-9 pr-3 text-sm placeholder:text-itinera-muted focus:border-itinera-accent focus:outline-none focus:ring-2 focus:ring-itinera-accent/30 sm:w-80"
-            (input)="busqueda.set($any($event.target).value); filtrar()"
-          />
-        </div>
-        <select
-          [value]="estado()"
-          class="cursor-pointer rounded-lg border bg-itinera-card px-3 py-2.5 text-sm focus:border-itinera-accent focus:outline-none focus:ring-2 focus:ring-itinera-accent/30"
-          (change)="estado.set($any($event.target).value); filtrar()"
-        >
-          <option value="">Todos los estados</option>
-          @for (estadoPropuesta of estados(); track estadoPropuesta.id) {
-            <option [value]="estadoPropuesta.id">
-              {{ estadoPropuesta.descripcion }}
-            </option>
-          }
-        </select>
-      </div>
-    </div>
+    <app-filtros-grilla
+      placeholder="Buscar por cliente o destino"
+      etiquetaFechas="Fecha de creación"
+      [estados]="estados()"
+      (cambio)="grilla.filtrar($event)"
+    />
 
-    @if (grilla.cargando()) {
-      <div class="rounded-xl border bg-itinera-card p-12 text-center">
-        <p class="text-sm text-itinera-muted">Cargando propuestas…</p>
-      </div>
-    } @else if (grilla.error() ?? error()) {
-      <div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center">
-        <p class="text-sm text-red-700">{{ grilla.error() ?? error() }}</p>
-      </div>
-    } @else {
-      <div class="max-h-[65vh] overflow-auto rounded-xl border bg-itinera-card shadow-[0_12px_40px_rgba(45,37,27,0.04)]">
-        <table class="w-full min-w-[980px]">
-          <thead class="border-b bg-itinera-secondary/35">
-            <tr>
-              @for (encabezado of ['Propuesta', 'Fecha creación', 'Cliente', 'Destino principal', 'Fechas', 'Presupuesto', 'Estado']; track encabezado) {
-                <th class="px-5 py-3.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-itinera-muted">
-                  {{ encabezado }}
-                </th>
-              }
-              <th class="px-5 py-3.5 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-itinera-muted">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y">
-            @for (propuesta of grilla.elementos(); track propuesta.id) {
-              <tr class="group transition-colors hover:bg-itinera-secondary/25">
-                <td class="px-5 py-4">
-                  <p class="text-xs font-semibold">#{{ propuesta.id }}</p>
-                 </td>
-                 <td class="whitespace-nowrap px-5 py-4 text-xs text-itinera-muted">
-                   {{ propuesta.fechaCreacion | date:'dd/MM/yyyy' }}
-                 </td>
-                 <td class="px-5 py-4">
-                  <p class="text-sm font-semibold">{{ propuesta.clienteNombre }}</p>
-                </td>
-                <td class="px-5 py-4 text-xs font-medium">
-                  <span class="flex items-center gap-1.5">
-                    <span class="text-itinera-accent">⌖</span>
-                    {{ propuesta.destinos[0]?.descripcion || 'Sin destino' }}
-                  </span>
-                </td>
-                <td class="whitespace-nowrap px-5 py-4 text-xs text-itinera-muted">
-                   {{ propuesta.fechaInicio | date:'dd/MM/yyyy' }} –
-                   {{ propuesta.fechaFin | date:'dd/MM/yyyy' }}
-                </td>
-                <td class="whitespace-nowrap px-5 py-4 text-xs font-semibold">
-                  {{ propuesta.presupuesto | moneda }}
-                </td>
-                <td class="px-5 py-4">
-                  <span
-                    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-                    [class]="{
-                      'bg-stone-100 text-stone-600': propuesta.estado === 'Borrador',
-                      'bg-blue-50 text-blue-700': propuesta.estado === 'Presentada',
-                      'bg-emerald-50 text-emerald-700': propuesta.estado === 'Aceptada',
-                      'bg-red-50 text-red-700': propuesta.estado === 'Rechazada'
-                    }"
-                  >
-                    <span class="h-1.5 w-1.5 rounded-full" [class]="{
-                      'bg-stone-400': propuesta.estado === 'Borrador',
-                      'bg-blue-500': propuesta.estado === 'Presentada',
-                      'bg-emerald-500': propuesta.estado === 'Aceptada',
-                      'bg-red-500': propuesta.estado === 'Rechazada'
-                    }"></span>
-                    {{ propuesta.estado }}
-                  </span>
-                </td>
-                <td class="px-5 py-4 text-right">
-                  <app-menu-acciones
-                    [rutaVer]="['/propuestas', propuesta.id.toString()]"
-                    [rutaEditar]="rutaEditar(propuesta)"
-                    [puedeEliminar]="puedeEliminar() && eliminando() !== propuesta.id"
-                    (eliminar)="eliminar(propuesta)"
-                  />
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-        @if (!grilla.elementos().length) {
-          <div class="py-14 text-center">
-            <p class="text-sm font-medium">No encontramos propuestas</p>
-            <p class="mt-1 text-xs text-itinera-muted">Probá ajustando la búsqueda o los filtros.</p>
-          </div>
+    <app-tabla [grilla]="grilla" elementos="propuestas" [anchoMinimo]="900">
+      <thead>
+        <tr>
+          <th appColumnaOrdenable="propuesta" [grilla]="grilla">Propuesta</th>
+          <th appColumnaOrdenable="fechaCreacion" [grilla]="grilla">Creación</th>
+          <th appColumnaOrdenable="cliente" [grilla]="grilla">Cliente</th>
+          <th appColumnaOrdenable="destino" [grilla]="grilla">Destino principal</th>
+          <th appColumnaOrdenable="fechas" [grilla]="grilla">Fechas</th>
+          <th appColumnaOrdenable="presupuesto" [grilla]="grilla" class="numero">Presupuesto</th>
+          <th appColumnaOrdenable="estado" [grilla]="grilla">Estado</th>
+          <th class="numero">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (propuesta of grilla.elementos(); track propuesta.id) {
+          <tr>
+            <td class="font-medium">#{{ propuesta.id }}</td>
+            <td class="whitespace-nowrap">{{ propuesta.fechaCreacion | date:'dd/MM/yyyy' }}</td>
+            <td class="font-medium">{{ propuesta.clienteNombre }}</td>
+            <td>{{ propuesta.destinos[0]?.descripcion || 'Sin destino' }}</td>
+            <td>{{ propuesta.fechaInicio | date:'dd/MM/yyyy' }} – {{ propuesta.fechaFin | date:'dd/MM/yyyy' }}</td>
+            <td class="numero whitespace-nowrap">{{ propuesta.presupuesto | moneda }}</td>
+            <td><app-estado [estado]="propuesta.estado" /></td>
+            <td class="numero"><app-menu-acciones [acciones]="acciones(propuesta)" /></td>
+          </tr>
         }
-      </div>
-    }
-
-    <app-paginador [grilla]="grilla" />
+      </tbody>
+    </app-tabla>
   </section>
 </main>

@@ -7,6 +7,7 @@ public interface IEtiquetaRepository
     Task AddAsync(Etiqueta etiqueta);
     Task<Etiqueta?> GetByIdAsync(int id);
     Task<List<Etiqueta>> GetAllAsync();
+    Task<bool> ExisteAsync(string nombre, int empresaId, int? idExcluido);
     Task<List<Etiqueta>> GetByIdsAsync(IEnumerable<int> ids);
     Task UpdateAsync(Etiqueta etiqueta);
 }

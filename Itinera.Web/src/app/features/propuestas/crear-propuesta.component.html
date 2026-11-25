@@ -1,7 +1,7 @@
 <section class="space-y-6">
   <div>
     <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">Operación comercial</p>
-    <h1 class="mt-2 font-itinera-display text-3xl">{{ propuesta ? 'Editar propuesta #' + propuesta.id : 'Nueva propuesta' }}</h1>
+    <h1 class="mt-2 font-itinera-display text-3xl tracking-tight sm:text-4xl">{{ propuesta ? 'Editar propuesta #' + propuesta.id : 'Nueva propuesta' }}</h1>
     <p class="mt-1.5 text-sm text-itinera-muted">
       {{ propuesta
         ? 'Los itinerarios se conservan; si dejan de cumplir los datos nuevos quedan incompletos.'
@@ -21,54 +21,14 @@
           <p class="mt-1 text-sm text-itinera-muted">Para quién es el viaje y quién lo gestiona.</p>
         </div>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="relative">
+          <div>
             <label class="mb-1.5 block text-sm font-medium" for="cliente">Cliente <span class="text-red-600">*</span></label>
-            <input
-              id="cliente"
-              type="search"
-              autocomplete="off"
-              placeholder="Buscar por nombre y apellido..."
-              [value]="busquedaCliente()"
-              [disabled]="propuesta !== null"
-              class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
-              (input)="buscarCliente($any($event.target).value)"
-              (focus)="abrirClientes()"
-              (blur)="cerrarClientes()"
-            />
-
-            @if (clientesAbiertos()) {
-              <div class="absolute left-0 right-0 top-full z-10 mt-1 max-h-56 overflow-y-auto rounded-xl border bg-itinera-card p-1.5 shadow-lg">
-                @if (clientesFiltrados().length) {
-                  @for (cliente of clientesFiltrados(); track cliente.id) {
-                    <button
-                      type="button"
-                      class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-itinera-secondary"
-                      (click)="seleccionarCliente(cliente)"
-                      (mousedown)="seleccionarCliente(cliente)"
-                    >
-                      {{ cliente.nombre }}
-                    </button>
-                  }
-                } @else {
-                  <p class="px-3 py-2 text-sm text-itinera-muted">
-                    No se encontraron clientes.
-                  </p>
-                }
-              </div>
-            }
+            <app-selector idCampo="cliente" descripcion="Cliente" placeholder="Seleccioná un cliente" formControlName="clienteId" [opciones]="clientes()" />
           </div>
 
           <div>
             <label class="mb-1.5 block text-sm font-medium" for="empleado">Empleado responsable <span class="text-red-600">*</span></label>
-            <select
-              id="empleado"
-              formControlName="empleadoId"
-              class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm outline-none focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
-            >
-              @for (empleado of empleados(); track empleado.id) {
-                <option [ngValue]="empleado.id">{{ empleado.nombre }}</option>
-              }
-            </select>
+            <app-selector idCampo="empleado" descripcion="Empleado responsable" placeholder="Seleccioná un empleado" formControlName="empleadoId" [opciones]="empleados()" />
           </div>
         </div>
       </article>
@@ -99,10 +59,12 @@
               <button type="button" aria-label="Quitar un viajero" class="px-4 text-lg leading-6 disabled:opacity-30" [disabled]="valores().cantidadViajeros <= 1" (click)="cambiarViajeros(-1)">−</button>
               <input
                 id="cantidadViajeros"
-                type="number"
-                min="1"
-                formControlName="cantidadViajeros"
-                class="w-full min-w-0 bg-transparent py-2.5 text-center text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                [value]="valores().cantidadViajeros"
+                class="w-full min-w-0 bg-transparent py-2.5 text-center text-sm outline-none"
+                (input)="escribirViajeros($any($event.target))"
               />
               <button type="button" aria-label="Sumar un viajero" class="px-4 text-lg leading-6" (click)="cambiarViajeros(1)">+</button>
             </div>
@@ -129,7 +91,7 @@
         </div>
         <app-buscador-opciones
           idCampo="destinos"
-          placeholder="Escribí al menos 3 letras para buscar un destino..."
+          placeholder="Buscar un destino..."
           [opciones]="opcionesDestinos()"
           [limpiarAlSeleccionar]="true"
           (seleccionada)="agregarDestino($event)"
@@ -185,7 +147,7 @@
           @if (destinosSeleccionados().length) {
             <app-buscador-opciones
               idCampo="actividades"
-              placeholder="Escribí al menos 3 letras para buscar en los destinos elegidos..."
+              placeholder="Buscar en los destinos elegidos..."
               [opciones]="opcionesActividades()"
               [limpiarAlSeleccionar]="true"
               (seleccionada)="agregarActividad($event)"
@@ -194,7 +156,7 @@
               <ul class="mt-3 flex flex-wrap gap-2">
                 @for (actividad of actividadesElegidas(); track actividad.id) {
                   <li class="flex items-center gap-2 rounded-full border border-itinera-accent bg-itinera-accent/15 py-1.5 pl-3.5 pr-2 text-sm">
-                    <span>{{ actividad.nombre }} <span class="text-itinera-muted">({{ actividad.ciudadNombre }})</span></span>
+                    <span>{{ actividad.nombre }} <span class="text-itinera-muted">({{ nombreDestino(actividad.destinoId) }})</span></span>
                     <button
                       type="button"
                       class="rounded-full px-2 hover:bg-itinera-accent/30"
@@ -254,13 +216,13 @@
       <dl class="space-y-2.5">
         <div class="flex justify-between gap-3">
           <dt class="text-itinera-muted">Cliente</dt>
-          <dd class="text-right font-semibold">{{ valores().clienteId ? busquedaCliente() : '—' }}</dd>
+          <dd class="text-right font-semibold">{{ nombreCliente() || '—' }}</dd>
         </div>
         <div class="flex justify-between gap-3">
           <dt class="text-itinera-muted">Fechas</dt>
           <dd class="text-right font-semibold">
             @if (valores().fechaInicio && valores().fechaFin) {
-              {{ valores().fechaInicio | date:'dd/MM' }} al {{ valores().fechaFin | date:'dd/MM/yyyy' }}
+              {{ valores().fechaInicio | date:'dd/MM/yyyy' }} – {{ valores().fechaFin | date:'dd/MM/yyyy' }}
             } @else {
               —
             }
@@ -290,9 +252,6 @@
 
       @if (faltantes().length) {
         <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">Falta completar: {{ faltantes().join(', ') }}.</p>
-      }
-      @if (error()) {
-        <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error() }}</p>
       }
 
       <div class="space-y-2 border-t pt-5">

@@ -148,11 +148,14 @@ public class ActividadServiceTests
         public Task<Destino?> GetByIdAsync(int id)
             => Task.FromResult(Destinos.FirstOrDefault(d => d.Id == id));
 
-        public Task<Pagina<Destino>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Destino>> GetPaginaAsync(ListadoRequest request) => throw new NotSupportedException();
+        public Task<bool> ExisteAsync(int ciudadId, int? idExcluido)
+            => Task.FromResult(Destinos.Any(d => d.Activo && d.Id != idExcluido && d.CiudadId == ciudadId));
+
         public Task<List<Destino>> GetAllAsync()
             => Task.FromResult(Destinos.ToList());
 
-        public Task<List<Destino>> ObtenerPorIdsConActividadesAsync(IEnumerable<int> ids)
+        public Task<List<Destino>> GetByIdsConActividadesAsync(IEnumerable<int> ids)
         {
             var listaIds = ids.ToList();
             return Task.FromResult(Destinos.Where(destino => listaIds.Contains(destino.Id)).ToList());
@@ -177,10 +180,12 @@ public class ActividadServiceTests
             return Task.CompletedTask;
         }
 
+        public Task<Actividad?> GetByIdConInactivasAsync(int id) => GetByIdAsync(id);
+
         public Task<Actividad?> GetByIdAsync(int id)
             => Task.FromResult(Actividades.FirstOrDefault(a => a.Id == id));
 
-        public Task<Pagina<Actividad>> GetPaginaAsync(PaginacionRequest request) => throw new NotSupportedException();
+        public Task<Pagina<Actividad>> GetPaginaAsync(ListarActividadesRequest request) => throw new NotSupportedException();
         public Task<List<Actividad>> GetAllAsync()
             => Task.FromResult(Actividades.ToList());
 

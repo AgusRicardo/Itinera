@@ -74,24 +74,6 @@ export const routes: Routes = [
       )
   },
   {
-    path: 'clientes/nuevo',
-    canActivate: [guardAutenticacion, guardPermiso],
-    data: { permisos: ['clientes.gestionar'] },
-    loadComponent: () =>
-      import('./features/clientes/formulario-cliente.component').then(
-        componente => componente.FormularioClienteComponent
-      )
-  },
-  {
-    path: 'clientes/:id/editar',
-    canActivate: [guardAutenticacion, guardPermiso],
-    data: { permisos: ['clientes.gestionar'] },
-    loadComponent: () =>
-      import('./features/clientes/formulario-cliente.component').then(
-        componente => componente.FormularioClienteComponent
-      )
-  },
-  {
     path: 'facturacion',
     canActivate: [guardAutenticacion, guardPermiso],
     data: { permisos: ['facturacion.ver'] },
@@ -110,9 +92,18 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'conceptos',
+    canActivate: [guardAutenticacion, guardPermiso],
+    data: { permisos: ['conceptos.ver'] },
+    loadComponent: () =>
+      import('./features/facturacion/conceptos.component').then(
+        componente => componente.ConceptosComponent
+      )
+  },
+  {
     path: 'etiquetas',
     canActivate: [guardAutenticacion, guardPermiso],
-    data: { permisos: ['etiquetas.gestionar'] },
+    data: { permisos: ['etiquetas.ver'] },
     loadComponent: () =>
       import('./features/etiquetas/etiquetas.component').then(
         componente => componente.EtiquetasComponent

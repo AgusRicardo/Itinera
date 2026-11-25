@@ -1,17 +1,17 @@
 <app-menu-principal />
 
 <main class="min-h-screen bg-itinera-background lg:pl-64">
-  <section class="mx-auto flex w-full max-w-7xl flex-wrap items-start gap-6 p-6">
+  <section class="mx-auto flex w-full max-w-7xl flex-wrap items-start gap-6 px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
     @if (error()) {
       <p class="w-full rounded-2xl border border-red-200 bg-red-50 p-10 text-center text-sm text-red-700">{{ error() }}</p>
     } @else if (propuesta(); as propuestaActual) {
       @if (destino(); as destinoActual) {
         <section class="min-w-0 flex-[1_1_290px] space-y-5 rounded-2xl border bg-itinera-card p-6 text-sm shadow-sm">
-          <h1 class="font-itinera-display text-2xl">Generar itinerario de {{ nombreDestino() }}</h1>
+          <h1 class="font-itinera-display text-3xl tracking-tight">Generar itinerario de {{ nombreDestino() }}</h1>
           <div class="space-y-2.5 border-y py-4">
             <div class="flex justify-between gap-3">
               <span class="text-itinera-muted">Fechas</span>
-              <strong>{{ destinoActual.fechaLlegada | date:'dd/MM' }} al {{ destinoActual.fechaPartida | date:'dd/MM/yyyy' }}</strong>
+              <strong>{{ destinoActual.fechaLlegada | date:'dd/MM/yyyy' }} – {{ destinoActual.fechaPartida | date:'dd/MM/yyyy' }}</strong>
             </div>
             <div class="flex justify-between gap-3">
               <span class="text-itinera-muted">Presupuesto del viaje</span>
@@ -133,13 +133,14 @@
                 </div>
               </dl>
 
-              <details class="group border-t" [open]="$first">
-                <summary class="flex list-none items-center justify-between px-6 py-4 text-sm font-medium [&::-webkit-details-marker]:hidden">
+              <div class="border-t">
+                <button type="button" class="flex w-full items-center justify-between px-6 py-4 text-sm font-medium" [attr.aria-expanded]="abiertas().includes($index)" (click)="alternar($index)">
                   Día por día
-                  <svg viewBox="0 0 24 24" class="h-4 w-4 text-itinera-muted transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" class="h-4 w-4 text-itinera-muted transition-transform" [class.rotate-180]="abiertas().includes($index)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="m6 9 6 6 6-6" />
                   </svg>
-                </summary>
+                </button>
+                @if (abiertas().includes($index)) {
                 <ol class="grid gap-3 px-6 pb-6 xl:grid-cols-2">
                   @for (dia of diasDe(alternativa); track dia.fecha) {
                     <li class="overflow-hidden rounded-xl border">
@@ -168,7 +169,8 @@
                     </li>
                   }
                 </ol>
-              </details>
+                }
+              </div>
             </article>
           }
 

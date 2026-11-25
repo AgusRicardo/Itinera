@@ -14,6 +14,7 @@ public sealed class EtiquetaConfiguration : IEntityTypeConfiguration<Etiqueta>
             .IsRequired()
             .HasMaxLength(80);
         builder.HasIndex(etiqueta => new { etiqueta.EmpresaId, etiqueta.Nombre })
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"Activo\"");
     }
 }

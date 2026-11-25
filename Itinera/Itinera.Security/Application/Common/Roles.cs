@@ -34,12 +34,13 @@ public static class Roles
         Permisos.ItinerariosGenerarIa,
         Permisos.FacturacionVer,
         Permisos.FacturacionCrear,
-        Permisos.FacturacionRegistrarPago
+        Permisos.FacturacionRegistrarPago,
+        Permisos.ConceptosVer
     };
 
     /// <summary>
     /// El administrador del tenant opera como agente y además gestiona los clientes de su empresa,
-    /// puede eliminar propuestas y anular facturas.
+    /// puede eliminar propuestas, anular facturas y administrar los conceptos de facturación.
     /// No administra usuarios, roles ni grupos: eso es exclusivo de la plataforma.
     /// </summary>
     public static readonly IReadOnlyList<string> PermisosDelAdministrador = PermisosDelAgente
@@ -47,7 +48,8 @@ public static class Roles
         {
             Permisos.ClientesGestionar,
             Permisos.PropuestasEliminar,
-            Permisos.FacturacionAnular
+            Permisos.FacturacionAnular,
+            Permisos.ConceptosGestionar
         })
         .ToList();
 

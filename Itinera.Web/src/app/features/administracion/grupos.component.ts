@@ -11,13 +11,23 @@ import {
   BuscadorOpcionesComponent,
   OpcionBuscable
 } from '../../shared/components/buscador-opciones/buscador-opciones.component';
+import { ToastrService } from '../../core/services/toastr.service';
+import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
+import { SelectorComponent } from '../../shared/components/selector/selector.component';
 
 @Component({
   selector: 'app-grupos',
-  imports: [ReactiveFormsModule, MenuPrincipalComponent, BuscadorOpcionesComponent],
+  imports: [
+    ReactiveFormsModule,
+    MenuPrincipalComponent,
+    BuscadorOpcionesComponent,
+    EncabezadoComponent,
+    SelectorComponent
+  ],
   templateUrl: './grupos.component.html'
 })
 export class GruposComponent {
+  private readonly toastr = inject(ToastrService);
   private readonly gruposService = inject(GruposService);
   private readonly usuariosService = inject(UsuariosService);
   private readonly rolesService = inject(RolesService);
@@ -33,7 +43,6 @@ export class GruposComponent {
   protected readonly grupoSeleccionado = signal<GrupoAdministracion | null>(null);
   protected readonly guardando = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly aviso = signal('');
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
     nombre: ['', Validators.required],
@@ -55,7 +64,6 @@ export class GruposComponent {
 
   protected abrirModal(): void {
     this.formulario.reset();
-    this.error.set(null);
     this.modalAbierto.set(true);
   }
 
@@ -75,12 +83,9 @@ export class GruposComponent {
         this.guardando.set(false);
         this.cerrarModal();
         this.cargarDatos();
-        this.mostrarAviso('Grupo creado correctamente');
+        this.toastr.exito('Grupo creado correctamente');
       },
-      error: respuesta => {
-        this.guardando.set(false);
-        this.error.set(respuesta.error?.detail ?? 'No se pudo crear el grupo.');
-      }
+      error: () => this.guardando.set(false)
     });
   }
 
@@ -122,11 +127,9 @@ export class GruposComponent {
           ...grupo,
           miembros: [...grupo.miembros, miembroId]
         });
-        this.mostrarAviso('Miembro agregado al grupo');
-      },
-      error: respuesta => this.error.set(
-        respuesta.error?.detail ?? 'No se pudo agregar el miembro.'
-      )
+        this.cargarDatos();
+        this.toastr.exito('Miembro agregado al grupo');
+      }
     });
   }
 
@@ -161,10 +164,8 @@ export class GruposComponent {
           ...grupo,
           miembros: grupo.miembros.filter(id => id !== miembroId)
         });
-        this.mostrarAviso('Miembro quitado del grupo');
-      },
-      error: respuesta => this.error.set(
-        respuesta.error?.detail ?? 'No se pudo quitar el miembro.')
+        this.toastr.exito('Miembro quitado del grupo');
+      }
     });
   }
 
@@ -187,10 +188,8 @@ export class GruposComponent {
           roles: [...new Set([...grupo.roles, rol.nombre])]
         });
         this.formulario.controls.rolId.reset(0);
-        this.mostrarAviso('Rol asignado al grupo');
-      },
-      error: respuesta => this.error.set(
-        respuesta.error?.detail ?? 'No se pudo asignar el rol.')
+        this.toastr.exito('Rol asignado al grupo');
+      }
     });
   }
 
@@ -207,15 +206,8 @@ export class GruposComponent {
           ...grupo,
           roles: grupo.roles.filter(nombre => nombre !== rolNombre)
         });
-        this.mostrarAviso('Rol quitado del grupo');
-      },
-      error: respuesta => this.error.set(
-        respuesta.error?.detail ?? 'No se pudo quitar el rol.')
+        this.toastr.exito('Rol quitado del grupo');
+      }
     });
-  }
-
-  private mostrarAviso(mensaje: string): void {
-    this.aviso.set(mensaje);
-    setTimeout(() => this.aviso.set(''), 2600);
   }
 }

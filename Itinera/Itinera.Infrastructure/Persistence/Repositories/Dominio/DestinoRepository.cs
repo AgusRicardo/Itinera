@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
-public class DestinoRepository(AppDbContext context) : IDestinoRepository
+public class DestinoRepository(AppDbContext context)
+    : PaginadoRepository<Destino, ListadoRequest>, IDestinoRepository
 {
     private readonly AppDbContext _context = context;
 
@@ -18,17 +19,44 @@ public class DestinoRepository(AppDbContext context) : IDestinoRepository
     public Task<Destino?> GetByIdAsync(int id)
         => ConRelaciones().FirstOrDefaultAsync(destino => destino.Id == id);
 
-    public Task<Pagina<Destino>> GetPaginaAsync(PaginacionRequest paginacion)
-        => ConRelaciones()
-            .OrderBy(destino => destino.Ciudad.Pais.Nombre)
+    protected override IQueryable<Destino> Filtrar(ListadoRequest filtro)
+    {
+        IQueryable<Destino> consulta = ConRelaciones();
+
+        if (filtro.TextoNormalizado is string texto)
+            consulta = consulta.Where(destino =>
+                AppDbContext.SinTildes(destino.Ciudad.Nombre + ", " + destino.Ciudad.Pais.Nombre).Contains(texto));
+
+        return consulta;
+    }
+
+    protected override IOrderedQueryable<Destino> Ordenar(
+        IQueryable<Destino> consulta,
+        ListadoRequest filtro)
+    {
+        var descendente = filtro.Descendente;
+        var ordenada = filtro.Orden switch
+        {
+            "ciudad" => consulta.OrdenarPor(destino => destino.Ciudad.Nombre, descendente),
+            "pais" => consulta.OrdenarPor(destino => destino.Ciudad.Pais.Nombre, descendente),
+            _ => consulta.OrderBy(destino => destino.Ciudad.Pais.Nombre)
+        };
+
+        return ordenada
+            .ThenBy(destino => destino.Ciudad.Pais.Nombre)
             .ThenBy(destino => destino.Ciudad.Nombre)
-            .ThenBy(destino => destino.Id)
-            .PaginarAsync(paginacion);
+            .ThenBy(destino => destino.Id);
+    }
+
+    public Task<bool> ExisteAsync(int ciudadId, int? idExcluido)
+        => _context.Destinos.AnyAsync(destino =>
+            destino.CiudadId == ciudadId
+            && destino.Id != idExcluido);
 
     public Task<List<Destino>> GetAllAsync()
         => ConRelaciones().ToListAsync();
 
-    public Task<List<Destino>> ObtenerPorIdsConActividadesAsync(IEnumerable<int> ids)
+    public Task<List<Destino>> GetByIdsConActividadesAsync(IEnumerable<int> ids)
     {
         var listaIds = ids.ToList();
 
@@ -43,7 +71,8 @@ public class DestinoRepository(AppDbContext context) : IDestinoRepository
     private IQueryable<Destino> ConRelaciones()
         => _context.Destinos
             .Include(destino => destino.Ciudad)
-                .ThenInclude(ciudad => ciudad.Pais);
+                .ThenInclude(ciudad => ciudad.Pais)
+            .Where(destino => destino.Ciudad.Pais.Activo);
 
     public Task UpdateAsync(Destino destino)
     {

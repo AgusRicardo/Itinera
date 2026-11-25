@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
-public class ClienteRepository(AppDbContext context, ITenantContext tenantContext) : IClienteRepository
+public class ClienteRepository(AppDbContext context, ITenantContext tenantContext)
+    : PaginadoRepository<Cliente, ListadoActivableRequest>, IClienteRepository
 {
     private readonly AppDbContext _context = context;
     private int? EmpresaId => tenantContext.EmpresaId;
@@ -22,38 +23,65 @@ public class ClienteRepository(AppDbContext context, ITenantContext tenantContex
     public Task<Cliente?> GetByIdAsync(int id)
         => DeLaEmpresa().FirstOrDefaultAsync(cliente => cliente.Id == id);
 
+    public Task<Cliente?> GetByIdConInactivosAsync(int id)
+        => ConInactivos().FirstOrDefaultAsync(cliente => cliente.Id == id);
+
     public Task<List<Cliente>> GetAllAsync()
         => DeLaEmpresa().ToListAsync();
 
-    public Task<Pagina<Cliente>> GetPaginaAsync(ListarClientesRequest request)
+    protected override IQueryable<Cliente> Filtrar(ListadoActivableRequest filtro)
     {
-        var consulta = DeLaEmpresa();
+        IQueryable<Cliente> consulta = ConInactivos().Include(cliente => cliente.Propuestas);
 
-        if (request.Activo is bool activo)
+        if (filtro.Activo is bool activo)
             consulta = consulta.Where(cliente => cliente.Activo == activo);
 
-        if (!string.IsNullOrWhiteSpace(request.Texto))
-        {
-            var texto = request.Texto.Trim().ToLower();
+        if (filtro.TextoNormalizado is string texto)
             consulta = consulta.Where(cliente =>
-                (cliente.Nombre + " " + cliente.Apellido).ToLower().Contains(texto)
-                || cliente.Email.ToLower().Contains(texto)
-                || cliente.Telefono.ToLower().Contains(texto));
-        }
+                AppDbContext.SinTildes(cliente.Nombre + " " + cliente.Apellido).Contains(texto)
+                || AppDbContext.SinTildes(cliente.Email).Contains(texto)
+                || AppDbContext.SinTildes(cliente.Telefono).Contains(texto));
 
-        return consulta
-            .OrderBy(cliente => cliente.Nombre)
-            .ThenBy(cliente => cliente.Apellido)
-            .ThenBy(cliente => cliente.Id)
-            .PaginarAsync(request);
+        return consulta;
+    }
+
+    protected override IOrderedQueryable<Cliente> Ordenar(
+        IQueryable<Cliente> consulta,
+        ListadoActivableRequest filtro)
+    {
+        var descendente = filtro.Descendente;
+        var ordenada = filtro.Orden switch
+        {
+            "contacto" => consulta.OrdenarPor(cliente => cliente.Email, descendente),
+            "propuestas" => consulta.OrdenarPor(cliente => cliente.Propuestas.Count(), descendente),
+            "ultimaGestion" => consulta.OrdenarPor(
+                cliente => cliente.Propuestas.Max(propuesta =>
+                    (DateTime?)(propuesta.FechaModificacion ?? propuesta.FechaCreacion)) ?? DateTime.UnixEpoch,
+                descendente),
+            "estado" => consulta.OrdenarPor(cliente => cliente.Activo, descendente),
+            _ => consulta.OrdenarPor(cliente => cliente.Nombre, descendente)
+                .ThenBy(cliente => cliente.Apellido)
+        };
+
+        return ordenada.ThenBy(cliente => cliente.Id);
     }
 
     public async Task<ResumenClientesResponse> GetResumenAsync()
-        => new()
+    {
+        var hoy = DateTime.UtcNow;
+        var inicioDeMes = new DateTime(hoy.Year, hoy.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        return new ResumenClientesResponse
         {
-            Total = await DeLaEmpresa().CountAsync(),
-            Activos = await DeLaEmpresa().CountAsync(cliente => cliente.Activo)
+            Total = await ConInactivos().CountAsync(),
+            Activos = await ConInactivos().CountAsync(cliente => cliente.Activo),
+            ConPropuestas = await ConInactivos().CountAsync(cliente => cliente.Propuestas.Any()),
+            NuevosEsteMes = await ConInactivos().CountAsync(cliente => cliente.FechaRegistracion >= inicioDeMes)
         };
+    }
+
+    private IQueryable<Cliente> ConInactivos()
+        => DeLaEmpresa().IgnoreQueryFilters([AppDbContext.FiltroPersonaActiva]);
 
     private IQueryable<Cliente> DeLaEmpresa()
         => _context.Clientes

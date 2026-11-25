@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Paises;
 
-[Authorize]
-public class PaisesController(IPaisService paisService) : ApiController
+[Authorize(Policy = Permisos.CatalogosOperativosVer)]
+public class PaisesController(IPaisService paisService)
+    : PaginadoController<PaisResponse, ListadoRequest>(paisService)
 {
     private readonly IPaisService _paisService = paisService;
 
@@ -27,7 +28,6 @@ public class PaisesController(IPaisService paisService) : ApiController
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(List<PaisResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<PaisResponse>>> ObtenerTodos()
     {
@@ -36,14 +36,7 @@ public class PaisesController(IPaisService paisService) : ApiController
         return Ok(response);
     }
 
-    [HttpGet("paginado")]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
-    [ProducesResponseType(typeof(Pagina<PaisResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<Pagina<PaisResponse>>> ObtenerPagina([FromQuery] PaginacionRequest paginacion)
-        => Ok(await _paisService.ObtenerPaginaAsync(paginacion));
-
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.CatalogosOperativosVer)]
     [ProducesResponseType(typeof(PaisResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PaisResponse>> ObtenerPorId(int id)

@@ -12,7 +12,10 @@ public static class ClienteMapper
         Apellido = cliente.Apellido,
         Email = cliente.Email,
         Telefono = cliente.Telefono,
-        Activo = cliente.Activo
+        Activo = cliente.Activo,
+        CantidadPropuestas = cliente.Propuestas.Count,
+        UltimaGestion = cliente.Propuestas.Max(propuesta =>
+            (DateTime?)(propuesta.FechaModificacion ?? propuesta.FechaCreacion))
     };
 
     public static List<ClienteResponse> ToResponse(IEnumerable<Cliente> clientes)

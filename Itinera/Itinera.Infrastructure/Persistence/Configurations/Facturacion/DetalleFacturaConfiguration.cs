@@ -18,6 +18,8 @@ public class DetalleFacturaConfiguration : IEntityTypeConfiguration<DetalleFactu
                .HasPrecision(18, 2);
         builder.Property(x => x.PrecioUnitario)
                .HasPrecision(18, 2);
+        builder.Property(x => x.Porcentaje)
+               .HasPrecision(5, 2);
         builder.Property(x => x.SubTotal)
                .HasPrecision(18, 2);
     }

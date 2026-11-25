@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Services;
 using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Clientes.Dtos;
 using Itinera.Application.Clientes.Interfaces;
@@ -12,7 +13,8 @@ namespace Itinera.Application.Clientes.Services;
 public class ClienteService(
     IClienteRepository clienteRepository,
     ITenantContext tenantContext,
-    IEmpresaClienteRepository empresaClienteRepository) : IClienteService
+    IEmpresaClienteRepository empresaClienteRepository)
+    : PaginadoService<Cliente, ClienteResponse, ListadoActivableRequest>(clienteRepository), IClienteService
 {
     private readonly IClienteRepository _clienteRepository = clienteRepository;
     private readonly ITenantContext _tenantContext = tenantContext;
@@ -43,13 +45,6 @@ public class ClienteService(
         var cliente = await ObtenerClienteById(id);
 
         return ClienteMapper.ToResponse(cliente);
-    }
-
-    public async Task<Pagina<ClienteResponse>> ObtenerPaginaAsync(ListarClientesRequest request)
-    {
-        var pagina = await _clienteRepository.GetPaginaAsync(request);
-
-        return pagina.Convertir(ClienteMapper.ToResponse);
     }
 
     public Task<ResumenClientesResponse> ObtenerResumenAsync()
@@ -91,9 +86,12 @@ public class ClienteService(
         await _clienteRepository.DeleteAsync(cliente);
     }
 
+    protected override List<ClienteResponse> Convertir(IEnumerable<Cliente> entidades)
+        => ClienteMapper.ToResponse(entidades);
+
     private async Task<Cliente> ObtenerClienteById(int id)
     {
-        Cliente? cliente = await _clienteRepository.GetByIdAsync(id);
+        Cliente? cliente = await _clienteRepository.GetByIdConInactivosAsync(id);
 
         return cliente ?? throw new ClienteNoEncontradoException(id);
     }

@@ -36,7 +36,7 @@ public class AuthenticationService : IAuthenticationService
         var rolesNombres = roles.Select(r => r.Nombre).ToList();
         var permisos = await _repository.GetPermisosDeUsuarioAsync(usuario.Id);
         var permisosCodigos = permisos.Select(p => p.Codigo).ToList();
-        var empresa = await _repository.ObtenerEmpresaUsuarioAsync(usuario.Id);
+        var empresa = await _repository.GetEmpresaDeUsuarioAsync(usuario.Id);
         var token = GenerarToken(usuario, rolesNombres, permisosCodigos);
 
         return new LoginResponse(
@@ -47,18 +47,6 @@ public class AuthenticationService : IAuthenticationService
             rolesNombres,
             permisosCodigos,
             empresa.EmpresaRazonSocial ?? string.Empty);
-    }
-
-    public async Task<Guid> RegistrarAsync(RegistroRequest request)
-    {
-        var existente = await _repository.GetByEmailAsync(request.Email);
-        if (existente is not null)
-            throw new InvalidOperationException("El email ya está registrado.");
-
-        var hash = PasswordHasher.Hash(request.Password);
-        var usuario = new Usuario(request.Nombre, request.Email, hash);
-
-        return await _repository.CreateUsuarioAsync(usuario);
     }
 
     private string GenerarToken(Usuario usuario, List<string> roles, List<string> permisos)

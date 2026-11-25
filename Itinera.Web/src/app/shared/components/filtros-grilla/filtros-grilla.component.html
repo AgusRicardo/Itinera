@@ -1,0 +1,95 @@
+<div class="mb-4 space-y-3">
+  <div class="flex flex-wrap gap-2.5">
+    <div class="relative min-w-0 flex-1 basis-60 sm:max-w-md">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-itinera-muted" aria-hidden="true">⌕</span>
+      <input
+        type="search"
+        [placeholder]="placeholder()"
+        [attr.aria-label]="placeholder()"
+        [value]="texto()"
+        class="w-full rounded-lg border bg-itinera-card py-2.5 pl-9 pr-3 text-sm outline-none placeholder:text-itinera-muted focus:border-itinera-accent focus:ring-2 focus:ring-itinera-accent/30"
+        (input)="buscar($any($event.target).value)"
+      />
+    </div>
+    @if (conFiltros()) {
+    <button
+      type="button"
+      class="inline-flex items-center gap-2 rounded-lg border bg-itinera-card px-4 py-2.5 text-sm font-medium transition-colors hover:border-itinera-accent"
+      [class.border-itinera-accent]="abierto() || cantidad()"
+      [attr.aria-expanded]="abierto()"
+      (click)="abierto.set(!abierto())"
+    >
+      <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 7h16M7 12h10M10 17h4" />
+      </svg>
+      Filtros
+      @if (cantidad()) {
+        <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-itinera-accent px-1.5 text-xs font-semibold">{{ cantidad() }}</span>
+      }
+    </button>
+    }
+  </div>
+
+  @if (abierto()) {
+    <section class="grid gap-5 rounded-2xl border bg-itinera-card p-5 lg:grid-cols-3" aria-label="Filtros">
+      <fieldset>
+        <legend class="mb-2 text-sm font-medium">{{ etiquetaEstados() }}</legend>
+        <div class="flex flex-wrap gap-2">
+          @for (estado of estados(); track estado.id) {
+            <button
+              type="button"
+              class="rounded-full border px-3.5 py-1.5 text-sm transition-colors"
+              [class]="estadoIds().includes(estado.id)
+                ? 'border-itinera-accent bg-itinera-accent'
+                : 'bg-itinera-secondary hover:border-itinera-accent'"
+              [attr.aria-pressed]="estadoIds().includes(estado.id)"
+              (click)="alternarEstado(estado.id)"
+            >
+              {{ estado.descripcion }}
+            </button>
+          }
+        </div>
+      </fieldset>
+      @if (conFechas()) {
+      <div>
+        <label for="filtroFechas" class="mb-2 block text-sm font-medium">{{ etiquetaFechas() }}</label>
+        <app-rango-fechas
+          idCampo="filtroFechas"
+          textoVacio="Desde – hasta"
+          [descripcion]="etiquetaFechas()"
+          [esViaje]="false"
+          [desde]="fechas().desde"
+          [hasta]="fechas().hasta"
+          (cambio)="elegirFechas($event)"
+        />
+      </div>
+      }
+      @if (conOpciones()) {
+      <div>
+        <label for="filtroCliente" class="mb-2 block text-sm font-medium">{{ etiquetaOpciones() }}</label>
+        <app-buscador-opciones
+          idCampo="filtroCliente"
+          placeholder="Buscar..."
+          [opciones]="opcionesVisibles()"
+          [limpiarAlSeleccionar]="true"
+          (seleccionada)="elegirOpcion($event)"
+        />
+      </div>
+      }
+    </section>
+  }
+
+  @if (etiquetas().length) {
+    <ul class="flex flex-wrap items-center gap-2">
+      @for (etiqueta of etiquetas(); track etiqueta.texto) {
+        <li class="flex items-center gap-1.5 rounded-full border border-itinera-accent bg-itinera-accent/15 py-1 pl-3 pr-1.5 text-xs">
+          {{ etiqueta.texto }}
+          <button type="button" class="rounded-full px-1.5 hover:bg-itinera-accent/30" [attr.aria-label]="'Quitar ' + etiqueta.texto" (click)="etiqueta.quitar()">✕</button>
+        </li>
+      }
+      <li>
+        <button type="button" class="px-2 text-xs text-itinera-muted underline underline-offset-4 hover:text-itinera-foreground" (click)="limpiar()">Limpiar filtros</button>
+      </li>
+    </ul>
+  }
+</div>

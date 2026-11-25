@@ -19,6 +19,7 @@ export interface DetalleFactura {
   descripcion: string;
   cantidad: number;
   precioUnitario: number;
+  porcentaje: number | null;
   subTotal: number;
 }
 

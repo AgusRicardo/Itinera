@@ -12,6 +12,8 @@ public class CargoService(ICargoRepository cargoRepository) : ICargoService
 
     public async Task<CargoResponse> CrearAsync(CrearCargoRequest request)
     {
+        await ValidarDuplicadoAsync(request.Descripcion, null);
+
         var cargo = new Cargo(request.Descripcion);
 
         await _cargoRepository.AddAsync(cargo);
@@ -37,6 +39,8 @@ public class CargoService(ICargoRepository cargoRepository) : ICargoService
     {
         var cargo = await ObtenerCargoById(id);
 
+        await ValidarDuplicadoAsync(request.Descripcion, id);
+
         cargo.ActualizarDescripcion(request.Descripcion);
 
         await _cargoRepository.UpdateAsync(cargo);
@@ -51,6 +55,12 @@ public class CargoService(ICargoRepository cargoRepository) : ICargoService
         cargo.Desactivar();
 
         await _cargoRepository.DeleteAsync(cargo);
+    }
+
+    private async Task ValidarDuplicadoAsync(string descripcion, int? idExcluido)
+    {
+        if (await _cargoRepository.ExisteAsync(descripcion.Trim(), idExcluido))
+            throw new InvalidOperationException("Ya existe un cargo con esa descripción.");
     }
 
     private async Task<Cargo> ObtenerCargoById(int id)

@@ -6,9 +6,9 @@ namespace Itinera.Security.Application.Services;
 
 public class GrupoAdminService(ISecurityRepository repository) : IGrupoAdminService
 {
-    public async Task<List<GrupoAdminResponse>> ListarAsync()
+    public async Task<List<GrupoAdminResponse>> ObtenerTodosAsync()
     {
-        var grupos = await repository.ListarGruposAsync();
+        var grupos = await repository.GetGruposAsync();
         var resultado = new List<GrupoAdminResponse>(grupos.Count);
 
         foreach (var grupo in grupos)
@@ -27,7 +27,7 @@ public class GrupoAdminService(ISecurityRepository repository) : IGrupoAdminServ
     public async Task<GrupoAdminResponse> CrearAsync(CrearGrupoRequest request)
     {
         var grupo = new GrupoUsuarios(request.Nombre);
-        await repository.CrearGrupoAsync(grupo);
+        await repository.AddGrupoAsync(grupo);
 
         return new GrupoAdminResponse(
             grupo.Id,

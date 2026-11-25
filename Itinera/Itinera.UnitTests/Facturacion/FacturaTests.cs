@@ -64,7 +64,17 @@ public class FacturaTests
         var propuesta = CrearPropuestaAceptada();
 
         Assert.Throws<ArgumentException>(() =>
-            new Factura("FAC-000001", DateTime.UtcNow.AddDays(-1), propuesta));
+            new Factura("FAC-000001", FechaComercial.Hoy().AddDays(-1), propuesta));
+    }
+
+    [Fact]
+    public void Un_detalle_porcentual_se_calcula_sobre_el_costo_del_viaje()
+    {
+        var detalle = DetalleFactura.PorPorcentaje("Comisión", 12.5m, 5000.1m);
+
+        Assert.Equal((625.01m, 12.5m), (detalle.SubTotal, detalle.Porcentaje));
+        Assert.Throws<InvalidOperationException>(() => DetalleFactura.PorPorcentaje("Comisión", 10, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => DetalleFactura.PorPorcentaje("Comisión", 101, 5000));
     }
 
     private static Factura CrearFactura()

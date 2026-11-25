@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { SIN_AVISO } from '../interceptors/interceptor-token';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Propuesta } from '../models/propuesta';
 import { ConsultaPagina, Pagina } from '../models/pagina';
@@ -127,7 +128,8 @@ export class PropuestasService {
   ): Observable<AlternativaItinerario[]> {
     return this.http.post<AlternativaItinerario[]>(
       `${this.rutasApi.itinerarioDeDestino(id, destinoId)}/alternativas`,
-      { preferencias }
+      { preferencias },
+      { context: new HttpContext().set(SIN_AVISO, true) }
     );
   }
 
@@ -173,7 +175,8 @@ export class PropuestasService {
   ): Observable<AlternativaItinerario[]> {
     return this.http.post<AlternativaItinerario[]>(
       `${this.rutasApi.cambiarDestino(id, destinoId)}/alternativas`,
-      { nuevoDestinoId, preferencias }
+      { nuevoDestinoId, preferencias },
+      { context: new HttpContext().set(SIN_AVISO, true) }
     );
   }
 

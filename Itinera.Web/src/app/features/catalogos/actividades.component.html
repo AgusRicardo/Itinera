@@ -1,4 +1,81 @@
-﻿<app-menu-principal /><main class="min-h-screen bg-itinera-background lg:pl-64"><section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10"><div class="mb-8 flex items-end justify-between gap-5"><div><p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">Catálogos operativos</p><h1 class="font-itinera-display text-3xl">Actividades</h1><p class="mt-1 text-sm text-itinera-muted">Actividades disponibles para los destinos.</p></div><button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background" (click)="abrir()">+ Nueva actividad</button></div>@if (grilla.cargando()) {<div class="rounded-xl border bg-itinera-card p-12 text-center text-sm text-itinera-muted">Cargando actividades…</div>} @else if ((grilla.error() ?? error()) && !modal()) {<div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center text-sm text-red-700">{{ grilla.error() ?? error() }}</div>} @else {<div class="overflow-hidden rounded-xl border bg-itinera-card shadow-sm"><table class="w-full text-left text-sm"><thead class="border-b bg-itinera-secondary/50 text-xs text-itinera-muted"><tr><th class="px-5 py-3">Actividad</th><th class="px-5 py-3">Destino</th><th class="px-5 py-3 text-right">Costo</th><th class="px-5 py-3 text-right">Acciones</th></tr></thead><tbody class="divide-y">@for (actividad of grilla.elementos(); track actividad.id) {<tr><td class="px-5 py-4"><p class="font-medium">{{ actividad.nombre }}</p><p class="text-xs text-itinera-muted">{{ actividad.descripcion }}</p></td><td class="px-5 py-4">{{ actividad.ciudadNombre }}, {{ actividad.paisNombre }}</td><td class="px-5 py-4 text-right">{{ actividad.costoBase | moneda:2 }}</td><td class="px-5 py-4 text-right"><button type="button" class="mr-2 rounded-lg border px-3 py-2 text-xs" (click)="abrir(actividad)">Editar</button><button type="button" class="rounded-lg px-3 py-2 text-xs text-red-700" (click)="eliminar(actividad)">Desactivar</button></td></tr>}</tbody></table></div><app-paginador [grilla]="grilla" />}</section>@if (modal()) {<div class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4" (click)="cerrar()"><section class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border bg-itinera-card shadow-xl" (click)="$event.stopPropagation()"><header class="flex justify-between border-b px-6 py-5"><h2 class="font-itinera-display text-xl">{{ editando() ? 'Editar actividad' : 'Nueva actividad' }}</h2><button type="button" (click)="cerrar()">✕</button></header><form class="space-y-4 p-6" [formGroup]="formulario" (ngSubmit)="guardar()"><div><label class="mb-1.5 block text-sm font-medium">Nombre <span class="text-red-600">*</span></label><input formControlName="nombre" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></div><div><label class="mb-1.5 block text-sm font-medium">Descripción</label><textarea formControlName="descripcion" rows="3" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm"></textarea></div><div class="grid grid-cols-2 gap-3"><div><label class="mb-1.5 block text-sm font-medium">Costo base <span class="text-red-600">*</span></label><app-input-moneda idCampo="costoBase" formControlName="costoBase" /></div><div><label class="mb-1.5 block text-sm font-medium">Duración (min.)</label><input type="number" min="1" formControlName="duracionEstimada" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></div></div><div><label class="mb-1.5 block text-sm font-medium">Destino <span class="text-red-600">*</span></label><select formControlName="destinoId" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm"><option [ngValue]="0">Seleccioná un destino</option>@for (destino of destinos(); track destino.id) {<option [ngValue]="destino.id">{{ destino.ciudadNombre }}, {{ destino.paisNombre }}</option>}</select></div>@if (error()) {<p class="text-sm text-red-700">{{ error() }}</p>}<div class="flex justify-end gap-2 border-t pt-5"><button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrar()">Cancelar</button><button type="submit" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm text-itinera-background" [disabled]="formulario.invalid || guardando()">Guardar</button></div></form></section></div>}</main>
+<app-menu-principal />
 
+<main class="min-h-screen bg-itinera-background lg:pl-64">
+  <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
+    <app-encabezado seccion="Catálogos" titulo="Actividades" descripcion="Actividades disponibles para los destinos.">
+      <button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background" (click)="abrir()">+ Nueva actividad</button>
+    </app-encabezado>
 
+    <app-filtros-grilla
+      placeholder="Buscar por actividad o destino"
+      etiquetaEstados="Origen"
+      etiquetaOpciones="Destino"
+      [estados]="origenes"
+      [opciones]="opcionesFiltro()"
+      [conFechas]="false"
+      (cambio)="filtrar($event)"
+    />
 
+    <app-tabla [grilla]="grilla" elementos="actividades">
+      <thead>
+        <tr>
+          <th appColumnaOrdenable="nombre" [grilla]="grilla">Actividad</th>
+          <th appColumnaOrdenable="destino" [grilla]="grilla">Destino</th>
+          <th appColumnaOrdenable="costo" [grilla]="grilla" class="numero">Costo</th>
+          <th class="numero">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (actividad of grilla.elementos(); track actividad.id) {
+          <tr>
+            <td>
+              <p class="font-medium">{{ actividad.nombre }}</p>
+              <p class="text-xs text-itinera-muted">{{ actividad.descripcion }}</p>
+            </td>
+            <td>{{ actividad.ciudadNombre }}, {{ actividad.paisNombre }}</td>
+            <td class="numero">{{ actividad.costoBase | moneda:2 }}</td>
+            <td class="numero"><app-menu-acciones [acciones]="acciones(actividad)" /></td>
+          </tr>
+        }
+      </tbody>
+    </app-tabla>
+  </section>
+
+  @if (modal()) {
+    <app-modal seccion="Catálogos" [titulo]="editando() ? 'Editar actividad' : 'Nueva actividad'" (cerrar)="cerrar()">
+      <form class="space-y-5 p-6" [formGroup]="formulario" (ngSubmit)="guardar()">
+      <div>
+        <label for="nombre" class="mb-1.5 block text-sm font-medium">Nombre <span class="text-red-600">*</span></label>
+        <input id="nombre" formControlName="nombre" maxlength="150" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+        @if (formulario.controls.nombre.touched && formulario.controls.nombre.invalid) {
+          <p class="mt-1 text-xs text-red-700">Ingresá un nombre.</p>
+        }
+      </div>
+      <div>
+        <label for="descripcion" class="mb-1.5 block text-sm font-medium">Descripción</label>
+        <textarea id="descripcion" formControlName="descripcion" maxlength="500" rows="3" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm resize-none"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="costoBase" class="mb-1.5 block text-sm font-medium">Costo base <span class="text-red-600">*</span></label>
+          <app-input-moneda idCampo="costoBase" formControlName="costoBase" />
+        </div>
+        <div>
+          <label for="duracionEstimada" class="mb-1.5 block text-sm font-medium">Duración <span class="text-red-600">*</span></label>
+          <app-input-moneda idCampo="duracionEstimada" prefijo="min" [decimales]="0" formControlName="duracionEstimada" />
+        </div>
+      </div>
+      <div>
+        <label for="destinoId" class="mb-1.5 block text-sm font-medium">Destino <span class="text-red-600">*</span></label>
+        <app-selector idCampo="destinoId" descripcion="Destino" placeholder="Seleccioná un destino" formControlName="destinoId" [opciones]="opcionesDestinos()" />
+      </div>
+      <div class="flex justify-end gap-2 border-t pt-5">
+        <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" [disabled]="guardando()" (click)="cerrar()">Cancelar</button>
+        <button type="submit" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50" [disabled]="formulario.invalid || guardando()">
+          {{ guardando() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+      </form>
+    </app-modal>
+  }
+</main>

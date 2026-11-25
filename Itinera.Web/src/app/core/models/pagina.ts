@@ -5,8 +5,6 @@ export interface Pagina<T> {
   total: number;
 }
 
-export interface ConsultaPagina {
-  pagina: number;
-  tamanoPagina: number;
-  [filtro: string]: string | number;
-}
+export type FiltrosGrilla = Record<string, string | number | boolean | number[]>;
+
+export type ConsultaPagina = FiltrosGrilla & { pagina: number; tamanoPagina: number };

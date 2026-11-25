@@ -10,10 +10,16 @@ import { ToastrService } from '../../core/services/toastr.service';
 import { describirDia, diasDeEstadia, fechaDe, horaDe } from '../../core/utils/fechas-itinerario';
 import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { ConfirmacionService } from '../../core/services/confirmacion.service';
 
 @Component({
   selector: 'app-generar-itinerario',
-  imports: [RouterLink, MonedaPipe, DatePipe, MenuPrincipalComponent],
+  imports: [
+    RouterLink,
+    MonedaPipe,
+    DatePipe,
+    MenuPrincipalComponent
+  ],
   templateUrl: './generar-itinerario.component.html'
 })
 export class GenerarItinerarioComponent {
@@ -21,6 +27,7 @@ export class GenerarItinerarioComponent {
   private readonly propuestasService = inject(PropuestasService);
   private readonly navegacion = inject(NavegacionService);
   private readonly destinosService = inject(DestinosService);
+  private readonly confirmacion = inject(ConfirmacionService);
   private readonly toastr = inject(ToastrService);
 
   protected readonly propuestaId = Number(this.ruta.snapshot.paramMap.get('id'));
@@ -32,6 +39,7 @@ export class GenerarItinerarioComponent {
   protected readonly preferencias = signal('');
   protected readonly alternativas = signal<AlternativaItinerario[]>([]);
   protected readonly elegida = signal(0);
+  protected readonly abiertas = signal<number[]>([0]);
   protected readonly generando = signal(false);
   protected readonly guardando = signal(false);
   protected readonly sinResultados = signal(false);
@@ -100,6 +108,12 @@ export class GenerarItinerarioComponent {
     return alternativa.actividades.filter(actividad => !actividad.pedidaPorCliente).length;
   }
 
+  protected alternar(indice: number): void {
+    this.abiertas.update(abiertas => abiertas.includes(indice)
+      ? abiertas.filter(abierta => abierta !== indice)
+      : [...abiertas, indice]);
+  }
+
   protected generar(): void {
     this.generando.set(true);
     this.alternativas.set([]);
@@ -117,6 +131,7 @@ export class GenerarItinerarioComponent {
         this.generando.set(false);
         this.alternativas.set(alternativas);
         this.elegida.set(0);
+        this.abiertas.set([0]);
         this.sinResultados.set(!alternativas.length);
       },
       error: respuesta => {
@@ -126,17 +141,27 @@ export class GenerarItinerarioComponent {
     });
   }
 
-  protected usar(): void {
+  protected async usar(): Promise<void> {
     const alternativa = this.alternativas()[this.elegida()];
     const destino = this.destino();
     if (!alternativa || !destino) {
       return;
     }
 
-    const mensaje = this.nuevoDestinoId
-      ? `Se reemplaza ${destino.descripcion} por ${this.nombreDestino()} en la propuesta. ¿Querés continuar?`
-      : `Se reemplaza el itinerario actual de ${destino.descripcion}. ¿Querés continuar?`;
-    if ((this.nuevoDestinoId || destino.itinerario) && !window.confirm(mensaje)) {
+    const confirmado = !(this.nuevoDestinoId || destino.itinerario)
+      || await this.confirmacion.confirmar(this.nuevoDestinoId
+        ? {
+          titulo: '¿Cambiar el destino?',
+          mensaje: `Se reemplaza ${destino.descripcion} por ${this.nombreDestino()} en la propuesta.`,
+          accion: 'Cambiar'
+        }
+        : {
+          titulo: '¿Reemplazar el itinerario?',
+          mensaje: `Se pierde el itinerario actual de ${destino.descripcion}.`,
+          accion: 'Reemplazar'
+        });
+
+    if (!confirmado) {
       return;
     }
 

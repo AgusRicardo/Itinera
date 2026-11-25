@@ -2,24 +2,17 @@
 
 <main class="min-h-screen bg-itinera-background lg:pl-64">
   <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
-    <div class="mb-8 flex items-end justify-between gap-5">
-      <div>
-        <p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-itinera-accent">
-          Organización de usuarios
-        </p>
-        <h1 class="font-itinera-display text-3xl tracking-tight sm:text-4xl">Grupos</h1>
-        <p class="mt-1.5 text-sm text-itinera-muted">Organizá usuarios y roles por grupos.</p>
-      </div>
+    <app-encabezado seccion="Administración" titulo="Grupos" descripcion="Organizá usuarios y roles por grupos.">
       <button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background" (click)="abrirModal()">
         + Nuevo grupo
       </button>
-    </div>
+    </app-encabezado>
 
     @if (cargando()) {
       <div class="rounded-xl border bg-itinera-card p-12 text-center">
         <p class="text-sm text-itinera-muted">Cargando grupos…</p>
       </div>
-    } @else if (error() && !modalAbierto()) {
+    } @else if (error()) {
       <div class="rounded-xl border border-red-200 bg-red-50 p-12 text-center">
         <p class="text-sm text-red-700">{{ error() }}</p>
       </div>
@@ -101,12 +94,7 @@
               }
             </div>
             <div class="mt-3 flex gap-2">
-              <select formControlName="rolId" [formGroup]="formulario" [disabled]="cargandoOpciones() || !roles().length" class="rounded-lg border bg-itinera-secondary px-3 py-2 text-sm">
-                <option [ngValue]="0" disabled>Seleccionar rol</option>
-                @for (rol of roles(); track rol.id) {
-                  <option [ngValue]="rol.id">{{ rol.nombre }}</option>
-                }
-              </select>
+              <app-selector class="w-72" descripcion="Rol" placeholder="Seleccioná un rol" [formControl]="formulario.controls.rolId" [opciones]="roles()" />
               <button type="button" class="rounded-lg bg-itinera-foreground px-3 py-2 text-sm text-itinera-background disabled:opacity-50" [disabled]="!formulario.controls.rolId.value" (click)="asignarRol()">
                 Asignar rol
               </button>
@@ -117,25 +105,18 @@
     }
   </section>
 
-  @if (aviso()) {
-    <div class="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm text-itinera-background shadow-xl">{{ aviso() }}</div>
-  }
-
   @if (modalAbierto()) {
     <div class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4 backdrop-blur-[2px]" (click)="cerrarModal()">
       <section class="w-full max-w-md rounded-2xl border bg-itinera-card shadow-xl" (click)="$event.stopPropagation()">
         <header class="flex items-start justify-between border-b px-6 py-5">
           <div>
-            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">Organización de usuarios</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-itinera-accent">Administración</p>
             <h2 class="mt-1 font-itinera-display text-xl">Nuevo grupo</h2>
           </div>
           <button type="button" class="p-2 text-itinera-muted" (click)="cerrarModal()">✕</button>
         </header>
         <form class="space-y-5 p-6" [formGroup]="formulario" (ngSubmit)="crear()">
-           <label class="text-sm font-medium">Nombre <span class="text-red-600">*</span><input formControlName="nombre" placeholder="Nombre del grupo" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
-          @if (error()) {
-            <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error() }}</p>
-          }
+           <label class="text-sm font-medium">Nombre <span class="text-red-600">*</span><input formControlName="nombre" maxlength="200" placeholder="Nombre del grupo" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
           <div class="flex justify-end gap-2 border-t pt-5">
             <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrarModal()">Cancelar</button>
             <button type="submit" [disabled]="formulario.invalid || guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">

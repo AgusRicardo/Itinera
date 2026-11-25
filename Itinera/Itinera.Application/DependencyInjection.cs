@@ -6,6 +6,8 @@ using Itinera.Application.Ciudades.Interfaces;
 using Itinera.Application.Ciudades.Services;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Clientes.Services;
+using Itinera.Application.Conceptos.Interfaces;
+using Itinera.Application.Conceptos.Services;
 using Itinera.Application.Destinos.Interfaces;
 using Itinera.Application.Destinos.Services;
 using Itinera.Application.Empleados.Interfaces;
@@ -51,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<IEstadoPropuestaService, EstadoPropuestaService>();
         services.AddScoped<IEstadoFacturaService, EstadoFacturaService>();
         services.AddScoped<IFacturaService, FacturaService>();
+        services.AddScoped<IConceptoFacturaService, ConceptoFacturaService>();
         services.AddScoped<IEtiquetaService, EtiquetaService>();
 
         return services;

@@ -12,5 +12,10 @@ public enum AccionAuditoria
     EliminarPropuesta,
     CrearFactura,
     RegistrarPagoFactura,
-    AnularFactura
+    AnularFactura,
+    Crear,
+    Modificar,
+    Activar,
+    Desactivar,
+    Eliminar
 }

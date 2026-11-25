@@ -5,7 +5,9 @@ namespace Itinera.Application.Actividades.Dtos;
 public class CrearActividadRequest
 {
     [Required]
+    [MaxLength(150, ErrorMessage = "Este campo admite hasta {1} caracteres.")]
     public string Nombre { get; set; } = string.Empty;
+    [MaxLength(500, ErrorMessage = "Este campo admite hasta {1} caracteres.")]
     public string Descripcion { get; set; } = string.Empty;
 
     [Range(0, double.MaxValue)]

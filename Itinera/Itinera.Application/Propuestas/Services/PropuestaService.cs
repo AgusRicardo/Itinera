@@ -1,4 +1,5 @@
-﻿using Itinera.Application.Common.Paginacion;
+﻿using Itinera.Application.Common.Services;
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Common.Interfaces;
@@ -23,7 +24,8 @@ public class PropuestaService(
     IEtiquetaRepository etiquetaRepository,
     ArmadorItinerario armador,
     PropuestaMapper mapper,
-    IAuditoriaService auditoriaService) : IPropuestaService
+    IAuditoriaService auditoriaService)
+    : PaginadoService<Propuesta, PropuestaResponse, ListadoComercialRequest>(propuestaRepository), IPropuestaService
 {
     private readonly IPropuestaRepository _propuestaRepository = propuestaRepository;
     private readonly IClienteRepository _clienteRepository = clienteRepository;
@@ -96,7 +98,12 @@ public class PropuestaService(
     private async Task AplicarConfiguracion(Propuesta propuesta, ConfiguracionPropuestaRequest request)
     {
         var destinos = await ObtenerDestinosByIds(request.Destinos.Select(item => item.DestinoId));
-        var etiquetas = await _etiquetaRepository.GetByIdsAsync(request.EtiquetaIds);
+        var etiquetas = (await _etiquetaRepository.GetByIdsAsync(request.EtiquetaIds))
+            .Concat(propuesta.Etiquetas
+                .Select(item => item.Etiqueta)
+                .Where(etiqueta => request.EtiquetaIds.Contains(etiqueta.Id)))
+            .DistinctBy(etiqueta => etiqueta.Id)
+            .ToList();
 
         if (etiquetas.Count != request.EtiquetaIds.Distinct().Count())
             throw new ArgumentException("Una o más etiquetas no están disponibles.", nameof(request));
@@ -104,6 +111,7 @@ public class PropuestaService(
         propuesta.DefinirDestinos(request.Destinos
             .Select(item => new Estadia(
                 destinos.FirstOrDefault(destino => destino.Id == item.DestinoId)
+                    ?? propuesta.ObtenerDestino(item.DestinoId)?.Destino
                     ?? throw new DestinoNoEncontradoException(item.DestinoId),
                 item.FechaLlegada,
                 item.FechaPartida))
@@ -111,7 +119,9 @@ public class PropuestaService(
 
         var actividades = destinos
             .SelectMany(destino => destino.Actividades)
+            .Concat(propuesta.Actividades.Select(item => item.Actividad))
             .Where(actividad => request.ActividadIds.Contains(actividad.Id))
+            .DistinctBy(actividad => actividad.Id)
             .ToList();
 
         if (actividades.Count != request.ActividadIds.Distinct().Count())
@@ -122,6 +132,9 @@ public class PropuestaService(
         propuesta.DefinirActividades(actividades);
         propuesta.ReemplazarEtiquetas(etiquetas);
     }
+
+    protected override List<PropuestaResponse> Convertir(IEnumerable<Propuesta> entidades)
+        => _mapper.ToResponse(entidades);
 
     private async Task<PropuestaResponse> Guardar(Propuesta propuesta, AccionAuditoria accion)
     {
@@ -145,17 +158,10 @@ public class PropuestaService(
         return _mapper.ToResponse(propuestas);
     }
 
-    public async Task<Pagina<PropuestaResponse>> ObtenerPaginaAsync(ListarPropuestasRequest request)
-    {
-        var pagina = await _propuestaRepository.GetPaginaAsync(request);
-
-        return pagina.Convertir(_mapper.ToResponse);
-    }
-
     public Task<ResumenPropuestasResponse> ObtenerResumenAsync()
         => _propuestaRepository.GetResumenAsync();
 
-    public async Task<List<PropuestaResponse>> ObtenerTodasAsync()
+    public async Task<List<PropuestaResponse>> ObtenerTodosAsync()
     {
         var propuestas = await _propuestaRepository.GetAllAsync();
 
@@ -254,5 +260,5 @@ public class PropuestaService(
     }
 
     private Task<List<Destino>> ObtenerDestinosByIds(IEnumerable<int> destinoIds)
-        => _destinoRepository.ObtenerPorIdsConActividadesAsync(destinoIds);
+        => _destinoRepository.GetByIdsConActividadesAsync(destinoIds);
 }

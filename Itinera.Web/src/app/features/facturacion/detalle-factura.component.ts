@@ -7,10 +7,13 @@ import { Factura } from '../../core/models/factura';
 import { AutenticacionService } from '../../core/services/autenticacion.service';
 import { FacturasService } from '../../core/services/facturas.service';
 import { ToastrService } from '../../core/services/toastr.service';
-import { fechaLocalIso } from '../../core/utilidades/fechas';
+import { fechaLocalIso } from '../../core/utils/fechas';
 import { InputMonedaComponent } from '../../shared/components/input-moneda/input-moneda.component';
 import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
+import { ConfirmacionService } from '../../core/services/confirmacion.service';
+import { EstadoComponent } from '../../shared/components/estado/estado.component';
+import { SelectorFechaComponent } from '../../shared/components/selector-fecha/selector-fecha.component';
 
 @Component({
   selector: 'app-detalle-factura',
@@ -19,7 +22,9 @@ import { MenuPrincipalComponent } from '../../shared/components/menu-principal/m
     InputMonedaComponent,
     MonedaPipe,
     DatePipe,
-    MenuPrincipalComponent
+    MenuPrincipalComponent,
+    EstadoComponent,
+    SelectorFechaComponent
   ],
   templateUrl: './detalle-factura.component.html'
 })
@@ -28,15 +33,14 @@ export class DetalleFacturaComponent {
   private readonly facturasService = inject(FacturasService);
   private readonly autenticacion = inject(AutenticacionService);
   private readonly formularioConstructor = inject(FormBuilder);
+  private readonly confirmacion = inject(ConfirmacionService);
   private readonly toastr = inject(ToastrService);
 
   protected readonly factura = signal<Factura | null>(null);
   protected readonly cargando = signal(true);
   protected readonly modalPagoAbierto = signal(false);
-  protected readonly modalAnulacionAbierto = signal(false);
   protected readonly procesando = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly aviso = signal('');
 
   protected readonly formularioPago = this.formularioConstructor.nonNullable.group({
     importe: [0, [Validators.required, Validators.min(0.01)]],
@@ -67,7 +71,6 @@ export class DetalleFacturaComponent {
       fecha: this.fechaHoy(),
       medioPago: ''
     });
-    this.error.set(null);
     this.modalPagoAbierto.set(true);
   }
 
@@ -85,56 +88,42 @@ export class DetalleFacturaComponent {
     }
 
     this.procesando.set(true);
-    this.error.set(null);
     this.facturasService.registrarPago(actual.id, this.formularioPago.getRawValue()).subscribe({
       next: factura => {
         this.factura.set(factura);
         this.procesando.set(false);
         this.modalPagoAbierto.set(false);
-        this.mostrarAviso('Pago registrado correctamente');
+        this.toastr.exito('Pago registrado.');
       },
-      error: respuesta => {
-        this.procesando.set(false);
-        this.error.set(respuesta.error?.detail ?? 'No se pudo registrar el pago.');
-      }
+      error: () => this.procesando.set(false)
     });
   }
 
-  protected abrirModalAnulacion(): void {
-    if (!this.procesando()) {
-      this.modalAnulacionAbierto.set(true);
-    }
-  }
-
-  protected cerrarModalAnulacion(): void {
-    if (!this.procesando()) {
-      this.modalAnulacionAbierto.set(false);
-    }
-  }
-
-  protected confirmarAnulacion(): void {
+  protected async anular(): Promise<void> {
     const actual = this.factura();
     if (!actual) {
       return;
     }
 
+    const confirmado = await this.confirmacion.confirmar({
+      titulo: `¿Anular la factura ${actual.numero}?`,
+      mensaje: 'No se puede deshacer.',
+      accion: 'Anular',
+      peligro: true
+    });
+
+    if (!confirmado) {
+      return;
+    }
+
     this.procesando.set(true);
-    this.error.set(null);
     this.facturasService.anular(actual.id).subscribe({
       next: () => {
-        this.factura.update(factura => factura
-          ? { ...factura, estado: 'Anulada' }
-          : factura);
+        this.factura.set({ ...actual, estado: 'Anulada' });
         this.procesando.set(false);
-        this.modalAnulacionAbierto.set(false);
-        this.toastr.exito('Factura anulada correctamente.');
+        this.toastr.exito('Factura anulada.');
       },
-      error: respuesta => {
-        this.procesando.set(false);
-        this.toastr.error(
-          respuesta.error?.detail ?? 'No se pudo anular la factura.'
-        );
-      }
+      error: () => this.procesando.set(false)
     });
   }
 
@@ -153,17 +142,8 @@ export class DetalleFacturaComponent {
         enlace.click();
         URL.revokeObjectURL(url);
       },
-      error: () => this.error.set('No se pudo descargar el PDF.')
+      error: () => this.toastr.error('No se pudo descargar el PDF.')
     });
-  }
-
-  protected claseEstado(estado: string): string {
-    return {
-      Pendiente: 'bg-amber-50 text-amber-700',
-      ParcialmentePagada: 'bg-blue-50 text-blue-700',
-      Pagada: 'bg-emerald-50 text-emerald-700',
-      Anulada: 'bg-red-50 text-red-700'
-    }[estado] ?? 'bg-stone-100 text-stone-600';
   }
 
   private cargarFactura(): void {
@@ -182,10 +162,5 @@ export class DetalleFacturaComponent {
 
   protected fechaHoy(): string {
     return fechaLocalIso(new Date());
-  }
-
-  private mostrarAviso(mensaje: string): void {
-    this.aviso.set(mensaje);
-    setTimeout(() => this.aviso.set(''), 2600);
   }
 }

@@ -1,5 +1,7 @@
 import { Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
 
+import { DIAS_SEMANA, armarMes, formatearFecha, sumarMeses } from '../../../core/utils/calendario';
+
 export interface RangoFechas {
   desde: string;
   hasta: string;
@@ -23,6 +25,8 @@ export class RangoFechasComponent {
   readonly max = input('');
   readonly idCampo = input('');
   readonly descripcion = input('Fechas');
+  readonly textoVacio = input('Elegí ida y vuelta');
+  readonly esViaje = input(true);
   readonly alineadoDerecha = input(false);
   readonly cambio = output<RangoFechas>();
 
@@ -30,11 +34,12 @@ export class RangoFechasComponent {
   protected readonly inicioElegido = signal<string | null>(null);
   protected readonly diaSenalado = signal<string | null>(null);
   protected readonly mesVisible = signal('');
-  protected readonly diasSemana = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
+  protected readonly diasSemana = DIAS_SEMANA;
+  protected readonly formatear = formatearFecha;
 
   protected readonly resumen = computed(() =>
     this.desde() && this.hasta()
-      ? `${this.formatear(this.desde())} – ${this.formatear(this.hasta())}`
+      ? `${formatearFecha(this.desde())} – ${formatearFecha(this.hasta())}`
       : '');
 
   private readonly rango = computed<RangoFechas>(() => {
@@ -58,13 +63,13 @@ export class RangoFechasComponent {
   });
 
   protected readonly meses = computed(() =>
-    [0, 1].map(desplazamiento => this.armarMes(this.sumarMeses(this.mesVisible(), desplazamiento))));
+    [0, 1].map(desplazamiento => armarMes(sumarMeses(this.mesVisible(), desplazamiento))));
 
   protected readonly hayMesAnterior = computed(() =>
     !this.min() || this.mesVisible() > this.min().slice(0, 7));
 
   protected readonly hayMesSiguiente = computed(() =>
-    !this.max() || this.sumarMeses(this.mesVisible(), 1) <= this.max().slice(0, 7));
+    !this.max() || sumarMeses(this.mesVisible(), 1) <= this.max().slice(0, 7));
 
   protected alternar(): void {
     if (this.abierto()) {
@@ -91,7 +96,7 @@ export class RangoFechasComponent {
   }
 
   protected moverMes(cantidad: number): void {
-    this.mesVisible.update(mes => this.sumarMeses(mes, cantidad));
+    this.mesVisible.update(mes => sumarMeses(mes, cantidad));
   }
 
   protected elegir(fecha: string): void {
@@ -121,34 +126,5 @@ export class RangoFechasComponent {
     const { desde, hasta } = this.rango();
 
     return !!desde && !!hasta && fecha >= desde && fecha <= hasta;
-  }
-
-  protected formatear(fecha: string): string {
-    return fecha.split('-').reverse().join('/');
-  }
-
-  private armarMes(mes: string) {
-    const [anio, numero] = mes.split('-').map(Number);
-    const primero = new Date(Date.UTC(anio, numero - 1, 1));
-    const cantidad = new Date(Date.UTC(anio, numero, 0)).getUTCDate();
-    const titulo = primero.toLocaleDateString('es-AR', {
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'UTC'
-    });
-
-    return {
-      clave: mes,
-      titulo: titulo.charAt(0).toUpperCase() + titulo.slice(1),
-      huecos: Array.from({ length: (primero.getUTCDay() + 6) % 7 }, (_, indice) => indice),
-      dias: Array.from({ length: cantidad }, (_, indice) =>
-        `${mes}-${String(indice + 1).padStart(2, '0')}`)
-    };
-  }
-
-  private sumarMeses(mes: string, cantidad: number): string {
-    const [anio, numero] = mes.split('-').map(Number);
-
-    return new Date(Date.UTC(anio, numero - 1 + cantidad, 1)).toISOString().slice(0, 7);
   }
 }
