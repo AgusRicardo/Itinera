@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.1](https://github.com/AgusRicardo/Itinera/compare/v1.6.0...v1.6.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* correcciones momentic test ([9aca78f](https://github.com/AgusRicardo/Itinera/commit/9aca78f414a7e2b38666b678ad1e34fdf2ab7833))
+* correcciones momentic test =&gt; dev ([b020cdc](https://github.com/AgusRicardo/Itinera/commit/b020cdc8a6a488c4c1c209c922e56574b8b9ecc7))
+
 ## [1.6.0](https://github.com/AgusRicardo/Itinera/compare/v1.5.0...v1.6.0) (2026-11-25)
 
 
