@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
 import {
   PermisoAdministracion,
@@ -8,6 +8,7 @@ import {
 } from '../../core/services/roles.service';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 import { ToastrService } from '../../core/services/toastr.service';
+import { textoRequerido } from '../../core/utils/validadores';
 import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
 import { CasillaComponent } from '../../shared/components/casilla/casilla.component';
 
@@ -35,8 +36,8 @@ export class RolesComponent {
   protected readonly permisosSeleccionados = signal<string[]>([]);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    nombre: ['', Validators.required],
-    descripcion: ['', Validators.required]
+    nombre: ['', textoRequerido],
+    descripcion: ['', textoRequerido]
   });
 
   protected readonly permisosAgrupados = computed(() => {

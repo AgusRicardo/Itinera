@@ -9,10 +9,12 @@ public class ActividadItinerario
     public decimal CostoFinal { get; private set; }
     public string Observaciones { get; private set; }
     public int Orden { get; private set; }
+    public bool RecomendadaPorIA { get; private set; }
 
     public Itinerario Itinerario { get; private set; }
     public Actividad Actividad { get; private set; }
 
+    public DateTime FechaHoraFin => FechaHoraInicio.AddMinutes(Actividad.DuracionEstimada);
     public DateOnly Fecha => DateOnly.FromDateTime(FechaHoraInicio);
 
     private ActividadItinerario()
@@ -24,8 +26,10 @@ public class ActividadItinerario
         DateTime fechaHoraInicio,
         int cantidadViajeros,
         string observaciones,
-        int orden)
+        int orden,
+        bool recomendadaPorIA = false)
     {
+        RecomendadaPorIA = recomendadaPorIA;
         Actividad = actividad ?? throw new ArgumentNullException(nameof(actividad));
         ActividadId = actividad.Id;
         FechaHoraInicio = fechaHoraInicio;

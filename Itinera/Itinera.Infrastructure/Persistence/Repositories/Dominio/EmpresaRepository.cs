@@ -1,4 +1,5 @@
 using Itinera.Application.Common.Paginacion;
+using Itinera.Application.Common.Validaciones;
 using Itinera.Application.Empresas.Interfaces;
 using Itinera.Domain.Empresa;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,15 @@ public class EmpresaRepository(AppDbContext context)
         };
 
         return ordenada.ThenBy(empresa => empresa.Id);
+    }
+
+    public Task<bool> ExisteCuitAsync(string cuit, int? idExcluido)
+    {
+        var numeros = CuitAttribute.SoloNumeros(cuit);
+
+        return ConInactivas().AnyAsync(empresa =>
+            empresa.CUIT.Replace("-", "").Trim() == numeros
+            && (idExcluido == null || empresa.Id != idExcluido));
     }
 
     private IQueryable<Empresa> ConInactivas()

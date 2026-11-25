@@ -1,3 +1,4 @@
+using Itinera.Security.Application.Dtos;
 using Itinera.Security.Domain;
 
 namespace Itinera.Security.Application.Interfaces;
@@ -8,7 +9,8 @@ public interface ISecurityRepository
     Task<Usuario> GetByIdAsync(Guid id);
     Task<List<Rol>> GetRolesDeUsuarioAsync(Guid usuarioId);
     Task<List<Permiso>> GetPermisosDeUsuarioAsync(Guid usuarioId);
-    Task<(int? EmpresaId, string EmpresaRazonSocial)> GetEmpresaDeUsuarioAsync(Guid usuarioId);
+    Task<EmpresaDeUsuarioDto?> GetEmpresaDeUsuarioAsync(Guid usuarioId);
+    Task<bool> ExisteRolAsync(string nombre);
 
     Task<List<Usuario>> BuscarUsuariosAsync(string texto);
     Task<List<Rol>> GetRolesAsync();

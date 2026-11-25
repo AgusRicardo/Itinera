@@ -230,7 +230,7 @@
         </div>
         <div class="flex justify-between gap-3">
           <dt class="text-itinera-muted">Presupuesto</dt>
-          <dd class="text-right font-semibold">{{ (valores().presupuesto | moneda) || '—' }}</dd>
+          <dd class="text-right font-semibold">{{ (valores().presupuesto | moneda:2) || '—' }}</dd>
         </div>
         <div class="flex justify-between gap-3">
           <dt class="text-itinera-muted">Viajeros</dt>

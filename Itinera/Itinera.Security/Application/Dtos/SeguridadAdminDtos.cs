@@ -9,7 +9,11 @@ public sealed record UsuarioAdminResponse(
     bool Activo,
     IReadOnlyList<string> Roles,
     int? EmpresaId,
-    string EmpresaRazonSocial);
+    string EmpresaRazonSocial,
+    bool EmpresaActiva,
+    int? CargoId);
+
+public sealed record EmpresaDeUsuarioDto(int EmpresaId, string RazonSocial, bool Activa, int CargoId);
 
 public sealed record RolAdminResponse(
     int Id,
@@ -25,8 +29,10 @@ public sealed record PermisoAdminResponse(
 public sealed record GrupoAdminResponse(
     Guid Id,
     string Nombre,
-    IReadOnlyList<Guid> Miembros,
+    IReadOnlyList<MiembroGrupoResponse> Miembros,
     IReadOnlyList<string> Roles);
+
+public sealed record MiembroGrupoResponse(Guid Id, string Nombre);
 
 public sealed record CrearRolRequest(
     [Required, MaxLength(100)] string Nombre,

@@ -83,7 +83,7 @@
             <label class="mb-1.5 block text-sm font-medium" [for]="campo.id">{{ campo.etiqueta }} <span class="text-red-600">*</span></label>
             <input [id]="campo.id" [type]="campo.tipo" [maxLength]="campo.largo" [formControlName]="campo.id" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
             @if (campoInvalido(campo.id)) {
-              <p class="mt-1 text-xs text-red-700">Revisá este campo.</p>
+              <p class="mt-1 text-xs text-red-700">{{ campo.id === 'telefono' ? 'Ingresá un teléfono válido, con al menos 6 números.' : 'Revisá este campo.' }}</p>
             }
           </div>
         }

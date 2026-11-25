@@ -38,10 +38,7 @@ public sealed class AdministracionPlataformaService(AppDbContext context)
             throw new InvalidOperationException(
                 "El administrador de plataforma no puede asignarse a una empresa.");
 
-        var emailExiste = await context.Usuarios
-            .AnyAsync(usuario => usuario.Email == request.Email, cancellationToken);
-
-        if (emailExiste)
+        if (await context.EmailRegistradoAsync(request.Email, cancellationToken))
             throw new InvalidOperationException("El email ya está registrado.");
 
         var empleado = new Empleado(

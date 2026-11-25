@@ -13,6 +13,7 @@ public class ActividadItinerarioConfiguration : IEntityTypeConfiguration<Activid
         builder.HasKey(x => x.Id);
 
         builder.Ignore(x => x.Fecha);
+        builder.Ignore(x => x.FechaHoraFin);
 
         builder.Property(x => x.FechaHoraInicio);
 
@@ -23,6 +24,8 @@ public class ActividadItinerarioConfiguration : IEntityTypeConfiguration<Activid
                .HasMaxLength(500);
 
         builder.Property(x => x.Orden);
+
+        builder.Property(x => x.RecomendadaPorIA);
 
         builder.HasOne(x => x.Actividad)
                .WithMany()

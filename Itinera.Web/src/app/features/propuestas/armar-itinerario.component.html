@@ -7,7 +7,7 @@
       <button
         type="button"
         class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:cursor-not-allowed disabled:opacity-60"
-        [disabled]="guardando() || !actividades().length || fueraDeFecha().length > 0"
+        [disabled]="guardando() || !actividades().length || fueraDeFecha().length > 0 || superpuestas().size > 0"
         (click)="guardar()"
       >
         {{ guardando() ? 'Guardando…' : 'Guardar itinerario' }}
@@ -25,7 +25,7 @@
             <div>
               <h1 class="font-itinera-display text-3xl tracking-tight">Itinerario de {{ destinoActual.descripcion }}</h1>
               <p class="mt-1.5 text-sm text-itinera-muted">
-                {{ propuestaActual.cantidadViajeros }} viajeros · Intensidad {{ propuestaActual.intensidadViaje.toLowerCase() }}
+                {{ propuestaActual.cantidadViajeros }} {{ propuestaActual.cantidadViajeros === 1 ? 'viajero' : 'viajeros' }} · Intensidad {{ propuestaActual.intensidadViaje.toLowerCase() }}
               </p>
             </div>
             <div class="flex gap-7">
@@ -83,6 +83,9 @@
                       {{ actividad.duracion }} min · {{ actividad.costo | moneda }}
                       @if (esPedida(actividad.actividadId)) { · Pedida por el cliente }
                     </p>
+                    @if (superpuestas().get(actividad.actividadId); as otra) {
+                      <p class="mt-1 text-xs text-red-700">Se superpone con {{ otra }}. Cambiá el horario.</p>
+                    }
                   </div>
                   <button type="button" class="px-3 py-2 text-sm text-red-700" (click)="quitar(actividad.actividadId)">Quitar</button>
                 </div>

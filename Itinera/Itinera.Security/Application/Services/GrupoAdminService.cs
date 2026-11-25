@@ -17,7 +17,9 @@ public class GrupoAdminService(ISecurityRepository repository) : IGrupoAdminServ
             resultado.Add(new GrupoAdminResponse(
                 grupo.Id,
                 grupo.Nombre,
-                grupo.GrupoMiembros.Select(gm => gm.MiembroId).ToList(),
+                grupo.GrupoMiembros
+                    .Select(gm => new MiembroGrupoResponse(gm.MiembroId, gm.Miembro?.Nombre ?? string.Empty))
+                    .ToList(),
                 roles.Select(r => r.Nombre).ToList()));
         }
 
@@ -32,7 +34,7 @@ public class GrupoAdminService(ISecurityRepository repository) : IGrupoAdminServ
         return new GrupoAdminResponse(
             grupo.Id,
             grupo.Nombre,
-            Array.Empty<Guid>(),
+            Array.Empty<MiembroGrupoResponse>(),
             Array.Empty<string>());
     }
 

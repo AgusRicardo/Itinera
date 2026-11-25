@@ -1,11 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
 import { Cargo, CargosService } from '../../core/services/cargos.service';
 import { AccionMenu, MenuAccionesComponent } from '../../shared/components/menu-acciones/menu-acciones.component';
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 import { ConfirmacionService } from '../../core/services/confirmacion.service';
 import { ToastrService } from '../../core/services/toastr.service';
+import { textoRequerido } from '../../core/utils/validadores';
 import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
 
 @Component({
@@ -32,7 +33,7 @@ export class CargosComponent {
   protected readonly error = signal<string | null>(null);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    descripcion: ['', Validators.required]
+    descripcion: ['', textoRequerido]
   });
 
   constructor() {

@@ -6,6 +6,7 @@ import { Pais, PaisesService } from '../../core/services/paises.service';
 import { ConfirmacionService } from '../../core/services/confirmacion.service';
 import { ToastrService } from '../../core/services/toastr.service';
 import { GrillaPaginada } from '../../core/utils/grilla-paginada';
+import { textoRequerido } from '../../core/utils/validadores';
 import { ColumnaOrdenableComponent } from '../../shared/components/columna-ordenable/columna-ordenable.component';
 import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
 import { FiltrosGrillaComponent } from '../../shared/components/filtros-grilla/filtros-grilla.component';
@@ -46,7 +47,7 @@ export class CiudadesComponent {
   protected readonly guardando = signal(false);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    nombre: ['', Validators.required],
+    nombre: ['', textoRequerido],
     paisId: [0, [Validators.required, Validators.min(1)]]
   });
 
@@ -77,7 +78,7 @@ export class CiudadesComponent {
   }
 
   protected guardar(): void {
-    if (this.formulario.invalid || !this.formulario.controls.nombre.value.trim()) {
+    if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       return;
     }
@@ -103,7 +104,7 @@ export class CiudadesComponent {
   private async eliminar(ciudad: Ciudad): Promise<void> {
     const confirmado = await this.confirmacion.confirmar({
       titulo: `¿Eliminar ${ciudad.nombre}?`,
-      mensaje: 'Las propuestas que ya la usan no cambian.',
+      mensaje: 'También dejan de aparecer su destino y sus actividades. Las propuestas que ya la usan no cambian.',
       accion: 'Eliminar',
       peligro: true
     });

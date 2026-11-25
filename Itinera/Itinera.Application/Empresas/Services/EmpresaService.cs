@@ -15,6 +15,8 @@ public class EmpresaService(IEmpresaRepository empresaRepository)
 
     public async Task<EmpresaResponse> CrearAsync(CrearEmpresaRequest request)
     {
+        await ValidarCuitAsync(request.CUIT, null);
+
         var empresa = new Empresa(request.RazonSocial, request.CUIT, request.Telefono);
 
         await _empresaRepository.AddAsync(empresa);
@@ -40,6 +42,8 @@ public class EmpresaService(IEmpresaRepository empresaRepository)
     {
         var empresa = await ObtenerEmpresaById(id);
 
+        await ValidarCuitAsync(request.CUIT, id);
+
         empresa.ActualizarDatos(request.RazonSocial, request.CUIT, request.Telefono);
 
         await _empresaRepository.UpdateAsync(empresa);
@@ -58,6 +62,12 @@ public class EmpresaService(IEmpresaRepository empresaRepository)
 
     protected override List<EmpresaResponse> Convertir(IEnumerable<Empresa> entidades)
         => EmpresaMapper.ToResponse(entidades);
+
+    private async Task ValidarCuitAsync(string cuit, int? idExcluido)
+    {
+        if (await _empresaRepository.ExisteCuitAsync(cuit, idExcluido))
+            throw new InvalidOperationException("Ya existe una empresa con ese CUIT.");
+    }
 
     private async Task<Empresa> ObtenerEmpresaById(int id)
     {

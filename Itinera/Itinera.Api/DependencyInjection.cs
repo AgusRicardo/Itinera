@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Itinera.Api.Security;
 using Itinera.Api.Services.Facturacion;
+using Itinera.Api.Validation;
 using Itinera.Application;
 using Itinera.Application.Common.Interfaces;
 using Itinera.Infrastructure;
@@ -20,7 +21,7 @@ public static class DependencyInjection
         this IServiceCollection servicios,
         IConfiguration configuracion)
     {
-        servicios.AddControllers()
+        servicios.AddControllers(MensajesValidacionProvider.Configurar)
             .AddJsonOptions(opciones =>
                 opciones.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         servicios.AddEndpointsApiExplorer();

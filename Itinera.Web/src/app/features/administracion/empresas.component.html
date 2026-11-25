@@ -56,8 +56,8 @@
         </header>
         <form class="grid gap-4 p-6 sm:grid-cols-2" [formGroup]="formulario" (ngSubmit)="registrar($event)">
           <label class="text-sm font-medium sm:col-span-2">Razón social <span class="text-red-600">*</span><input formControlName="razonSocial" maxlength="200" placeholder="Razón social" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
-          <label class="text-sm font-medium">CUIT <span class="text-red-600">*</span><input formControlName="cuit" maxlength="20" placeholder="CUIT" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
-          <label class="text-sm font-medium">Teléfono<input formControlName="telefono" maxlength="30" placeholder="Teléfono" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
+          <label class="text-sm font-medium">CUIT <span class="text-red-600">*</span><input formControlName="cuit" maxlength="20" placeholder="CUIT" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />@if (formulario.controls.cuit.hasError('cuit')) { <span class="mt-1 block text-xs font-normal text-red-700">Ingresá 11 números, con o sin guiones.</span> }</label>
+          <label class="text-sm font-medium">Teléfono<input formControlName="telefono" maxlength="30" placeholder="Teléfono" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />@if (formulario.controls.telefono.invalid) { <span class="mt-1 block text-xs font-normal text-red-700">Ingresá un teléfono válido, con al menos 6 números.</span> }</label>
           <p class="text-xs font-semibold text-itinera-muted sm:col-span-2">Administrador inicial</p>
           <label class="text-sm font-medium">Nombre <span class="text-red-600">*</span><input formControlName="administradorNombre" maxlength="100" placeholder="Nombre" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
           <label class="text-sm font-medium">Apellido <span class="text-red-600">*</span><input formControlName="administradorApellido" maxlength="100" placeholder="Apellido" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
@@ -86,8 +86,8 @@
         </header>
         <form class="space-y-4 p-6" [formGroup]="formularioEdicion" (ngSubmit)="actualizar()">
            <label class="text-sm font-medium">Razón social <span class="text-red-600">*</span><input formControlName="razonSocial" maxlength="200" placeholder="Razón social" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
-           <label class="text-sm font-medium">CUIT <span class="text-red-600">*</span><input formControlName="cuit" maxlength="20" placeholder="CUIT" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
-           <label class="text-sm font-medium">Teléfono<input formControlName="telefono" maxlength="30" placeholder="Teléfono" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
+           <label class="text-sm font-medium">CUIT <span class="text-red-600">*</span><input formControlName="cuit" maxlength="20" placeholder="CUIT" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />@if (formularioEdicion.controls.cuit.hasError('cuit')) { <span class="mt-1 block text-xs font-normal text-red-700">Ingresá 11 números, con o sin guiones.</span> }</label>
+           <label class="text-sm font-medium">Teléfono<input formControlName="telefono" maxlength="30" placeholder="Teléfono" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />@if (formularioEdicion.controls.telefono.invalid) { <span class="mt-1 block text-xs font-normal text-red-700">Ingresá un teléfono válido, con al menos 6 números.</span> }</label>
           <div class="flex justify-end gap-2 border-t pt-5">
             <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" (click)="cerrarEdicion()">Cancelar</button>
             <button type="submit" [disabled]="formularioEdicion.invalid || guardando()" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50">
