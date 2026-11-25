@@ -29,11 +29,11 @@ public sealed record GrupoAdminResponse(
     IReadOnlyList<string> Roles);
 
 public sealed record CrearRolRequest(
-    [Required] string Nombre,
-    [Required] string Descripcion,
+    [Required, MaxLength(100)] string Nombre,
+    [Required, MaxLength(300)] string Descripcion,
     IReadOnlyList<string> Permisos);
 
-public sealed record CrearGrupoRequest([Required] string Nombre);
+public sealed record CrearGrupoRequest([Required, MaxLength(200)] string Nombre);
 
 public sealed record AsignarRolRequest([Range(1, int.MaxValue)] int RolId);
 

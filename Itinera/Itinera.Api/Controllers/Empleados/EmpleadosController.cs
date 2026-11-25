@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Empleados;
 
-[Authorize]
+[Authorize(Policy = Permisos.EmpleadosVer)]
 public class EmpleadosController(IEmpleadoService empleadoService) : ApiController
 {
     private readonly IEmpleadoService _empleadoService = empleadoService;
@@ -27,7 +27,6 @@ public class EmpleadosController(IEmpleadoService empleadoService) : ApiControll
     }
 
     [HttpGet]
-    [Authorize(Policy = Permisos.EmpleadosVer)]
     [ProducesResponseType(typeof(List<EmpleadoResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<EmpleadoResponse>>> ObtenerTodos()
     {
@@ -37,7 +36,6 @@ public class EmpleadosController(IEmpleadoService empleadoService) : ApiControll
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.EmpleadosVer)]
     [ProducesResponseType(typeof(EmpleadoResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<EmpleadoResponse>> ObtenerPorId(int id)

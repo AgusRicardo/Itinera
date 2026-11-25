@@ -19,7 +19,7 @@ public class Ciudad
         ValidarNombre(nombre);
         ArgumentNullException.ThrowIfNull(pais);
 
-        Nombre = nombre;
+        Nombre = nombre.Trim();
         Pais = pais;
         PaisId = pais.Id;
     }
@@ -29,7 +29,7 @@ public class Ciudad
         ValidarNombre(nombre);
         ArgumentNullException.ThrowIfNull(pais);
 
-        Nombre = nombre;
+        Nombre = nombre.Trim();
         Pais = pais;
         PaisId = pais.Id;
     }

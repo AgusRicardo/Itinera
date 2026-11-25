@@ -28,7 +28,7 @@ public class Factura
     {
         if (string.IsNullOrWhiteSpace(numero))
             throw new ArgumentException("El número de factura es obligatorio.", nameof(numero));
-        if (fechaVencimiento.Date < DateTime.UtcNow.Date)
+        if (fechaVencimiento.Date < FechaComercial.Hoy())
             throw new ArgumentException(
                 "La fecha de vencimiento no puede ser anterior a la fecha de emisión.",
                 nameof(fechaVencimiento));

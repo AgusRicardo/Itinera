@@ -17,11 +17,8 @@ public sealed class CrearFacturaRequest
 
 public sealed class CrearDetalleFacturaRequest
 {
-    [Required]
-    [MaxLength(300)]
-    public string Descripcion { get; set; } = string.Empty;
+    [Range(1, int.MaxValue)]
+    public int ConceptoId { get; set; }
 
     public decimal Cantidad { get; set; }
-
-    public decimal PrecioUnitario { get; set; }
 }

@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { SIN_AVISO } from '../interceptors/interceptor-token';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
 import { RespuestaLogin } from '../models/respuesta-login';
@@ -14,7 +15,9 @@ export class AutenticacionService {
 
   iniciarSesion(email: string, password: string): Observable<RespuestaLogin> {
     return this.http
-      .post<RespuestaLogin>(this.rutasApi.iniciarSesion, { email, password })
+      .post<RespuestaLogin>(this.rutasApi.iniciarSesion, { email, password }, {
+        context: new HttpContext().set(SIN_AVISO, true)
+      })
       .pipe(tap(respuesta => this.guardarSesion(respuesta)));
   }
 

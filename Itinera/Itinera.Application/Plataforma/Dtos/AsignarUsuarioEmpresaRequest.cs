@@ -10,5 +10,6 @@ public sealed class AsignarUsuarioEmpresaRequest
     [Range(1, int.MaxValue)]
     public int CargoId { get; set; }
 
+    [MaxLength(30, ErrorMessage = "Este campo admite hasta {1} caracteres.")]
     public string Telefono { get; set; } = string.Empty;
 }

@@ -28,7 +28,9 @@ public sealed class PostgresFixture : IAsyncLifetime
     {
         var opciones = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(CadenaConexion)
-            .AddInterceptors(new AuditInterceptor(new UsuarioDePrueba()))
+            .AddInterceptors(
+                new AuditInterceptor(new UsuarioDePrueba()),
+                new RegistroAuditoriaInterceptor(new UsuarioDePrueba()))
             .Options;
 
         return new AppDbContext(opciones, new TenantContextFake { EmpresaId = empresaId });

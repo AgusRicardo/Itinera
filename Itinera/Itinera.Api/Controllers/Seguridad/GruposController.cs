@@ -13,9 +13,9 @@ public class GruposController(IGrupoAdminService grupoAdminService) : ApiControl
 
     [HttpGet]
     [ProducesResponseType(typeof(List<GrupoAdminResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<GrupoAdminResponse>>> Listar()
+    public async Task<ActionResult<List<GrupoAdminResponse>>> ObtenerTodos()
     {
-        var response = await _grupoAdminService.ListarAsync();
+        var response = await _grupoAdminService.ObtenerTodosAsync();
 
         return Ok(response);
     }
@@ -27,7 +27,7 @@ public class GruposController(IGrupoAdminService grupoAdminService) : ApiControl
     {
         var response = await _grupoAdminService.CrearAsync(request);
 
-        return CreatedAtAction(nameof(Listar), response);
+        return CreatedAtAction(nameof(ObtenerTodos), response);
     }
 
     [HttpPost("{id:guid}/miembros")]

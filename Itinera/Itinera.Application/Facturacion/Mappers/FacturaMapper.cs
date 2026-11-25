@@ -27,6 +27,7 @@ public static class FacturaMapper
                 Descripcion = detalle.Descripcion,
                 Cantidad = detalle.Cantidad,
                 PrecioUnitario = detalle.PrecioUnitario,
+                Porcentaje = detalle.Porcentaje,
                 SubTotal = detalle.SubTotal
             }).ToList(),
             Pagos = factura.Pagos.Select(pago => new PagoResponse

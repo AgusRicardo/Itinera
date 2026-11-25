@@ -36,6 +36,6 @@ public class EmpresaConfiguration : IEntityTypeConfiguration<Empresa>
         builder.Property(e => e.Activo)
                .IsRequired();
 
-        builder.HasQueryFilter(e => e.Activo);
+        builder.HasQueryFilter(AppDbContext.FiltroEmpresaActiva, e => e.Activo);
     }
 }

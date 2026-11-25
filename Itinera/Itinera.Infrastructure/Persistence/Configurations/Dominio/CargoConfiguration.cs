@@ -19,6 +19,6 @@ public class CargoConfiguration : IEntityTypeConfiguration<Cargo>
         builder.Property(c => c.Activo)
                .IsRequired();
 
-        builder.HasQueryFilter(c => c.Activo);
+        builder.HasQueryFilter(AppDbContext.FiltroCatalogoActivo, c => c.Activo);
     }
 }

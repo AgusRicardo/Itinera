@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Cargos.Interfaces;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Empleados.Dtos;
@@ -175,6 +176,9 @@ public class EmpleadoServiceTests
         public Task<Cargo?> GetByIdAsync(int id)
             => Task.FromResult(Cargos.FirstOrDefault(c => c.Id == id));
 
+        public Task<bool> ExisteAsync(string descripcion, int? idExcluido)
+            => Task.FromResult(Cargos.Any(c => c.Activo && c.Id != idExcluido && string.Equals(c.Descripcion, descripcion, StringComparison.OrdinalIgnoreCase)));
+
         public Task<List<Cargo>> GetAllAsync()
             => Task.FromResult(Cargos.ToList());
 
@@ -197,10 +201,13 @@ public class EmpleadoServiceTests
             return Task.CompletedTask;
         }
 
+        public Task<Pagina<EmpresaEntidad>> GetPaginaAsync(ListadoActivableRequest filtro) => throw new NotSupportedException();
+        public Task<EmpresaEntidad?> GetByIdConInactivasAsync(int id) => GetByIdAsync(id);
+
         public Task<EmpresaEntidad?> GetByIdAsync(int id)
             => Task.FromResult(Empresas.FirstOrDefault(e => e.Id == id));
 
-        public Task<List<EmpresaEntidad>> GetAllAsync()
+        public Task<List<EmpresaEntidad>> GetAllConInactivasAsync()
             => Task.FromResult(Empresas.ToList());
 
         public Task UpdateAsync(EmpresaEntidad empresa) => Task.CompletedTask;

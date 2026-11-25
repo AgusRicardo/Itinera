@@ -1,5 +1,8 @@
-﻿using Itinera.Application.Actividades.Interfaces;
+﻿using Itinera.Application.Common.Paginacion;
+using Itinera.Security.Application.Dtos;
+using Itinera.Application.Actividades.Interfaces;
 using Itinera.Application.Cargos.Interfaces;
+using Itinera.Application.Conceptos.Interfaces;
 using Itinera.Application.Ciudades.Interfaces;
 using Itinera.Application.Clientes.Interfaces;
 using Itinera.Application.Destinos.Interfaces;
@@ -47,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IEstadoPropuestaRepository, EstadoPropuestaRepository>();
         services.AddScoped<IEstadoFacturaRepository, EstadoFacturaRepository>();
         services.AddScoped<IFacturaRepository, FacturaRepository>();
+        services.AddScoped<IConceptoFacturaRepository, ConceptoFacturaRepository>();
         services.AddScoped<IEtiquetaRepository, EtiquetaRepository>();
 
         services.AddScoped<ISecurityRepository, SecurityRepository>();
@@ -77,6 +81,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditoriaService, AuditoriaService>();
 
         services.AddScoped<IOnboardingService, OnboardingService>();
+        services.AddScoped<IPaginadoService<UsuarioAdminResponse, ListadoActivableRequest>, UsuarioPaginadoService>();
         services.AddScoped<IAdministracionPlataformaService, AdministracionPlataformaService>();
 
         services.AddScoped<SecuritySeeder>();
@@ -91,6 +96,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddScoped<AuditInterceptor>();
+        services.AddScoped<RegistroAuditoriaInterceptor>();
         services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
             var proveedor = configuration["Database:Provider"] ?? "PostgreSQL";
@@ -101,7 +107,9 @@ public static class DependencyInjection
             }
 
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
-            options.AddInterceptors(serviceProvider.GetRequiredService<AuditInterceptor>());
+            options.AddInterceptors(
+                serviceProvider.GetRequiredService<AuditInterceptor>(),
+                serviceProvider.GetRequiredService<RegistroAuditoriaInterceptor>());
         });
         return services;
     }

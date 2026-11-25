@@ -8,35 +8,27 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Facturacion;
 
-[Authorize]
+[Authorize(Policy = Permisos.FacturacionVer)]
 public sealed class FacturasController(
     IFacturaService facturaService,
-    GeneradorPdfFactura generadorPdfFactura) : ApiController
+    GeneradorPdfFactura generadorPdfFactura)
+    : PaginadoController<FacturaResponse, ListadoComercialRequest>(facturaService)
 {
     private readonly IFacturaService _facturaService = facturaService;
     private readonly GeneradorPdfFactura _generadorPdfFactura = generadorPdfFactura;
 
     [HttpGet]
-    [Authorize(Policy = Permisos.FacturacionVer)]
     [ProducesResponseType(typeof(List<FacturaResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<FacturaResponse>>> ObtenerTodas()
-        => Ok(await _facturaService.ObtenerTodasAsync());
-
-    [HttpGet("paginado")]
-    [Authorize(Policy = Permisos.FacturacionVer)]
-    [ProducesResponseType(typeof(Pagina<FacturaResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<Pagina<FacturaResponse>>> ObtenerPagina([FromQuery] PaginacionRequest paginacion)
-        => Ok(await _facturaService.ObtenerPaginaAsync(paginacion));
+    public async Task<ActionResult<List<FacturaResponse>>> ObtenerTodos()
+        => Ok(await _facturaService.ObtenerTodosAsync());
 
     [HttpGet("{id:int}")]
-    [Authorize(Policy = Permisos.FacturacionVer)]
     [ProducesResponseType(typeof(FacturaResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FacturaResponse>> ObtenerPorId(int id)
         => Ok(await _facturaService.ObtenerPorIdAsync(id));
 
     [HttpGet("{id:int}/pdf")]
-    [Authorize(Policy = Permisos.FacturacionVer)]
     [Produces("application/pdf")]
     public async Task<IActionResult> DescargarPdf(int id)
     {

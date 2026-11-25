@@ -41,6 +41,6 @@ public class PersonaConfiguration : IEntityTypeConfiguration<Persona>
         builder.Property(x => x.Activo)
                .IsRequired();
 
-        builder.HasQueryFilter(x => x.Activo);
+        builder.HasQueryFilter(AppDbContext.FiltroPersonaActiva, x => x.Activo);
     }
 }

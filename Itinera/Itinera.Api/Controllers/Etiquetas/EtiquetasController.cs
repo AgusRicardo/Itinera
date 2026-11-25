@@ -6,33 +6,45 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Itinera.Api.Controllers.Etiquetas;
 
-[Authorize]
+[Authorize(Policy = Permisos.EtiquetasVer)]
 public sealed class EtiquetasController(IEtiquetaService etiquetaService) : ApiController
 {
     private readonly IEtiquetaService _etiquetaService = etiquetaService;
 
     [HttpGet]
-    [Authorize(Policy = Permisos.EtiquetasVer)]
-    public async Task<ActionResult<List<EtiquetaResponse>>> ObtenerTodas()
-        => Ok(await _etiquetaService.ObtenerTodasAsync());
+    public async Task<ActionResult<List<EtiquetaResponse>>> ObtenerTodos()
+        => Ok(await _etiquetaService.ObtenerTodosAsync());
+
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(EtiquetaResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<EtiquetaResponse>> ObtenerPorId(int id)
+        => Ok(await _etiquetaService.ObtenerPorIdAsync(id));
 
     [HttpPost]
     [Authorize(Policy = Permisos.EtiquetasGestionar)]
     public async Task<ActionResult<EtiquetaResponse>> Crear(CrearEtiquetaRequest request)
-        => Ok(await _etiquetaService.CrearAsync(request));
+    {
+        var response = await _etiquetaService.CrearAsync(request);
+
+        return CreatedAtAction(
+            nameof(ObtenerPorId),
+            new { id = response.Id },
+            response);
+    }
 
     [HttpPut("{id:int}")]
     [Authorize(Policy = Permisos.EtiquetasGestionar)]
     public async Task<ActionResult<EtiquetaResponse>> Actualizar(
         int id,
-        CrearEtiquetaRequest request)
+        ActualizarEtiquetaRequest request)
         => Ok(await _etiquetaService.ActualizarAsync(id, request));
 
     [HttpDelete("{id:int}")]
     [Authorize(Policy = Permisos.EtiquetasGestionar)]
-    public async Task<IActionResult> Desactivar(int id)
+    public async Task<IActionResult> Eliminar(int id)
     {
-        await _etiquetaService.DesactivarAsync(id);
+        await _etiquetaService.EliminarAsync(id);
         return NoContent();
     }
 }

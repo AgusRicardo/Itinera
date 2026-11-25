@@ -24,8 +24,9 @@ public sealed class ArmadorItinerario(IActividadRepository actividadRepository)
 
             var actividadId = solicitada.ActividadId
                 ?? throw new ArgumentException("El itinerario contiene una actividad sin guardar.");
-            var actividad = await actividadRepository.GetByIdAsync(actividadId)
-                ?? throw new ActividadNoEncontradaException(actividadId);
+            var actividad = await actividadRepository.GetByIdConInactivasAsync(actividadId);
+            if (actividad is null || (!actividad.Activo && !propuesta.UsaActividad(actividadId)))
+                throw new ActividadNoEncontradaException(actividadId);
 
             actividades.Add(new ActividadItinerario(
                 actividad,

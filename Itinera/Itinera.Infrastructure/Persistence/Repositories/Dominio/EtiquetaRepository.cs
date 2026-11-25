@@ -21,6 +21,13 @@ public sealed class EtiquetaRepository(
     public Task<Etiqueta?> GetByIdAsync(int id)
         => _context.Etiquetas.FirstOrDefaultAsync(etiqueta => etiqueta.Id == id);
 
+    public Task<bool> ExisteAsync(string nombre, int empresaId, int? idExcluido)
+        => _context.Etiquetas.AnyAsync(etiqueta =>
+            etiqueta.Activo
+            && etiqueta.Nombre.ToLower() == nombre.ToLower()
+            && etiqueta.EmpresaId == empresaId
+            && etiqueta.Id != idExcluido);
+
     public Task<List<Etiqueta>> GetAllAsync()
         => _context.Etiquetas
             .AsNoTracking()

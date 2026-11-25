@@ -1,0 +1,52 @@
+<button
+  type="button"
+  aria-haspopup="dialog"
+  [attr.aria-label]="descripcion() + ': ' + hora()"
+  [attr.aria-expanded]="abierto()"
+  class="inline-flex items-center gap-2 rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm tabular-nums outline-none focus-visible:border-itinera-accent focus-visible:ring-2 focus-visible:ring-itinera-accent/30"
+  [class.border-itinera-accent]="abierto()"
+  (click)="alternar()"
+>
+  <svg viewBox="0 0 24 24" class="h-4 w-4 text-itinera-muted" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3 2" />
+  </svg>
+  {{ hora() }}
+</button>
+
+@if (abierto()) {
+  <div
+    role="dialog"
+    class="fixed z-[60] grid h-[232px] w-[152px] grid-cols-2 gap-1 rounded-xl border bg-itinera-card p-1.5 shadow-lg"
+    [attr.aria-label]="descripcion()"
+    [style.top]="posicion().top"
+    [style.left]="posicion().left"
+  >
+    <div class="relative overflow-y-auto" role="group" aria-label="Hora">
+      @for (opcion of horas; track opcion) {
+        <button
+          type="button"
+          class="block w-full rounded-lg py-1.5 text-center text-sm tabular-nums"
+          [class]="hora().startsWith(opcion) ? 'bg-itinera-foreground font-semibold text-itinera-background' : 'hover:bg-itinera-secondary'"
+          [attr.aria-pressed]="hora().startsWith(opcion)"
+          (click)="elegirHora(opcion)"
+        >
+          {{ opcion }}
+        </button>
+      }
+    </div>
+    <div class="relative overflow-y-auto" role="group" aria-label="Minutos">
+      @for (opcion of minutos(); track opcion) {
+        <button
+          type="button"
+          class="block w-full rounded-lg py-1.5 text-center text-sm tabular-nums"
+          [class]="hora().endsWith(opcion) ? 'bg-itinera-foreground font-semibold text-itinera-background' : 'hover:bg-itinera-secondary'"
+          [attr.aria-pressed]="hora().endsWith(opcion)"
+          (click)="elegirMinuto(opcion)"
+        >
+          {{ opcion }}
+        </button>
+      }
+    </div>
+  </div>
+}

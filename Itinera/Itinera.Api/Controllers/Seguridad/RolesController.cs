@@ -13,18 +13,18 @@ public class RolesController(IRolAdminService rolAdminService) : ApiController
 
     [HttpGet]
     [ProducesResponseType(typeof(List<RolAdminResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<RolAdminResponse>>> Listar()
+    public async Task<ActionResult<List<RolAdminResponse>>> ObtenerTodos()
     {
-        var response = await _rolAdminService.ListarAsync();
+        var response = await _rolAdminService.ObtenerTodosAsync();
 
         return Ok(response);
     }
 
     [HttpGet("permisos")]
     [ProducesResponseType(typeof(List<PermisoAdminResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<PermisoAdminResponse>>> ListarPermisos()
+    public async Task<ActionResult<List<PermisoAdminResponse>>> ObtenerPermisos()
     {
-        var response = await _rolAdminService.ListarPermisosAsync(User);
+        var response = await _rolAdminService.ObtenerPermisosAsync(User);
 
         return Ok(response);
     }
@@ -36,7 +36,7 @@ public class RolesController(IRolAdminService rolAdminService) : ApiController
     {
         var response = await _rolAdminService.CrearAsync(request, User);
 
-        return CreatedAtAction(nameof(Listar), response);
+        return CreatedAtAction(nameof(ObtenerTodos), response);
     }
 
     [HttpPost("{id:int}/permisos")]

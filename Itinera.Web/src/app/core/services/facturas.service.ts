@@ -10,9 +10,8 @@ export interface CrearFacturaRequest {
   propuestaId: number;
   fechaVencimiento: string;
   detalles: {
-    descripcion: string;
+    conceptoId: number;
     cantidad: number;
-    precioUnitario: number;
   }[];
 }
 

@@ -1,3 +1,4 @@
+using Itinera.Application.Common.Services;
 using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Actividades.Dtos;
 using Itinera.Application.Actividades.Interfaces;
@@ -10,7 +11,8 @@ namespace Itinera.Application.Actividades.Services;
 
 public class ActividadService(
     IActividadRepository actividadRepository,
-    IDestinoRepository destinoRepository) : IActividadService
+    IDestinoRepository destinoRepository)
+    : PaginadoService<Actividad, ActividadResponse, ListarActividadesRequest>(actividadRepository), IActividadService
 {
     private readonly IActividadRepository _actividadRepository = actividadRepository;
     private readonly IDestinoRepository _destinoRepository = destinoRepository;
@@ -36,13 +38,6 @@ public class ActividadService(
         var actividad = await ObtenerActividadById(id);
 
         return ActividadMapper.ToResponse(actividad);
-    }
-
-    public async Task<Pagina<ActividadResponse>> ObtenerPaginaAsync(PaginacionRequest paginacion)
-    {
-        var pagina = await _actividadRepository.GetPaginaAsync(paginacion);
-
-        return pagina.Convertir(ActividadMapper.ToResponse);
     }
 
     public async Task<List<ActividadResponse>> ObtenerTodosAsync()
@@ -77,6 +72,9 @@ public class ActividadService(
 
         await _actividadRepository.DeleteAsync(actividad);
     }
+
+    protected override List<ActividadResponse> Convertir(IEnumerable<Actividad> entidades)
+        => ActividadMapper.ToResponse(entidades);
 
     private async Task<Actividad> ObtenerActividadById(int id)
     {

@@ -1,6 +1,8 @@
+using Itinera.Application.Common.Services;
 using Itinera.Application.Common.Paginacion;
 using Itinera.Application.Common.Exceptions;
 using Itinera.Application.Common.Interfaces;
+using Itinera.Application.Conceptos.Interfaces;
 using Itinera.Application.Facturacion.Dtos;
 using Itinera.Application.Facturacion.Interfaces;
 using Itinera.Application.Facturacion.Mappers;
@@ -14,10 +16,13 @@ namespace Itinera.Application.Facturacion.Services;
 public sealed class FacturaService(
     IFacturaRepository facturaRepository,
     IPropuestaRepository propuestaRepository,
-    IAuditoriaService auditoriaService) : IFacturaService
+    IConceptoFacturaRepository conceptoRepository,
+    IAuditoriaService auditoriaService)
+    : PaginadoService<Factura, FacturaResponse, ListadoComercialRequest>(facturaRepository), IFacturaService
 {
     private readonly IFacturaRepository _facturaRepository = facturaRepository;
     private readonly IPropuestaRepository _propuestaRepository = propuestaRepository;
+    private readonly IConceptoFacturaRepository _conceptoRepository = conceptoRepository;
     private readonly IAuditoriaService _auditoriaService = auditoriaService;
 
     public async Task<FacturaResponse> CrearAsync(CrearFacturaRequest request)
@@ -37,17 +42,26 @@ public sealed class FacturaService(
 
         var fechaVencimiento = FechaUtc(request.FechaVencimiento);
 
-        if (fechaVencimiento.Date < DateTime.UtcNow.Date)
+        if (fechaVencimiento.Date < FechaComercial.Hoy())
             throw new ArgumentException(
                 "La fecha de vencimiento no puede ser anterior a la fecha de emisión.",
                 nameof(request));
 
         var numeroSecuencial = await _facturaRepository
-            .ObtenerSiguienteNumeroAsync(propuesta.EmpresaId);
+            .GetSiguienteNumeroAsync(propuesta.EmpresaId);
         var factura = new Factura(
             $"FAC-{numeroSecuencial:000000}",
             fechaVencimiento,
             propuesta);
+
+        if (propuesta.CostoItinerarios > 0)
+            factura.AgregarDetalle(new DetalleFactura(
+                "Costo del viaje",
+                1,
+                propuesta.CostoItinerarios));
+
+        var conceptos = (await _conceptoRepository.GetAllAsync())
+            .ToDictionary(concepto => concepto.Id);
 
         foreach (var detalle in request.Detalles)
         {
@@ -55,15 +69,18 @@ public sealed class FacturaService(
                 throw new ArgumentException(
                     "La cantidad de cada concepto debe ser mayor a cero.",
                     nameof(request));
-            if (detalle.PrecioUnitario < 0)
-                throw new ArgumentException(
-                    "El precio unitario no puede ser negativo.",
-                    nameof(request));
+            if (!conceptos.TryGetValue(detalle.ConceptoId, out var concepto))
+                throw new ConceptoFacturaNoEncontradoException(detalle.ConceptoId);
 
-            factura.AgregarDetalle(new DetalleFactura(
-                detalle.Descripcion,
-                detalle.Cantidad,
-                detalle.PrecioUnitario));
+            factura.AgregarDetalle(concepto.Porcentaje is decimal porcentaje
+                ? DetalleFactura.PorPorcentaje(
+                    concepto.Descripcion,
+                    porcentaje,
+                    propuesta.CostoItinerarios)
+                : new DetalleFactura(
+                    concepto.Descripcion,
+                    detalle.Cantidad,
+                    concepto.Precio));
         }
 
         if (factura.ImporteTotal <= 0)
@@ -86,14 +103,7 @@ public sealed class FacturaService(
         return FacturaMapper.ToResponse(factura);
     }
 
-    public async Task<Pagina<FacturaResponse>> ObtenerPaginaAsync(PaginacionRequest paginacion)
-    {
-        var pagina = await _facturaRepository.GetPaginaAsync(paginacion);
-
-        return pagina.Convertir(FacturaMapper.ToResponse);
-    }
-
-    public async Task<List<FacturaResponse>> ObtenerTodasAsync()
+    public async Task<List<FacturaResponse>> ObtenerTodosAsync()
     {
         var facturas = await _facturaRepository.GetAllAsync();
         return FacturaMapper.ToResponse(facturas);
@@ -134,6 +144,9 @@ public sealed class FacturaService(
             nameof(Factura),
             factura.Id);
     }
+
+    protected override List<FacturaResponse> Convertir(IEnumerable<Factura> entidades)
+        => FacturaMapper.ToResponse(entidades);
 
     private async Task<Factura> ObtenerFacturaAsync(int id)
     {

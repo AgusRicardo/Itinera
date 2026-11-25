@@ -19,6 +19,6 @@ public class PaisConfiguration : IEntityTypeConfiguration<Pais>
         builder.Property(x => x.Activo)
                .IsRequired();
 
-        builder.HasQueryFilter(x => x.Activo);
+        builder.HasQueryFilter(AppDbContext.FiltroCatalogoActivo, x => x.Activo);
     }
 }

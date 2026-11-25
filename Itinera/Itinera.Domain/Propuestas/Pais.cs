@@ -14,13 +14,13 @@ public class Pais
     public Pais(string nombre)
     {
         ValidarNombre(nombre);
-        Nombre = nombre;
+        Nombre = nombre.Trim();
     }
 
     public void ActualizarNombre(string nombre)
     {
         ValidarNombre(nombre);
-        Nombre = nombre;
+        Nombre = nombre.Trim();
     }
 
     public void Desactivar() => Activo = false;

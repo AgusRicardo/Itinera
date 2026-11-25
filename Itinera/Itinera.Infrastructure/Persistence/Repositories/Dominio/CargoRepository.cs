@@ -17,6 +17,11 @@ public class CargoRepository(AppDbContext context) : ICargoRepository
     public Task<Cargo?> GetByIdAsync(int id)
         => _context.Cargos.FindAsync(id).AsTask();
 
+    public Task<bool> ExisteAsync(string descripcion, int? idExcluido)
+        => _context.Cargos.AnyAsync(cargo =>
+            cargo.Descripcion.Trim().ToLower() == descripcion.ToLower()
+            && cargo.Id != idExcluido);
+
     public Task<List<Cargo>> GetAllAsync()
         => _context.Cargos.ToListAsync();
 

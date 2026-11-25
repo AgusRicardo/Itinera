@@ -1,0 +1,57 @@
+<button
+  type="button"
+  aria-haspopup="listbox"
+  [id]="idCampo()"
+  [attr.aria-label]="descripcion() + ': ' + (seleccionada() || 'sin elegir')"
+  [attr.aria-expanded]="abierto()"
+  [disabled]="deshabilitado()"
+  class="flex w-full items-center justify-between gap-2 rounded-lg border bg-itinera-secondary px-3 py-2.5 text-left text-sm outline-none focus-visible:border-itinera-accent focus-visible:ring-2 focus-visible:ring-itinera-accent/30 disabled:cursor-not-allowed disabled:opacity-60"
+  [class.border-itinera-accent]="abierto()"
+  (click)="alternar()"
+>
+  <span class="min-w-0 truncate" [class.text-itinera-muted]="!seleccionada()">{{ seleccionada() || placeholder() }}</span>
+  <svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0 text-itinera-muted transition-transform" [class.rotate-180]="abierto()" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+</button>
+
+@if (abierto()) {
+  <div
+    data-panel
+    class="fixed z-[60] flex max-h-72 flex-col rounded-xl border bg-itinera-card p-1.5 shadow-lg"
+    [style.top]="posicion().top"
+    [style.left]="posicion().left"
+    [style.width]="posicion().width"
+    (keydown.arrowdown)="mover($event, 1)"
+    (keydown.arrowup)="mover($event, -1)"
+  >
+    @if (conBuscador()) {
+      <input
+        type="search"
+        autocomplete="off"
+        placeholder="Buscar..."
+        aria-label="Buscar opción"
+        [value]="busqueda()"
+        class="mb-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2 text-sm outline-none focus:border-itinera-accent"
+        (input)="busqueda.set($any($event.target).value)"
+        (keydown.enter)="$event.preventDefault()"
+      />
+    }
+    <div role="listbox" class="min-h-0 overflow-y-auto" [attr.aria-label]="descripcion()">
+      @for (opcion of visibles(); track opcion.id) {
+        <button
+          type="button"
+          role="option"
+          [attr.aria-selected]="opcion.id === valor()"
+          class="block w-full rounded-lg px-3 py-2 text-left text-sm outline-none hover:bg-itinera-secondary focus-visible:bg-itinera-secondary"
+          [class.font-semibold]="opcion.id === valor()"
+          (click)="elegirValor(opcion.id)"
+        >
+          {{ opcion.nombre }}
+        </button>
+      } @empty {
+        <p class="px-3 py-2 text-sm text-itinera-muted">No se encontraron resultados.</p>
+      }
+    </div>
+  </div>
+}

@@ -1,0 +1,89 @@
+<app-menu-principal />
+
+<main class="min-h-screen bg-itinera-background lg:pl-64">
+  <section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
+    <app-encabezado seccion="Facturación" titulo="Conceptos" descripcion="Lo que se puede cobrar en una factura.">
+      @if (puedeGestionar) {
+        <button type="button" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background" (click)="abrir()">
+          + Nuevo concepto
+        </button>
+      }
+    </app-encabezado>
+
+    <app-filtros-grilla placeholder="Buscar concepto" [conFiltros]="false" (cambio)="grilla.filtrar($event)" />
+
+    <app-tabla [grilla]="grilla" elementos="conceptos">
+      <thead>
+        <tr>
+          <th appColumnaOrdenable="descripcion" [grilla]="grilla">Concepto</th>
+          <th appColumnaOrdenable="precio" [grilla]="grilla" class="numero">Precio</th>
+          <th appColumnaOrdenable="porcentaje" [grilla]="grilla" class="numero">Porcentaje</th>
+          @if (puedeGestionar) {
+            <th class="numero">Acciones</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (concepto of grilla.elementos(); track concepto.id) {
+          <tr>
+            <td class="font-medium">{{ concepto.descripcion }}</td>
+            <td class="numero">{{ concepto.porcentaje == null ? (concepto.precio | moneda:2) : '-' }}</td>
+            <td class="numero">{{ concepto.porcentaje == null ? '-' : concepto.porcentaje.toLocaleString('es-AR') + '%' }}</td>
+            @if (puedeGestionar) {
+              <td class="numero"><app-menu-acciones [acciones]="acciones(concepto)" /></td>
+            }
+          </tr>
+        }
+      </tbody>
+    </app-tabla>
+  </section>
+
+  @if (modalAbierto()) {
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-itinera-foreground/30 p-4 backdrop-blur-[2px]" (click)="cerrar()">
+      <section class="w-full max-w-md rounded-2xl border bg-itinera-card shadow-xl" (click)="$event.stopPropagation()">
+        <header class="flex items-start justify-between border-b px-6 py-5">
+          <h2 class="font-itinera-display text-xl">{{ editando() ? 'Editar concepto' : 'Nuevo concepto' }}</h2>
+          <button type="button" aria-label="Cerrar" class="p-2 text-itinera-muted" (click)="cerrar()">✕</button>
+        </header>
+        <form class="space-y-5 p-6" [formGroup]="formulario" (ngSubmit)="guardar()">
+          <div>
+            <label for="descripcionConcepto" class="mb-1.5 block text-sm font-medium">Descripción <span class="text-red-600">*</span></label>
+            <input id="descripcionConcepto" formControlName="descripcion" maxlength="300" placeholder="Ej.: Pasajes aéreos" class="w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />
+          </div>
+          <fieldset>
+            <legend class="mb-1.5 text-sm font-medium">Cómo se cobra</legend>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="relative cursor-pointer rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors hover:border-itinera-accent has-checked:border-itinera-accent has-checked:bg-itinera-accent/15 has-focus-visible:ring-2 has-focus-visible:ring-itinera-accent/30">
+                <input type="radio" class="sr-only" formControlName="esPorcentaje" [value]="false" />
+                Monto fijo
+              </label>
+              <label class="relative cursor-pointer rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors hover:border-itinera-accent has-checked:border-itinera-accent has-checked:bg-itinera-accent/15 has-focus-visible:ring-2 has-focus-visible:ring-itinera-accent/30">
+                <input type="radio" class="sr-only" formControlName="esPorcentaje" [value]="true" />
+                Porcentaje
+              </label>
+            </div>
+          </fieldset>
+          @if (formulario.controls.esPorcentaje.value) {
+            <div>
+              <label for="porcentajeConcepto" class="mb-1.5 block text-sm font-medium">Porcentaje <span class="text-red-600">*</span></label>
+              <app-input-moneda idCampo="porcentajeConcepto" prefijo="%" formControlName="porcentaje" />
+              <p class="mt-1 text-xs text-itinera-muted">Se calcula sobre el costo del viaje en las facturas nuevas.</p>
+            </div>
+          } @else {
+            <div>
+              <label for="precioConcepto" class="mb-1.5 block text-sm font-medium">Precio <span class="text-red-600">*</span></label>
+              <app-input-moneda idCampo="precioConcepto" formControlName="precio" />
+              <p class="mt-1 text-xs text-itinera-muted">Es el precio que se usa en las facturas nuevas.</p>
+            </div>
+          }
+          <div class="flex justify-end gap-2 border-t pt-5">
+            <button type="button" class="rounded-lg border px-4 py-2.5 text-sm" [disabled]="guardando()" (click)="cerrar()">Cancelar</button>
+            <button type="submit" class="rounded-lg bg-itinera-foreground px-4 py-2.5 text-sm font-semibold text-itinera-background disabled:opacity-50" [disabled]="formulario.invalid || guardando()">
+              {{ guardando() ? 'Guardando…' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+</main>

@@ -30,6 +30,6 @@ public class ActividadConfiguration : IEntityTypeConfiguration<Actividad>
         builder.Property(x => x.Activo)
                .IsRequired();
 
-        builder.HasQueryFilter(x => x.Activo);
+        builder.HasQueryFilter(AppDbContext.FiltroCatalogoActivo, x => x.Activo);
     }
 }

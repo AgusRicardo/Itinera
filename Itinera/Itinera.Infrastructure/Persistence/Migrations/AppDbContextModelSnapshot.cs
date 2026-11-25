@@ -44,7 +44,8 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EmpresaId", "Nombre")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"Activo\"");
 
                     b.ToTable("Etiquetas", (string)null);
                 });
@@ -229,8 +230,10 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<int>("EntidadId")
-                        .HasColumnType("integer");
+                    b.Property<string>("EntidadId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("timestamp with time zone");
@@ -310,6 +313,42 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.ToTable("Empresas", (string)null);
                 });
 
+            modelBuilder.Entity("Itinera.Domain.Facturacion.ConceptoFactura", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("Porcentaje")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<decimal>("Precio")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmpresaId", "Descripcion")
+                        .IsUnique()
+                        .HasFilter("\"Activo\"");
+
+                    b.ToTable("ConceptosFactura", (string)null);
+                });
+
             modelBuilder.Entity("Itinera.Domain.Facturacion.DetalleFactura", b =>
                 {
                     b.Property<int>("Id")
@@ -329,6 +368,10 @@ namespace Itinera.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("FacturaId")
                         .HasColumnType("integer");
+
+                    b.Property<decimal?>("Porcentaje")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
 
                     b.Property<decimal>("PrecioUnitario")
                         .HasPrecision(18, 2)
@@ -949,6 +992,15 @@ namespace Itinera.Infrastructure.Persistence.Migrations
                     b.Navigation("Cliente");
 
                     b.Navigation("Empresa");
+                });
+
+            modelBuilder.Entity("Itinera.Domain.Facturacion.ConceptoFactura", b =>
+                {
+                    b.HasOne("Itinera.Domain.Empresa.Empresa", null)
+                        .WithMany()
+                        .HasForeignKey("EmpresaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Itinera.Domain.Facturacion.DetalleFactura", b =>

@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence.Repositories.Dominio;
 
-public class PaisRepository(AppDbContext context) : IPaisRepository
+public class PaisRepository(AppDbContext context)
+    : PaginadoRepository<Pais, ListadoRequest>, IPaisRepository
 {
     private readonly AppDbContext _context = context;
 
@@ -18,11 +19,26 @@ public class PaisRepository(AppDbContext context) : IPaisRepository
     public Task<Pais?> GetByIdAsync(int id)
         => _context.Paises.FindAsync(id).AsTask();
 
-    public Task<Pagina<Pais>> GetPaginaAsync(PaginacionRequest paginacion)
-        => _context.Paises
-            .OrderBy(pais => pais.Nombre)
-            .ThenBy(pais => pais.Id)
-            .PaginarAsync(paginacion);
+    protected override IQueryable<Pais> Filtrar(ListadoRequest filtro)
+    {
+        IQueryable<Pais> consulta = _context.Paises;
+
+        if (filtro.TextoNormalizado is string texto)
+            consulta = consulta.Where(pais => AppDbContext.SinTildes(pais.Nombre).Contains(texto));
+
+        return consulta;
+    }
+
+    protected override IOrderedQueryable<Pais> Ordenar(
+        IQueryable<Pais> consulta,
+        ListadoRequest filtro)
+        => consulta.OrdenarPor(pais => pais.Nombre, filtro.Descendente)
+            .ThenBy(pais => pais.Id);
+
+    public Task<bool> ExisteAsync(string nombre, int? idExcluido)
+        => _context.Paises.AnyAsync(pais =>
+            pais.Nombre.Trim().ToLower() == nombre.ToLower()
+            && pais.Id != idExcluido);
 
     public Task<List<Pais>> GetAllAsync()
         => _context.Paises.ToListAsync();

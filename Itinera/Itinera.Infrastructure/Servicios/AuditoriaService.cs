@@ -21,7 +21,7 @@ public sealed class AuditoriaService(
             tenantContext.EmpresaId,
             accion,
             entidad,
-            entidadId,
+            entidadId.ToString(),
             detalle);
 
         context.Set<RegistroAuditoria>().Add(registro);
