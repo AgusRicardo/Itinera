@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin, Subject, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
@@ -12,6 +12,7 @@ import {
   OpcionBuscable
 } from '../../shared/components/buscador-opciones/buscador-opciones.component';
 import { ToastrService } from '../../core/services/toastr.service';
+import { textoRequerido } from '../../core/utils/validadores';
 import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
 import { SelectorComponent } from '../../shared/components/selector/selector.component';
 
@@ -45,7 +46,7 @@ export class GruposComponent {
   protected readonly error = signal<string | null>(null);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    nombre: ['', Validators.required],
+    nombre: ['', textoRequerido],
     miembroId: [''],
     rolId: [0]
   });
@@ -114,20 +115,32 @@ export class GruposComponent {
     }));
   }
 
+  protected yaEsMiembro(): boolean {
+    const miembroId = this.formulario.controls.miembroId.value;
+
+    return Boolean(this.grupoSeleccionado()?.miembros.some(miembro => miembro.id === miembroId));
+  }
+
+  private actualizarGrupo(grupo: GrupoAdministracion): void {
+    this.grupoSeleccionado.set(grupo);
+    this.grupos.update(grupos => grupos.map(item => item.id === grupo.id ? grupo : item));
+  }
+
   protected agregarMiembro(): void {
     const grupo = this.grupoSeleccionado();
     const miembroId = this.formulario.controls.miembroId.value;
-    if (!grupo || !miembroId) {
+    if (!grupo || !miembroId || this.yaEsMiembro()) {
       return;
     }
 
     this.gruposService.agregarMiembro(grupo.id, miembroId).subscribe({
       next: () => {
-        this.grupoSeleccionado.set({
+        const nombre = this.usuarios().find(usuario => usuario.id === miembroId)?.nombre ?? '';
+        this.actualizarGrupo({
           ...grupo,
-          miembros: [...grupo.miembros, miembroId]
+          miembros: [...grupo.miembros, { id: miembroId, nombre }]
         });
-        this.cargarDatos();
+        this.formulario.controls.miembroId.reset();
         this.toastr.exito('Miembro agregado al grupo');
       }
     });
@@ -160,9 +173,9 @@ export class GruposComponent {
 
     this.gruposService.quitarMiembro(grupo.id, miembroId).subscribe({
       next: () => {
-        this.grupoSeleccionado.set({
+        this.actualizarGrupo({
           ...grupo,
-          miembros: grupo.miembros.filter(id => id !== miembroId)
+          miembros: grupo.miembros.filter(miembro => miembro.id !== miembroId)
         });
         this.toastr.exito('Miembro quitado del grupo');
       }
@@ -183,7 +196,7 @@ export class GruposComponent {
 
     this.gruposService.asignarRol(grupo.id, rolId).subscribe({
       next: () => {
-        this.grupoSeleccionado.set({
+        this.actualizarGrupo({
           ...grupo,
           roles: [...new Set([...grupo.roles, rol.nombre])]
         });
@@ -202,7 +215,7 @@ export class GruposComponent {
 
     this.gruposService.quitarRol(grupo.id, rol.id).subscribe({
       next: () => {
-        this.grupoSeleccionado.set({
+        this.actualizarGrupo({
           ...grupo,
           roles: grupo.roles.filter(nombre => nombre !== rolNombre)
         });

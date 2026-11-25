@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Itinera.Application.Common.Validaciones;
 
 namespace Itinera.Application.Empleados.Dtos;
 
@@ -15,6 +16,7 @@ public class ActualizarEmpleadoRequest
     [MaxLength(200, ErrorMessage = "Este campo admite hasta {1} caracteres.")]
     public string Email { get; set; } = string.Empty;
     [MaxLength(30, ErrorMessage = "Este campo admite hasta {1} caracteres.")]
+    [Telefono]
     public string Telefono { get; set; } = string.Empty;
 
     [Range(1, int.MaxValue)]

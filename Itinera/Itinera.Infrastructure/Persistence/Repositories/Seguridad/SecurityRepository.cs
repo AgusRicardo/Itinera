@@ -1,6 +1,7 @@
 using Itinera.Application.Common.Interfaces;
 using Itinera.Application.Common.Textos;
 using Itinera.Security.Application.Common;
+using Itinera.Security.Application.Dtos;
 using Itinera.Security.Application.Interfaces;
 using Itinera.Security.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -39,21 +40,19 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
         return roles.SelectMany(r => r.Permisos).Distinct().ToList();
     }
 
-    public async Task<(int? EmpresaId, string? EmpresaRazonSocial)> GetEmpresaDeUsuarioAsync(Guid usuarioId)
-    {
-        var empresa = await _context.UsuariosEmpleados
+    public Task<EmpresaDeUsuarioDto?> GetEmpresaDeUsuarioAsync(Guid usuarioId)
+        => _context.UsuariosEmpleados
+            .IgnoreQueryFilters([AppDbContext.FiltroEmpresaActiva])
             .Where(vinculo => vinculo.UsuarioId == usuarioId && vinculo.Activo)
-            .Select(vinculo => new
-            {
-                EmpresaId = (int?)vinculo.Empleado.EmpresaId,
-                EmpresaRazonSocial = vinculo.Empleado.Empresa.RazonSocial
-            })
+            .Select(vinculo => new EmpresaDeUsuarioDto(
+                vinculo.Empleado.EmpresaId,
+                vinculo.Empleado.Empresa.RazonSocial,
+                vinculo.Empleado.Empresa.Activo,
+                vinculo.Empleado.CargoId))
             .FirstOrDefaultAsync();
 
-        return empresa is null
-            ? (null, null)
-            : (empresa.EmpresaId, empresa.EmpresaRazonSocial);
-    }
+    public Task<bool> ExisteRolAsync(string nombre)
+        => _context.Roles.AnyAsync(rol => rol.Nombre.ToLower() == nombre.ToLower());
 
     public Task<List<Usuario>> BuscarUsuariosAsync(string texto)
     {
@@ -174,7 +173,9 @@ public class SecurityRepository(AppDbContext context, ITenantContext tenantConte
         => _context.Roles.Include(rol => rol.Permisos);
 
     private IQueryable<GrupoUsuarios> GruposConMiembros()
-        => _context.GruposUsuarios.Include(grupo => grupo.GrupoMiembros);
+        => _context.GruposUsuarios
+            .Include(grupo => grupo.GrupoMiembros)
+            .ThenInclude(miembro => miembro.Miembro);
 
     private async Task<List<Guid>> ObtenerComponentesDeRolAsync(Guid usuarioId)
     {

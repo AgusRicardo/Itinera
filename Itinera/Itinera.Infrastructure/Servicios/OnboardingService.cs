@@ -1,3 +1,4 @@
+using Itinera.Application.Empresas.Interfaces;
 using Itinera.Application.Onboarding.Dtos;
 using Itinera.Application.Onboarding.Interfaces;
 using Itinera.Domain.Empresa;
@@ -10,7 +11,7 @@ using EmpresaEntidad = Itinera.Domain.Empresa.Empresa;
 
 namespace Itinera.Infrastructure.Servicios;
 
-public sealed class OnboardingService(AppDbContext context) : IOnboardingService
+public sealed class OnboardingService(AppDbContext context, IEmpresaRepository empresaRepository) : IOnboardingService
 {
     private readonly AppDbContext _context = context;
 
@@ -18,6 +19,12 @@ public sealed class OnboardingService(AppDbContext context) : IOnboardingService
         RegistrarEmpresaRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (await empresaRepository.ExisteCuitAsync(request.CUIT, null))
+            throw new InvalidOperationException("Ya existe una empresa con ese CUIT.");
+
+        if (await _context.EmailRegistradoAsync(request.AdministradorEmail, cancellationToken))
+            throw new InvalidOperationException("El email ya está registrado.");
+
         await using var transaccion = await _context.Database.BeginTransactionAsync(cancellationToken);
 
         var (empresa, cargo) = await CrearEmpresaYCargoAsync(request, cancellationToken);

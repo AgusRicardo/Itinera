@@ -102,7 +102,7 @@ export class DestinosComponent {
   private async eliminar(destino: DestinoApi): Promise<void> {
     const confirmado = await this.confirmacion.confirmar({
       titulo: `¿Eliminar el destino ${destino.ciudadNombre}?`,
-      mensaje: 'Las propuestas que ya lo usan no cambian.',
+      mensaje: 'También dejan de aparecer sus actividades. Las propuestas que ya lo usan no cambian.',
       accion: 'Eliminar',
       peligro: true
     });

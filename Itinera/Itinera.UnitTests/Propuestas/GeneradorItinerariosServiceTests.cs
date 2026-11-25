@@ -136,6 +136,43 @@ public class GeneradorItinerariosServiceTests
             () => armador.ConstruirAsync(CrearPropuesta(conColiseo: false), 1, solicitadas));
     }
 
+    [Fact]
+    public async Task Armar_conserva_la_marca_de_la_IA_solo_en_lo_que_ya_recomendo()
+    {
+        var armador = new ArmadorItinerario(_actividades);
+        var propuesta = CrearPropuesta(conColiseo: false);
+        propuesta.GuardarItinerario(1, string.Empty, await armador.ConstruirAsync(propuesta, 1,
+            [new() { ActividadId = 1, FechaHoraInicio = Fecha.ToDateTime(new TimeOnly(9, 0)), RecomendadaPorIA = true }]));
+
+        var actividades = await armador.ConstruirAsync(propuesta, 1,
+        [
+            new() { ActividadId = 1, FechaHoraInicio = Fecha.ToDateTime(new TimeOnly(9, 0)) },
+            new() { ActividadId = 2, FechaHoraInicio = Fecha.ToDateTime(new TimeOnly(12, 0)) }
+        ]);
+
+        Assert.Equal([true, false], actividades.Select(item => item.RecomendadaPorIA));
+    }
+
+    [Theory]
+    [InlineData(9, 0, true)]
+    [InlineData(9, 59, true)]
+    [InlineData(10, 0, false)]
+    public async Task Armar_rechaza_actividades_superpuestas(int hora, int minuto, bool seSuperponen)
+    {
+        var armador = new ArmadorItinerario(_actividades);
+        ActividadItinerarioRequest[] solicitadas =
+        [
+            new() { ActividadId = 1, FechaHoraInicio = Fecha.ToDateTime(new TimeOnly(9, 0)) },
+            new() { ActividadId = 2, FechaHoraInicio = Fecha.ToDateTime(new TimeOnly(hora, minuto)) }
+        ];
+        var construir = () => armador.ConstruirAsync(CrearPropuesta(conColiseo: true), 1, solicitadas);
+
+        if (seSuperponen)
+            Assert.Contains("se superponen", (await Assert.ThrowsAsync<ArgumentException>(construir)).Message);
+        else
+            Assert.Equal(2, (await construir()).Count);
+    }
+
     private GeneradorItinerariosService CrearServicio(
         Propuesta propuesta,
         PlanificacionItinerarioOptions? opciones = null)

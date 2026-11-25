@@ -91,7 +91,7 @@ public sealed class PropuestaMapper(
                     Observaciones = item.Observaciones ?? string.Empty,
                     PedidaPorCliente = propuesta.Actividades
                         .Any(pedida => pedida.ActividadId == item.ActividadId),
-                    GeneradaPorIA = item.Actividad.GeneradoPorIA
+                    GeneradaPorIA = item.RecomendadaPorIA
                 })
                 .ToList()
         };

@@ -1,3 +1,4 @@
+using Itinera.Api.Services.Facturacion;
 using Itinera.Domain.Common;
 using Itinera.Domain.Empresa;
 using Itinera.Domain.Facturacion;
@@ -57,6 +58,20 @@ public class FacturaTests
 
         Assert.Throws<InvalidOperationException>(() => factura.Anular());
     }
+
+    [Fact]
+    public void Una_factura_anulada_no_tiene_saldo_pendiente()
+    {
+        var factura = CrearFactura();
+
+        factura.Anular();
+
+        Assert.Equal((0m, 1000m), (factura.SaldoPendiente, factura.ImporteTotal));
+    }
+
+    [Fact]
+    public void El_pdf_muestra_los_importes_en_dolares()
+        => Assert.Equal("USD 1.234,50", GeneradorPdfFactura.Moneda(1234.5m));
 
     [Fact]
     public void No_debe_crearse_con_vencimiento_anterior_a_hoy()

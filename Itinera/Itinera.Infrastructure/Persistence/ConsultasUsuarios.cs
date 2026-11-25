@@ -1,5 +1,6 @@
 using Itinera.Application.Common.Interfaces;
 using Itinera.Security.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Itinera.Infrastructure.Persistence;
 
@@ -12,4 +13,10 @@ internal static class ConsultasUsuarios
                 vinculo.UsuarioId == usuario.Id
                 && vinculo.Activo
                 && vinculo.Empleado.EmpresaId == tenant.EmpresaId)));
+
+    public static Task<bool> EmailRegistradoAsync(
+        this AppDbContext context,
+        string email,
+        CancellationToken cancellationToken = default)
+        => context.Usuarios.AnyAsync(usuario => usuario.Email.ToLower() == email.Trim().ToLower(), cancellationToken);
 }

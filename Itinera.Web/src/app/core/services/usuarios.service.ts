@@ -13,6 +13,8 @@ export interface UsuarioAdministracion {
   roles: string[];
   empresaId?: number;
   empresaRazonSocial?: string;
+  empresaActiva?: boolean;
+  cargoId?: number;
 }
 
 export interface RolAdministracion {

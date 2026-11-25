@@ -10,6 +10,7 @@ public interface IEmpresaRepository : IPaginadoRepository<Empresa, ListadoActiva
     Task<Empresa?> GetByIdAsync(int id);
     Task<Empresa?> GetByIdConInactivasAsync(int id);
     Task<List<Empresa>> GetAllConInactivasAsync();
+    Task<bool> ExisteCuitAsync(string cuit, int? idExcluido);
     Task UpdateAsync(Empresa empresa);
     Task DeleteAsync(Empresa empresa);
 }

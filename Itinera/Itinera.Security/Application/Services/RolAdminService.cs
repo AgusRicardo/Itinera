@@ -27,7 +27,11 @@ public class RolAdminService(ISecurityRepository repository) : IRolAdminService
 
     public async Task<RolAdminResponse> CrearAsync(CrearRolRequest request, ClaimsPrincipal usuario)
     {
-        var rol = new Rol(request.Nombre, request.Descripcion);
+        var nombre = request.Nombre.Trim();
+        if (await repository.ExisteRolAsync(nombre))
+            throw new InvalidOperationException("Ya existe un rol con ese nombre.");
+
+        var rol = new Rol(nombre, request.Descripcion.Trim());
         var permisos = await repository.GetPermisosAsync();
 
         foreach (var codigo in request.Permisos)

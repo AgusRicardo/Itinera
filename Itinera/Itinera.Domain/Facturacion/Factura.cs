@@ -78,6 +78,7 @@ public class Factura
         if (Estado == EstadoFactura.Pagada)
             throw new InvalidOperationException("No se puede anular una factura pagada.");
 
+        SaldoPendiente = 0;
         CambiarEstado(EstadoFactura.Anulada);
     }
 

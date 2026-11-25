@@ -46,7 +46,7 @@ public class AuthenticationService : IAuthenticationService
             usuario.Email,
             rolesNombres,
             permisosCodigos,
-            empresa.EmpresaRazonSocial ?? string.Empty);
+            empresa is { Activa: true } ? empresa.RazonSocial : string.Empty);
     }
 
     private string GenerarToken(Usuario usuario, List<string> roles, List<string> permisos)

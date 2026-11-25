@@ -4,10 +4,15 @@ import { Observable } from 'rxjs';
 
 import { RutasApiService } from './rutas-api.service';
 
+export interface MiembroGrupo {
+  id: string;
+  nombre: string;
+}
+
 export interface GrupoAdministracion {
   id: string;
   nombre: string;
-  miembros: string[];
+  miembros: MiembroGrupo[];
   roles: string[];
 }
 

@@ -31,6 +31,20 @@ public class EmpresaServiceTests
     }
 
     [Fact]
+    public async Task No_permite_dos_empresas_con_el_mismo_CUIT()
+    {
+        var servicio = new EmpresaService(new EmpresaRepositoryFake());
+        var creada = await servicio.CrearAsync(new CrearEmpresaRequest { RazonSocial = "Viajes SA", CUIT = "30-12345678-9" });
+        await servicio.CrearAsync(new CrearEmpresaRequest { RazonSocial = "Otra SA", CUIT = "30-98765432-1" });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            servicio.CrearAsync(new CrearEmpresaRequest { RazonSocial = "Copia SA", CUIT = "30123456789" }));
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            servicio.ActualizarAsync(creada.Id, new ActualizarEmpresaRequest { RazonSocial = "Viajes SA", CUIT = "30-98765432-1" }));
+        await servicio.ActualizarAsync(creada.Id, new ActualizarEmpresaRequest { RazonSocial = "Viajes SRL", CUIT = "30-12345678-9" });
+    }
+
+    [Fact]
     public async Task ObtenerPorIdAsync_de_una_empresa_inexistente_lanza_excepcion()
     {
         var servicio = new EmpresaService(new EmpresaRepositoryFake());
@@ -113,6 +127,9 @@ public class EmpresaServiceTests
 
         public Task<List<EmpresaEntidad>> GetAllConInactivasAsync()
             => Task.FromResult(Empresas.ToList());
+
+        public Task<bool> ExisteCuitAsync(string cuit, int? idExcluido)
+            => Task.FromResult(Empresas.Any(e => e.CUIT.Replace("-", "") == cuit.Replace("-", "") && e.Id != idExcluido));
 
         public Task UpdateAsync(EmpresaEntidad empresa) => Task.CompletedTask;
 

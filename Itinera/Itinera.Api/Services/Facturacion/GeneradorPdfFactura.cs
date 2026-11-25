@@ -1,3 +1,4 @@
+using System.Globalization;
 using Itinera.Domain.Common;
 using Itinera.Application.Facturacion.Dtos;
 using QuestPDF.Fluent;
@@ -8,6 +9,13 @@ namespace Itinera.Api.Services.Facturacion;
 
 public sealed class GeneradorPdfFactura
 {
+    // El contenedor puede correr sin datos de cultura, así que el formato no depende del servidor.
+    private static readonly NumberFormatInfo Formato = new()
+    {
+        NumberDecimalSeparator = ",",
+        NumberGroupSeparator = "."
+    };
+
     public byte[] Generar(FacturaResponse factura)
     {
         QuestPDF.Settings.License = LicenseType.Community;
@@ -66,18 +74,18 @@ public sealed class GeneradorPdfFactura
                         foreach (var detalle in factura.Detalles)
                         {
                             tabla.Cell().Element(EstiloCelda).Text(detalle.Porcentaje is decimal porcentaje
-                                ? $"{detalle.Descripcion} ({porcentaje:0.##}% del costo del viaje)"
+                                ? $"{detalle.Descripcion} ({porcentaje.ToString("0.##", Formato)}% del costo del viaje)"
                                 : detalle.Descripcion);
-                            tabla.Cell().Element(EstiloCelda).AlignRight().Text(detalle.Cantidad.ToString("N2"));
-                            tabla.Cell().Element(EstiloCelda).AlignRight().Text(detalle.PrecioUnitario.ToString("C2"));
-                            tabla.Cell().Element(EstiloCelda).AlignRight().Text(detalle.SubTotal.ToString("C2"));
+                            tabla.Cell().Element(EstiloCelda).AlignRight().Text(detalle.Cantidad.ToString("N2", Formato));
+                            tabla.Cell().Element(EstiloCelda).AlignRight().Text(Moneda(detalle.PrecioUnitario));
+                            tabla.Cell().Element(EstiloCelda).AlignRight().Text(Moneda(detalle.SubTotal));
                         }
                     });
 
                     columna.Item().AlignRight().Column(totales =>
                     {
-                        totales.Item().Text($"Total: {factura.ImporteTotal:C2}").Bold().FontSize(13);
-                        totales.Item().Text($"Saldo pendiente: {factura.SaldoPendiente:C2}");
+                        totales.Item().Text($"Total: {Moneda(factura.ImporteTotal)}").Bold().FontSize(13);
+                        totales.Item().Text($"Saldo pendiente: {Moneda(factura.SaldoPendiente)}");
                     });
 
                     columna.Item().Text("Pagos registrados").Bold().FontSize(12);
@@ -90,7 +98,7 @@ public sealed class GeneradorPdfFactura
                         foreach (var pago in factura.Pagos)
                         {
                             columna.Item().Text(
-                                $"{pago.Fecha:dd/MM/yyyy} · {pago.MedioPago} · {pago.Importe:C2}");
+                                $"{pago.Fecha:dd/MM/yyyy} · {pago.MedioPago} · {Moneda(pago.Importe)}");
                         }
                     }
                 });
@@ -99,6 +107,9 @@ public sealed class GeneradorPdfFactura
             });
         }).GeneratePdf();
     }
+
+    public static string Moneda(decimal importe)
+        => $"USD {importe.ToString("N2", Formato)}";
 
     private static IContainer EstiloEncabezado(IContainer contenedor)
         => contenedor

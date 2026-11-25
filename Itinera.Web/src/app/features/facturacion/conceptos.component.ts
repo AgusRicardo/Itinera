@@ -11,6 +11,7 @@ import { AccionMenu, MenuAccionesComponent } from '../../shared/components/menu-
 import { MenuPrincipalComponent } from '../../shared/components/menu-principal/menu-principal.component';
 import { MonedaPipe } from '../../shared/pipes/moneda.pipe';
 import { ConfirmacionService } from '../../core/services/confirmacion.service';
+import { textoRequerido } from '../../core/utils/validadores';
 import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
 import { FiltrosGrillaComponent } from '../../shared/components/filtros-grilla/filtros-grilla.component';
 import { TablaComponent } from '../../shared/components/tabla/tabla.component';
@@ -46,7 +47,7 @@ export class ConceptosComponent {
   protected readonly puedeGestionar = this.autenticacion.tienePermiso('conceptos.gestionar');
 
   protected readonly formulario = this.formularioConstructor.nonNullable.group({
-    descripcion: ['', [Validators.required, Validators.maxLength(300)]],
+    descripcion: ['', [textoRequerido, Validators.maxLength(300)]],
     esPorcentaje: [false],
     precio: [0, [Validators.required, Validators.min(0)]],
     porcentaje: [10, [Validators.required, Validators.min(0.01), Validators.max(100)]]
@@ -78,7 +79,7 @@ export class ConceptosComponent {
 
   protected guardar(): void {
     const { descripcion, esPorcentaje, precio, porcentaje } = this.formulario.getRawValue();
-    if (this.formulario.invalid || !descripcion.trim()) {
+    if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       return;
     }

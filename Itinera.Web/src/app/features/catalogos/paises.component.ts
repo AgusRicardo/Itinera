@@ -1,10 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
 import { Pais, PaisesService } from '../../core/services/paises.service';
 import { ConfirmacionService } from '../../core/services/confirmacion.service';
 import { ToastrService } from '../../core/services/toastr.service';
 import { GrillaPaginada } from '../../core/utils/grilla-paginada';
+import { textoRequerido } from '../../core/utils/validadores';
 import { ColumnaOrdenableComponent } from '../../shared/components/columna-ordenable/columna-ordenable.component';
 import { EncabezadoComponent } from '../../shared/components/encabezado/encabezado.component';
 import { FiltrosGrillaComponent } from '../../shared/components/filtros-grilla/filtros-grilla.component';
@@ -41,7 +42,7 @@ export class PaisesComponent {
   protected readonly guardando = signal(false);
 
   protected readonly formulario = this.constructorFormulario.nonNullable.group({
-    nombre: ['', Validators.required]
+    nombre: ['', textoRequerido]
   });
 
   protected acciones(pais: Pais): AccionMenu[] {
@@ -64,7 +65,7 @@ export class PaisesComponent {
   }
 
   protected guardar(): void {
-    if (this.formulario.invalid || !this.formulario.controls.nombre.value.trim()) {
+    if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       return;
     }
@@ -90,7 +91,7 @@ export class PaisesComponent {
   private async eliminar(pais: Pais): Promise<void> {
     const confirmado = await this.confirmacion.confirmar({
       titulo: `¿Eliminar ${pais.nombre}?`,
-      mensaje: 'Las propuestas que ya lo usan no cambian.',
+      mensaje: 'También dejan de aparecer sus ciudades, destinos y actividades. Las propuestas que ya lo usan no cambian.',
       accion: 'Eliminar',
       peligro: true
     });

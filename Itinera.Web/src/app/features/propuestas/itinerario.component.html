@@ -11,7 +11,7 @@
             <h1 class="font-itinera-display text-3xl tracking-tight">Itinerario de {{ destinoActual.descripcion }}</h1>
             <p class="mt-1.5 text-sm text-itinera-muted">
               {{ destinoActual.fechaLlegada | date:'dd/MM/yyyy' }} – {{ destinoActual.fechaPartida | date:'dd/MM/yyyy' }}
-              · {{ propuestaActual.cantidadViajeros }} viajeros
+              · {{ propuestaActual.cantidadViajeros }} {{ propuestaActual.cantidadViajeros === 1 ? 'viajero' : 'viajeros' }}
               · Intensidad {{ propuestaActual.intensidadViaje.toLowerCase() }}
               @if (destinoActual.itinerario; as itinerario) {
                 · {{ itinerario.actividades.length }} {{ itinerario.actividades.length === 1 ? 'actividad' : 'actividades' }} · {{ itinerario.costo | moneda }}

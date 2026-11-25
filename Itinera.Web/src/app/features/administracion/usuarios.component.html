@@ -36,7 +36,7 @@
           <tr>
             <td class="font-medium">{{ usuario.nombre }}</td>
             <td>{{ usuario.email }}</td>
-            <td>{{ usuario.empresaRazonSocial || 'Sin empresa' }}</td>
+            <td>{{ usuario.empresaRazonSocial ? usuario.empresaRazonSocial + (usuario.empresaActiva ? '' : ' (inactiva)') : 'Sin empresa' }}</td>
             <td>
               <div class="flex flex-wrap gap-1">
                 @for (rol of usuario.roles; track rol) {
@@ -73,7 +73,7 @@
           <label class="text-sm font-medium">Nombre <span class="text-red-600">*</span><input formControlName="nombre" maxlength="100" placeholder="Nombre" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
           <label class="text-sm font-medium">Apellido <span class="text-red-600">*</span><input formControlName="apellido" maxlength="100" placeholder="Apellido" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
           <label class="text-sm font-medium sm:col-span-2">Email <span class="text-red-600">*</span><input formControlName="email" maxlength="200" type="email" placeholder="Email" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
-          <label class="text-sm font-medium">Teléfono<input formControlName="telefono" maxlength="30" placeholder="Teléfono" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
+          <label class="text-sm font-medium">Teléfono<input formControlName="telefono" maxlength="30" placeholder="Teléfono" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" />@if (formulario.controls.telefono.invalid) { <span class="mt-1 block text-xs font-normal text-red-700">Ingresá un teléfono válido, con al menos 6 números.</span> }</label>
            <div>
               <label class="text-sm font-medium">Contraseña inicial <span class="text-red-600">*</span><input formControlName="password" type="password" placeholder="Contraseña inicial" class="mt-1.5 w-full rounded-lg border bg-itinera-secondary px-3 py-2.5 text-sm" /></label>
              @if (formulario.controls.password.touched && formulario.controls.password.hasError('minlength')) {
